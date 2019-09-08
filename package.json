@@ -1,0 +1,8 @@
+{
+    "name": "Murder-Bot",
+    "version": "1.0.0",
+    "description": "My First Discord Bot",
+    "main": "bot.js",
+    "author": "Alex Kersjes",
+    "dependencies": {}
+}
