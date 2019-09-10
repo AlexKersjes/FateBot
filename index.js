@@ -23,19 +23,21 @@ client.on('message', message =>{
     if (!message.content.startsWith(prefix) || message.author.bot) return;
     {
         const args = message.content.slice(prefix.length).split(' +');
-        const command = args.shift().toLowerCase();
+        const commandName = args.shift().toLowerCase();
         //Admin Commands
         if (message.member.hasPermission("ADMINISTRATOR"))
         {
             
         }
         
-        //Channel specific commands
-        if (!client.commands.has(command)) return;
+        //Dynamic Commands
+        if (!client.commands.has(commandName)) return;
+
+        const command = client.commands.get(commandName);
 
         try 
         {
-	        client.commands.get(command).execute(message, args);
+	        command.execute(message,args);
         } 
         catch (error) 
         {

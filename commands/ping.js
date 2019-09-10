@@ -1,7 +1,16 @@
+const fs = require('fs');
 module.exports = {
 	name: 'ping',
-	description: 'Ping!',
+    description: 'Ping!',
 	execute(message, args) {
-		message.channel.send('Pong.');
+        
+        var responses = ['Pong.','Pong!','pong',];
+        if(message.channel.id === '610083558643466290')
+        {
+            message.channel.send(responses[Math.floor(Math.random()*responses.length)]);
+        }
+
+
+
 	},
 };
