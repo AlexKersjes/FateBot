@@ -5,6 +5,9 @@ const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
+const rawdata = fs.readFileSync('channelId.json');
+client.channelDictionary = JSON.parse(rawdata);
+console.log(client.channelDictionary);
 
 for (const file of commandFiles)
 {
@@ -26,6 +29,7 @@ client.on('message', message =>
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 	{
 		const args = message.content.slice(prefix.length).split(/ +/);
+		console.log(args[0]);
 		const commandName = args.shift().toLowerCase();
 
 		// Dynamic Commands
