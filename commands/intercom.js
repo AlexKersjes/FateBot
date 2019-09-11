@@ -2,11 +2,12 @@ module.exports = {
 	name: 'intercom',
 	description: 'A creacky intercom. Leave a message, responsibly.',
 	channels: ['lobby', 'dmchannel'],
+	cooldown: 60,
 	execute(message, args, client)
 	{
-		const responses = ['\'s voice sounds over the intercom', '\'s voice creaks on the intercom',
-			'  says', ' can be heard on the intercom, saying', ' is on the intercom'];
-		let newstring = `*<@${message.member.id}>${responses[Math.floor(Math.random() * responses.length)]}:* \n`;
+		const responses = ['\'s voice sounds over the intercom :', '\'s voice creaks on the intercom :',
+			' can be heard on the intercom, saying', ' is on the intercom.'];
+		let newstring = `*<@${message.member.id}>${responses[Math.floor(Math.random() * responses.length)]}*\n`;
 		newstring += `"${message.cleanContent.split('.intercom ')[1]}"`;
 
 		for (const channel of client.channels)

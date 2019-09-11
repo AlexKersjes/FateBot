@@ -18,6 +18,8 @@ for (const file of commandFiles)
 	client.commands.set(command.name, command);
 }
 
+const cooldowns = new Discord.Collection();
+
 client.once('ready', ()=>
 {
 	console.log('Ready');
@@ -46,7 +48,7 @@ client.on('message', message =>
 			}
 
 			// Check Channel requirement
-			if (!command.channels.includes(getKeyByValue(client.channelDictionary, message.channel.id)))
+			if (command.channels && !command.channels.includes(getKeyByValue(client.channelDictionary, message.channel.id)))
 			{
 				return message.react('❌');
 			}
@@ -56,8 +58,56 @@ client.on('message', message =>
 			{
 				return message.channel.send('...?');
 			}
+
+			// Check Cooldown
+			if(command.cooldown && !message.member.hasPermission('ADMINISTRATOR'))
+			{
+				if (!cooldowns.has(command.name))
+				{
+					cooldowns.set(command.name, new Discord.Collection());
+				}
+
+				const now = Date.now();
+				const timestamps = cooldowns.get(command.name);
+				const cooldownAmount = (command.cooldown) * 1000;
+
+				if (timestamps.has(message.author.id))
+				{
+					const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+					if (now < expirationTime)
+					{
+						const timeLeft = (expirationTime - now) / 1000;
+						let emoji;
+						switch (12 - Math.floor(12 * timeLeft / command.cooldown))
+						{
+						case 1: emoji = '🕐'; break;
+						case 2: emoji = '🕑'; break;
+						case 3: emoji = '🕒'; break;
+						case 4: emoji = '🕓'; break;
+						case 5: emoji = '🕔'; break;
+						case 6: emoji = '🕕'; break;
+						case 7: emoji = '🕖'; break;
+						case 8: emoji = '🕗'; break;
+						case 9: emoji = '🕘'; break;
+						case 10: emoji = '🕙'; break;
+						case 11: emoji = '🕚'; break;
+						case 12: emoji = '🕛'; break;
+						}
+						return message.react(emoji);
+						// return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+					}
+				}
+
+				timestamps.set(message.author.id, now);
+				setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+			}
+
+
 		}
 		// Command Execution
+
+
 		try
 		{
 			command.execute(message, args, client);
@@ -72,9 +122,9 @@ client.on('message', message =>
 
 });
 
-client.login(token);
-
 function getKeyByValue(object, value)
 {
 	return Object.keys(object).find(key => object[key] === value);
 }
+client.login(token);
+
