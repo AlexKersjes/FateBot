@@ -37,19 +37,26 @@ client.on('message', message =>
 
 		const command = client.commands.get(commandName);
 
+		// Several permission checks defined by command properties
+		{
 		// Check Admin permission
-		if(command.admin && !message.member.hasPermission('ADMINISTRATOR'))
-		{
-			return;
+			if(command.admin && !message.member.hasPermission('ADMINISTRATOR'))
+			{
+				return;
+			}
+
+			// Check Channel requirement
+			if (!command.channels.includes(getKeyByValue(client.channelDictionary, message.channel.id)))
+			{
+				return message.react('❌');
+			}
+
+			// Check Args requirement
+			if(command.args && !args.length)
+			{
+				return message.channel.send('...?');
+			}
 		}
-
-		// Check Args requirement
-		if(command.args && !args.length)
-		{
-			return message.channel.send('...?');
-		}
-
-
 		// Command Execution
 		try
 		{
@@ -66,3 +73,8 @@ client.on('message', message =>
 });
 
 client.login(token);
+
+function getKeyByValue(object, value)
+{
+	return Object.keys(object).find(key => object[key] === value);
+}
