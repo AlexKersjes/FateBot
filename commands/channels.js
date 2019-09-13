@@ -31,18 +31,27 @@ module.exports = {
 			console.log(client.channelDictionary);
 			break;
 		case 'deregister':
+			if(args[1] === 'all')
+			{
+				for(const channel in client.channelDictionary)
+				{
+					delete client.channelDictionary[channel];
+				}
+				return message.channel.send('All channels deregistered');
+			}
 			delete client.channelDictionary[args[1]];
 			message.channel.send(`${args[1]} deregistered`);
 			break;
 		case 'save' :
 			const data = JSON.stringify(client.channelDictionary);
-			fs.writeFileSync('./channelId.json', data);
+			fs.writeFileSync('./data/channelId.json', data);
 			message.channel.send('Channels saved!');
 			break;
 		case 'load':
-			const rawdata = fs.readFileSync('channelId.json');
+			const rawdata = fs.readFileSync('./data/channelId.json');
 			client.channelDictionary = JSON.parse(rawdata);
 			console.log(client.channelDictionary);
+			message.channel.send('Channels loaded!');
 			break;
 		}
 

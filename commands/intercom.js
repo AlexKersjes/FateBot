@@ -3,6 +3,7 @@ module.exports = {
 	description: 'A creacky intercom. Leave a message, responsibly.',
 	channels: ['lobby', 'dmchannel'],
 	cooldown: 60,
+	args: true,
 	execute(message, args, client)
 	{
 		const responses = ['\'s voice sounds over the intercom :', '\'s voice creaks on the intercom :',

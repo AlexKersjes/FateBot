@@ -7,7 +7,10 @@ module.exports = {
 		let newstring = '*You find these channels on the list:* \n';
 		for(const p in client.channelDictionary)
 		{
-			newstring += `${p} : <#${client.channelDictionary[p]}>\n`;
+			if (client.commands.get('move').channels.includes(p))
+			{
+				newstring += `<#${client.channelDictionary[p]}> : ${p}\n`;
+			}
 		}
 		message.channel.send(newstring);
 	},

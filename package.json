@@ -19,5 +19,9 @@
   "dependencies": {
     "discord.js": "^11.5.1",
     "eslint": "^6.3.0"
+  },
+  "pkg": {
+    "scripts": "data/*.js",
+    "assets": "commands/*"
   }
 }
