@@ -13,7 +13,7 @@ async function wipe(message, args)
 	let fetched;
 	if(args[0])
 	{
-		fetched = message.channel.fetchMessages({ limit: args[0] })
+		fetched = message.channel.fetchMessages({ limit: args[0] + 1 })
 			.then(unfiltered =>
 			{
 				const notPinned = unfiltered.filter(fetchedMsg => !fetchedMsg.pinned);

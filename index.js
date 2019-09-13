@@ -37,7 +37,7 @@ client.on('message', message =>
 		// Dynamic Commands
 		if (!client.commands.has(commandName)) return;
 
-		const command = client.commands.get(commandName);
+		const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
 		// Several permission checks defined by command properties
 		{
@@ -50,13 +50,23 @@ client.on('message', message =>
 			// Check Channel requirement
 			if (command.channels && !command.channels.includes(getKeyByValue(client.channelDictionary, message.channel.id)))
 			{
-				return message.react('❌');
+				if (command.visibleReject)
+				{ message.react('❌'); }
+				return;
 			}
 
 			// Check Args requirement
 			if(command.args && !args.length)
 			{
 				return message.channel.send('...?');
+			}
+
+			// Check if command is disabled
+			if(command.disabled)
+			{
+				if (command.visibleReject)
+				{ message.react('❌'); }
+				return;
 			}
 
 			// Check Cooldown
@@ -127,4 +137,3 @@ function getKeyByValue(object, value)
 	return Object.keys(object).find(key => object[key] === value);
 }
 client.login(token);
-

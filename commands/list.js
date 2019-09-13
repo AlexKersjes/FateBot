@@ -1,7 +1,8 @@
 module.exports = {
 	name: 'list',
-	description: 'a simple list',
+	description: 'A simple list pinned in the lobby.',
 	channels: ['lobby'],
+	visibleReject: true,
 	execute(message, args, client)
 	{
 		let newstring = '*You find these channels on the list:* \n';
