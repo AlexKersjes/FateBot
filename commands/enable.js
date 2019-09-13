@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'enable',
-	description: 'enable a command',
+	description: 'Enable a command.',
 	admin: 'true',
 	args: true,
 	execute(message, args, client)

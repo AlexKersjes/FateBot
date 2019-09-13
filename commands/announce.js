@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'announce',
-	description: 'The crow speaks. announce <channel> <markup>(optional) /<your message> ',
+	description: 'The crow speaks. .announce <channel mention> <markup eg. ** >(optional) /<your message> ',
 	admin: 'true',
 	execute(message, args, client)
 	{

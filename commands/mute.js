@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'mute',
-	description: 'denies speaking permissions',
+	description: 'Denies speaking permissions.',
 	admin: true,
 	execute(message, args, client)
 	{

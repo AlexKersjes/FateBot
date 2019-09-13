@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'wipe',
-	description: 'wipe a channel',
+	description: 'Wipe a channel (.wipe) or a specific amount of messages (.wipe x).',
 	admin: 'true',
 	execute(message, args, client)
 	{

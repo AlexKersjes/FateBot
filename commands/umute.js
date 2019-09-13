@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'unmute',
-	description: 'regrants speaking permissions',
+	description: 'Grants speaking permissions.',
 	admin: true,
 	execute(message, args, client)
 	{

@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'disable',
-	description: 'disable a command',
+	description: 'Disable a command.',
 	admin: 'true',
 	args: true,
 	execute(message, args, client)
