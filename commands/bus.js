@@ -1,3 +1,4 @@
+const tools = require ('./tools');
 module.exports = {
 	name: 'bus',
 	description: 'Take the bus to town. If you\'re already on the bus, go back instead.',
@@ -8,23 +9,12 @@ module.exports = {
 	{
 		if (message.channel.id === client.channelDictionary['bus'])
 		{
-			return move(message, 'lobby', client);
+			return tools.move(message, 'lobby', client);
 		}
 
-		move(message, 'bus', client);
+		tools.move(message, client, 'bus');
 
 		message.channel.send(`${message.author.username} is taking the bus to town.`);
 
 	},
 };
-
-function move(message, target, client)
-{
-	message.channel.permissionOverwrites.get(message.author.id).delete();
-	client.channels.get(client.channelDictionary[target])
-		.overwritePermissions(message.author, {
-			VIEW_CHANNEL: true,
-			SEND_MESSAGES: true,
-			// READ_MESSAGE_HISTORY: true,
-		});
-}

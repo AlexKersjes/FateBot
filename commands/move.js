@@ -1,3 +1,4 @@
+const tools = require ('./tools');
 module.exports = {
 	name: 'move',
 	description: 'Allows a player to move from one place to another.',
@@ -15,38 +16,15 @@ module.exports = {
 
 		if(message.member.hasPermission('ADMINISTRATOR'))
 		{
-			for (const channel of client.channels)
-			{
-				if (client.channelDictionary[args[0]] == channel[0])
-				{
-					const target = message.mentions.members.first();
-					message.channel.send(`${target} was moved to ${args[0]}.`);
-					move(message, target, channel);
-				}
-			}
+
+			const target = message.mentions.members.first();
+			tools.move(message, client, args[0], target);
+			return message.channel.send(`${target} was moved to ${args[0]}.`);
+
 		}
 
-		for (const channel of client.channels)
-		{
-			if (client.channelDictionary[args[0]] == channel[0])
-			{
-				message.channel.send(`${message.author.username} moved to ${args[0]}.`);
-				move(message, message.author, channel);
-			}
-		}
+		tools.move(message, client, args[0]);
+		return message.channel.send(`${message.author.username} moved to ${args[0]}.`);
 
 	},
 };
-
-function move(message, target, channel)
-{
-	message.channel.permissionOverwrites.get(target.user.id).delete();
-
-	channel[1]
-		.overwritePermissions(target, {
-			VIEW_CHANNEL: true,
-			SEND_MESSAGES: true,
-			// READ_MESSAGE_HISTORY: true,
-		});
-	return message.delete();
-}

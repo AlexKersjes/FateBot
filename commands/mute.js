@@ -4,12 +4,13 @@ module.exports = {
 	admin: true,
 	execute(message, args, client)
 	{
-		message.mentions.channels.first()
+		const channel = message.mentions.channels.first() || message.channel;
+		channel
 			.overwritePermissions(message.mentions.members.first(), {
 				VIEW_CHANNEL: true,
 				SEND_MESSAGES: false,
-			// READ_MESSAGE_HISTORY: true,
-			});
 
+			});
+		channel.send('Shh.');
 	},
 };
