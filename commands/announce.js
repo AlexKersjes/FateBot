@@ -5,9 +5,16 @@ module.exports = {
 	execute(message, args, client)
 	{
 		let markup = args[1];
-		if(args[1].charAt(0) == '/')
+		if(!args[2].includes('/'))
 		{
-			markup = '*';
+			if(args[1].charAt(0) == '/')
+			{
+				markup = '*';
+			}
+			else
+			{
+				return message.send('Incorrect syntax');
+			}
 		}
 		client.channels.get(message.mentions.channels.first().id).send(`${markup}${message.cleanContent.split('/')[1]}${markup}`);
 	},

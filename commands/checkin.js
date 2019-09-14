@@ -21,11 +21,11 @@ async function checkin(message, args, client)
 	let description = descriptions[Math.floor(Math.random() * descriptions.length)];
 	description += '\n\n*Here you may rest, and collect your thoughts. Perhaps keep a notebook, if you feel so inclined.*';
 	channel.setTopic(description)
-		.then(updated => console.log(`Channel's new topic is ${updated.topic}`))
+		.then(updated => console.log(`Channel ${updated.name} was created.`))
 		.catch(console.error);
 	for (const member of message.mentions.members)
 	{
-		channel.overwritePermissions(member, {
+		channel.overwritePermissions(member[1], {
 			VIEW_CHANNEL: true,
 			SEND_MESSAGES: true,
 			// READ_MESSAGE_HISTORY: true,

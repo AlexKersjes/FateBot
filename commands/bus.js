@@ -1,4 +1,4 @@
-const tools = require ('./tools');
+const tools = require ('../tools');
 module.exports = {
 	name: 'bus',
 	description: 'Take the bus to town. If you\'re already on the bus, go back instead.',

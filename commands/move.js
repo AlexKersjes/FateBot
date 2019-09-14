@@ -1,4 +1,4 @@
-const tools = require ('./tools');
+const tools = require ('../tools');
 module.exports = {
 	name: 'move',
 	description: 'Allows a player to move from one place to another.',
