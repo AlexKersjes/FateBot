@@ -3,9 +3,9 @@ const Discord = require('discord.js');
 const { prefix, token } = require('./data/config.json');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync('app/commands').filter(file => file.endsWith('.js'));
 
-const rawdata = fs.readFileSync('./data/channelId.json');
+const rawdata = fs.readFileSync('app/data/channelId.json');
 client.channelDictionary = JSON.parse(rawdata);
 console.log(client.channelDictionary);
 

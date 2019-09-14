@@ -4,6 +4,7 @@ module.exports = {
 	description: 'Modifies json file where channel ids are stored. Commands are ls, lsall, register, deregister, save, load.',
 	admin: true,
 	args: true,
+	aliases: ['channels'],
 	execute(message, args, client)
 	{
 		let newstring;
