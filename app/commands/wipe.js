@@ -1,3 +1,4 @@
+const Discord = require('discord.js');
 module.exports = {
 	name: 'wipe',
 	description: 'Wipe a channel (.wipe) or a specific amount of messages (.wipe x).',
@@ -7,7 +8,8 @@ module.exports = {
 		{
 			if(args[0] === 'cooldowns')
 			{
-				return delete client.cooldowns;
+				client.cooldowns = new Discord.Collection();
+				message.channel.send('Cooldowns wiped.');
 			}
 
 			let fetched;

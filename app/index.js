@@ -72,7 +72,7 @@ client.on('message', message =>
 			// Check Cooldown
 			if(command.cooldown && !message.member.hasPermission('ADMINISTRATOR'))
 			{
-
+				console.log(client.cooldowns);
 				if (!client.cooldowns.has(command.name))
 				{
 					client.cooldowns.set(command.name, new Discord.Collection());
@@ -80,17 +80,19 @@ client.on('message', message =>
 
 				const now = Date.now();
 				const timestamps = client.cooldowns.get(command.name);
-				const cooldownAmount = (command.cooldown) * 1000;
+				let cooldownAmount = (command.cooldown) * 1000;
 
 				if (timestamps.has(message.author.id))
 				{
-					const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
+					const record = timestamps.get(message.author.id);
+					cooldownAmount = record['cooldownAmount'];
+					const expirationTime = record['now'] + cooldownAmount;
+					console.log(cooldownAmount);
 					if (now < expirationTime)
 					{
-						const timeLeft = (expirationTime - now) / 1000;
+						const timeLeft = (expirationTime - now);
 						let emoji;
-						switch (12 - Math.floor(12 * timeLeft / command.cooldown))
+						switch (12 - Math.floor(12 * timeLeft / cooldownAmount))
 						{
 						case 1: emoji = '🕐'; break;
 						case 2: emoji = '🕑'; break;
@@ -105,13 +107,15 @@ client.on('message', message =>
 						case 11: emoji = '🕚'; break;
 						case 12: emoji = '🕛'; break;
 						}
-						return message.react(emoji);
+						message.react(emoji);
+						return;
 						// return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
 					}
 				}
 
-				timestamps.set(message.author.id, now);
+				timestamps.set(message.author.id, { now, cooldownAmount });
 				setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+				console.log (client.cooldowns);
 			}
 
 

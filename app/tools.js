@@ -21,7 +21,7 @@ module.exports = {
 		const timestamps = client.cooldowns.get(commandName);
 		const cooldownAmount = (amount) * 1000;
 
-		timestamps.set(user.id, now);
+		timestamps.set(user.id, { now, cooldownAmount });
 		setTimeout(() => timestamps.delete(user.id), cooldownAmount);
 	},
 };
