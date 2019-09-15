@@ -9,7 +9,7 @@ module.exports = {
 		{
 			if(args[1].charAt(0) == '/')
 			{
-				markup = '*';
+				markup = '';
 			}
 			else
 			{

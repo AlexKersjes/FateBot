@@ -24,7 +24,7 @@ module.exports = {
 		}
 
 		tools.move(message, client, args[0]);
-		return message.channel.send(`${message.author.username} moved to ${args[0]}.`);
+		return message.channel.send(`${message.member.displayName} moved to ${args[0]}.`);
 
 	},
 };

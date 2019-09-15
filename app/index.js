@@ -18,7 +18,7 @@ for (const file of commandFiles)
 	client.commands.set(command.name, command);
 }
 
-const cooldowns = new Discord.Collection();
+client.cooldowns = new Discord.Collection();
 
 client.once('ready', ()=>
 {
@@ -72,13 +72,14 @@ client.on('message', message =>
 			// Check Cooldown
 			if(command.cooldown && !message.member.hasPermission('ADMINISTRATOR'))
 			{
-				if (!cooldowns.has(command.name))
+
+				if (!client.cooldowns.has(command.name))
 				{
-					cooldowns.set(command.name, new Discord.Collection());
+					client.cooldowns.set(command.name, new Discord.Collection());
 				}
 
 				const now = Date.now();
-				const timestamps = cooldowns.get(command.name);
+				const timestamps = client.cooldowns.get(command.name);
 				const cooldownAmount = (command.cooldown) * 1000;
 
 				if (timestamps.has(message.author.id))

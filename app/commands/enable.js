@@ -6,6 +6,6 @@ module.exports = {
 	execute(message, args, client)
 	{
 		client.commands.get(args[0])['disabled'] = false;
-		message.channel.send(`enabled ${args[0]}`);
+		message.channel.send(`Enabled ${args[0]}.`);
 	},
 };
