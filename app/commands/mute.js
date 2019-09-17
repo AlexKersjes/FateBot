@@ -10,7 +10,6 @@ module.exports = {
 				VIEW_CHANNEL: true,
 				SEND_MESSAGES: false,
 
-			});
-		channel.send('Shh.');
+			}).then(channel.send('Shh.'));
 	},
 };

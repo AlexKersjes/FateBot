@@ -11,12 +11,14 @@ module.exports = {
 			if(args[0] == 'shop')
 			{
 				tools.move(message, client, 'shop');
-				return message.channel.send(`${message.member.displayName} went to the shop.`);
+				message.channel.send(`${message.member.displayName} went to the shop.`);
+				return message.delete();
 			}
 			if(args[0] == 'convention')
 			{
 				tools.move(message, client, 'convention');
-				return message.channel.send(`${message.member.displayName} went to the convention`);
+				message.channel.send(`${message.member.displayName} went to the convention`);
+				return message.delete();
 			}
 
 			return message.channel.send('No valid target location found.');
@@ -26,6 +28,7 @@ module.exports = {
 
 		tools.setCooldown(client, 'bus', message.author, 7200);
 
-
+		message.channel.send(`${message.member.displayName} returned to the streets.`);
+		return message.delete();
 	},
 };

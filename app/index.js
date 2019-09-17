@@ -5,8 +5,11 @@ const client = new Discord.Client();
 client.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('app/commands').filter(file => file.endsWith('.js'));
 
-const rawdata = fs.readFileSync('app/data/channelId.json');
+let rawdata = fs.readFileSync('app/data/channelId.json');
 client.channelDictionary = JSON.parse(rawdata);
+rawdata = fs.readFileSync('app/data/savedata.json');
+client.save = JSON.parse(rawdata);
+
 console.log(client.channelDictionary);
 
 for (const file of commandFiles)
@@ -115,7 +118,6 @@ client.on('message', message =>
 
 				timestamps.set(message.author.id, { now, cooldownAmount });
 				setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-				console.log (client.cooldowns);
 			}
 
 

@@ -19,6 +19,6 @@ module.exports = {
 
 		// console.log(client.cooldowns);
 		message.channel.send(`${message.author.username} is taking the bus to town.`);
-
+		return message.delete();
 	},
 };
