@@ -8,6 +8,7 @@ module.exports = {
 	execute(message, args, client)
 	{
 		let newstring;
+		let savedata;
 		switch(args[0])
 		{
 		case 'ls':
@@ -45,14 +46,27 @@ module.exports = {
 			break;
 		case 'save' :
 			const data = JSON.stringify(client.channelDictionary);
-			fs.writeFileSync('./data/channelId.json', data);
+			fs.writeFileSync('app/data/channelId.json', data);
 			message.channel.send('Channels saved!');
 			break;
 		case 'load':
-			const rawdata = fs.readFileSync('./data/channelId.json');
+			const rawdata = fs.readFileSync('app/data/channelId.json');
 			client.channelDictionary = JSON.parse(rawdata);
 			console.log(client.channelDictionary);
 			message.channel.send('Channels loaded!');
+			break;
+		case 'murder':
+			client.save.corpse = true;
+			console.log(client.save);
+			savedata = JSON.stringify(client.save);
+			fs.writeFileSync('app/data/savedata.json', savedata);
+			message.channel.send('A murder occurred.');
+			break;
+		case 'start':
+			client.save.starttime = Date.now();
+			savedata = JSON.stringify(client.save);
+			fs.writeFileSync('app/data/savedata.json', savedata);
+			message.channel.send('The game has started.');
 			break;
 		}
 
