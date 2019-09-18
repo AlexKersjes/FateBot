@@ -15,8 +15,6 @@ function generateGame(gameWidth, gameHeight, numMines, message, isRaw)
 	// If you add these xy values to some other coordinate, you'll get the eight neighbours of that coordinate.
 	const neighbourLocations = [{ x: -1, y: -1 }, { x: 0, y: -1 }, { x: 1, y: -1 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }, { x: -1, y: 1 }, { x: -1, y: 0 }];
 	const numberEmoji = [':zero:', ':one:', ':two:', ':three:', ':four:', ':five:', ':six:', ':seven:', ':eight:', ':nine:'];
-
-	console.log('this runs 1');
 	isRaw = isRaw || false;
 	// Check game size
 	if (isNaN(gameWidth))
@@ -36,7 +34,6 @@ function generateGame(gameWidth, gameHeight, numMines, message, isRaw)
 		return 'That\'s way too large! Think of all the mobile users who are going to see this!';
 	}
 
-	console.log('this runs 2');
 	// Check mine count
 	if (isNaN(numMines))
 	{
@@ -64,7 +61,6 @@ function generateGame(gameWidth, gameHeight, numMines, message, isRaw)
 		}
 	}
 
-	console.log('this runs 3');
 	// Fill it with mines!
 	for (let mine = 0; mine < numMines; mine++)
 	{
@@ -104,7 +100,6 @@ function generateGame(gameWidth, gameHeight, numMines, message, isRaw)
 		//*/
 	}
 
-	console.log('this runs 4');
 	// Find all the zeroes in this game (for uncovering)
 	const zeroLocations = [];
 	for (let y = 0; y < game.length; y++)
@@ -150,7 +145,6 @@ function generateGame(gameWidth, gameHeight, numMines, message, isRaw)
 		}
 	}
 
-	console.log('this runs 5');
 	// Create the reply
 	let returnTxt;
 	if (numMines === 1) { returnTxt = 'Here\'s a board sized ' + gameWidth + 'x' + gameHeight + ' with 1 mine:'; }
@@ -163,7 +157,6 @@ function generateGame(gameWidth, gameHeight, numMines, message, isRaw)
 		returnTxt += '\n';
 		for (let x = 0; x < game[y].length; x++)
 		{
-			console.log(returnTxt);
 			if (game[y][x] === -1)
 			{
 				returnTxt += '||:bomb:||';
@@ -187,8 +180,6 @@ function generateGame(gameWidth, gameHeight, numMines, message, isRaw)
 		return message.channel.send(returnTxt);
 	}
 
-
-	console.log('this runs 6');
 	// Otherwise, split the message
 	const splitReturns = [];
 	do
@@ -220,5 +211,4 @@ function log(message)
 	{
 		message = message.stack;
 	}
-	console.log('[' + new Date().toLocaleTimeString() + '] ' + message);
 }

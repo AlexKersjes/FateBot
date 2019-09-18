@@ -29,6 +29,11 @@ module.exports = {
 			{
 				return message.channel.send('You bought a packet of potato chips. Salty and delicious.');
 			}
+
+			if (args[0] === 'Tent')
+			{
+				return message.channel.send('You bought the tent. Expensive. Hopefully it was worth it.');
+			}
 		}
 	},
 };

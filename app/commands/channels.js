@@ -56,6 +56,14 @@ module.exports = {
 			message.channel.send('Channels loaded!');
 			break;
 		case 'murder':
+			if(client.save.corpse)
+			{
+				client.save.corpse2 = true;
+				console.log(client.save);
+				savedata = JSON.stringify(client.save);
+				fs.writeFileSync('app/data/savedata.json', savedata);
+				message.channel.send('A second murder occurred.');
+			}
 			client.save.corpse = true;
 			console.log(client.save);
 			savedata = JSON.stringify(client.save);

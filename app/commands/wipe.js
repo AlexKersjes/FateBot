@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const fs = require('fs');
 module.exports = {
 	name: 'wipe',
 	description: 'Wipe a channel (.wipe) or a specific amount of messages (.wipe x).',
@@ -10,6 +11,13 @@ module.exports = {
 			{
 				client.cooldowns = new Discord.Collection();
 				message.channel.send('Cooldowns wiped.');
+			}
+
+			if(args[0] === 'save')
+			{
+				const empty = [];
+				client.save = empty;
+				fs.writeFileSync('app/data/savedata.json', JSON.stringify(empty));
 			}
 
 			let fetched;

@@ -20,7 +20,7 @@ module.exports = {
 
 		if (channel.id === client.channelDictionary['lounge'])
 		{
-
+			return channel.send('A mounted deer head stares into the distance. It has probably been hanging in the lounge since before this was a hotel, likely a trophy of the old lord of the manor.');
 		}
 
 		if (channel.id === client.channelDictionary['gameroom'])
@@ -55,7 +55,7 @@ module.exports = {
 		{
 			if(client.save.corpse)
 			{
-
+				return channel.send('The roof remains a lonely place. In the light of the Sun you see that a few tiles are missing from the roof. Perhaps they blew away in the storm last week.');
 			}
 			return channel.send('The roof is cold and lonely. The sky is cloudless. There is not much to be found here barring comforting visage of the Moon. The tiles you stand on are awash in a bluish white.');
 		}
@@ -67,7 +67,19 @@ module.exports = {
 
 		if (channel.id === client.channelDictionary['library'])
 		{
-
+			if(client.save.corpse)
+			{
+				if(args[0] === 'math' || args[0] === 'mathematics')
+				{ return channel.send('Most of the books seem to be related to geometry and shape. A book seems to be out of place, the alphabetical order broken.'); }
+				if(args[0] === 'astrology')
+				{ return channel.send('The books on astrology are too dense for you to make much sense of. The amount of books on the subject here must imply that the old lord of the manor believed the subject to be of importance though.'); }
+				if(args[0] === 'book')
+				{
+					channel.send('"Invisible Geometry" by Richard Rhoad. It is placed near the edge of the bookcase, when in fact it should be near the middle.');
+				}
+				return channel.send('You find yourself in a corner of the library where the books on mathematics meet astrology. This strikes you as odd. Surely these aren\'t all that related?');
+			}
+			return channel.send('You browse the books but nothing in particular grabs your attention.');
 		}
 
 		if (channel.id === client.channelDictionary['crimescene'])
@@ -77,14 +89,22 @@ module.exports = {
 
 		if (channel.id === client.channelDictionary['convention'])
 		{
-
+			return channel.send('There are so many stall, the products of each one more outrageous than the stall before. Someone appears to be selling common dirt as a magical ingredient, another sells ritual candles that supposedly make the dead appear. There is a stall you hesitate to approach which sells what appear to be ritual daggers. There\'s no way those are real right?');
 		}
 
 		if (channel.id === client.channelDictionary['shop'])
 		{
-
+			return channel.send('The shop sells newspapers, chips, and a nice single person tent.');
 		}
 
-		return message.react('👀');
+		if (channel.id === client.channelDictionary['invisible'])
+		{
+			if(client.save.corpse2)
+			{
+				return channel.send('On the stone tablet lies Heather, several of her organs outside their container.');
+			}
+		}
+
+		return channel.send('👀');
 	},
 };

@@ -1,7 +1,7 @@
 module.exports = {
 	name: 'listen',
 	description: 'Listen closely.',
-	channels: ['garden', 'library'],
+	channels: ['garden', 'library', 'gameroom'],
 	visibleReject: true,
 	execute(message, args, client)
 	{
@@ -17,5 +17,11 @@ module.exports = {
 			return channel.send('It\'s eerily quiet in the dark. Suddenly, you hear an owl, then quiet again.', { file: 'app/data/Owl.mp3' });
 
 		}
+
+		if (channel.id === client.channelDictionary['gameroom'])
+		{ return channel.send('', { file: 'app/data/Welcome To Windows 98.mp3' }); }
+
+		if (channel.id === client.channelDictionary['library'])
+		{ return channel.send(''); }
 	},
 };
