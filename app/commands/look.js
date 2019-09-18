@@ -62,7 +62,11 @@ module.exports = {
 
 		if (channel.id === client.channelDictionary['kitchen'])
 		{
-
+			if (client.save.knifetaken)
+			{
+				return channel.send('It\'s a normal kitchen, bar its size. There is a stack of plates in the sink. An arrangement of knives sorted by size. A medium size knife is missing.');
+			}
+			return channel.send('It\'s a normal kitchen, bar its size. There is a stack of plates in the sink. An arrangement of knives sorted by size.');
 		}
 
 		if (channel.id === client.channelDictionary['library'])

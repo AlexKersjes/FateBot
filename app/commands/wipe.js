@@ -4,30 +4,34 @@ module.exports = {
 	name: 'wipe',
 	description: 'Wipe a channel (.wipe) or a specific amount of messages (.wipe x).',
 	admin: 'true',
-	execute: async (message, args, client) =>
+	execute(message, args, client)
 	{
 		{
 			if(args[0] === 'cooldowns')
 			{
 				client.cooldowns = new Discord.Collection();
 				message.channel.send('Cooldowns wiped.');
+				return;
 			}
 
 			if(args[0] === 'save')
 			{
-				const empty = [];
-				client.save = empty;
-				fs.writeFileSync('app/data/savedata.json', JSON.stringify(empty));
+				client.save.corpse = 0;
+				client.save.corpse2 = 0;
+				client.save.knifetaken = null;
+				const savedata = JSON.stringify(client.save);
+				fs.writeFileSync('app/data/savedata.json', savedata);
+				message.channel.send('Save data was wiped.');
+				return;
 			}
 
 			let fetched;
 			if(args[0])
 			{
-				fetched = message.channel.fetchMessages({ limit: args[0] + 1 })
+				fetched = message.channel.fetchMessages({ limit: args[0] })
 					.then(unfiltered =>
 					{
 						const notPinned = unfiltered.filter(fetchedMsg => !fetchedMsg.pinned);
-
 						message.channel.bulkDelete(notPinned, true);
 					});
 				return;

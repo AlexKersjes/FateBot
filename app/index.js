@@ -74,7 +74,6 @@ client.on('message', message =>
 			// Check Cooldown
 			if(command.cooldown && !message.member.hasPermission('ADMINISTRATOR'))
 			{
-				console.log(client.cooldowns);
 				if (!client.cooldowns.has(command.name))
 				{
 					client.cooldowns.set(command.name, new Discord.Collection());
@@ -89,7 +88,6 @@ client.on('message', message =>
 					const record = timestamps.get(message.author.id);
 					cooldownAmount = record['cooldownAmount'];
 					const expirationTime = record['now'] + cooldownAmount;
-					console.log(cooldownAmount);
 					if (now < expirationTime)
 					{
 						const timeLeft = (expirationTime - now);

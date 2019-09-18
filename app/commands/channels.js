@@ -63,6 +63,7 @@ module.exports = {
 				savedata = JSON.stringify(client.save);
 				fs.writeFileSync('app/data/savedata.json', savedata);
 				message.channel.send('A second murder occurred.');
+				return;
 			}
 			client.save.corpse = true;
 			console.log(client.save);
