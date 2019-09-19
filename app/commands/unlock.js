@@ -4,7 +4,7 @@ module.exports = {
 	admin: true,
 	execute(message, args, client)
 	{
-		client.commands.get('move').locations.push(args[0]);
+		client.commands.get('move').channels.push(args[0]);
 		return message.channel.send(`Unlocked ${args[0]}`);
 	},
 };

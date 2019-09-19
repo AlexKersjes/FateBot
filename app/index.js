@@ -60,7 +60,7 @@ client.on('message', message =>
 			// Check Args requirement
 			if(command.args && !args.length)
 			{
-				return message.channel.send('...?');
+				return message.channel.send('Caw?');
 			}
 
 			// Check if command is disabled

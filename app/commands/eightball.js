@@ -1,9 +1,10 @@
 const Discord = require('discord.js');
 module.exports = {
 	name: '8ball',
-	description: 'Ping!',
+	description: 'A magic Eightball.',
 	channels: ['gameroom'],
 	args: true,
+	visibleReject: true,
 	execute: async (message, args, client) =>
 	{
 		if (args[0] == 'help') return message.reply('Usage: ;8ball <question>');

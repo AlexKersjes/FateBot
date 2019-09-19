@@ -3,12 +3,10 @@ module.exports = {
 	aliases: ['map'],
 	description: 'Look at the floor plan.',
 	channels: ['lobby'],
+	disable: true,
 	execute(message, args, client)
 	{
-		if(client.save.corpse)
-		{
-			message.channel.send('', { file: 'app/data/floorplan.jpg' });
-			message.delete();
-		}
+		message.channel.send('', { file: 'app/data/floorplan.jpg' });
+		message.delete();
 	},
 };

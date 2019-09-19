@@ -4,7 +4,7 @@ module.exports = {
 	admin: true,
 	execute(message, args, client)
 	{
-		const locations = client.commands.get('move').locations;
+		const locations = client.commands.get('move').channels;
 		for(let i = 0; i < locations.length; i++)
 		{
 			if (locations[i] === args[0])

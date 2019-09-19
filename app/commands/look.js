@@ -10,12 +10,13 @@ module.exports = {
 
 		if (channel.id === client.channelDictionary['lobby'])
 		{
-
+			if (args[0] === 'portrait') { return channel.send('', { file: 'app/data/Golden_Sorcerer.jpg' }); }
+			return channel.send('The lobby features a chandelier and a desk for the receptionist. A portrait of an early 19th century nobleman in a wide cape stares at you disdainfully.');
 		}
 
 		if (channel.id === client.channelDictionary['dininghall'])
 		{
-
+			return channel.send('The dining hall is more spacious than most other rooms in the hotel. A few tasteful paintings of landscapes hang on the wall.');
 		}
 
 		if (channel.id === client.channelDictionary['lounge'])
@@ -39,16 +40,22 @@ module.exports = {
 
 				if(args[0] === 'figure' || args[0] === 'corpse')
 				{
-					return channel.send('As you approach, you see that the figure is actually Jeremie Chevalier, famous eccentric. His shirt is drenched in blood. On closer inspection it reveals a triplet of holes.');
+					return channel.send('As you approach, you see that the figure is actually Jeremie Chevalier, famous eccentric. His spangle-embroidered shirt is drenched in blood. On closer inspection it reveals a triplet of holes.', { file: 'app/data/stupefaction.ogg' });
+				}
+
+				if(args[0] === 'shirt' || args[0] === 'pocket' || args[0] === 'pockets')
+				{
+					return channel.send('Inside Jeremie\'s shirt pocket you find the key to his room.');
 				}
 
 				if(args[0] === 'wound' || args[0] === 'hole' || args[0] === 'holes' || args[0] === 'blood')
 				{
-					return channel.send('The narrow slits extend into Jeremie\'s flesh, multiple inches deep. One into the liver, another into the lower abdomen. The third pierces between his ribs, striking where you assume his heart is. The amount of blood is perplexing.');
+					return channel.send('The narrow slits extend into Jeremie\'s flesh, multiple inches deep. One into the liver, another into the lower abdomen. The third pierces between his ribs, striking where you assume his heart is. The amount of blood is perplexing. The wounds seem to be equidistant.');
 				}
+
 			}
 
-			return channel.send('The garden is quiet, but every few seconds a robin breaks the silence. The birdsong is pleasant.', { file: 'app/data/Birdsong.mp3' });
+			return channel.send('A moonlit garden is strewn in front of you. It stretches around the hotel in all directions.');
 		}
 
 		if (channel.id === client.channelDictionary['roof'])
@@ -88,7 +95,8 @@ module.exports = {
 
 		if (channel.id === client.channelDictionary['crimescene'])
 		{
-
+			if(args[0] === 'camera') {return channel.send('The camera contains pictures of people standing next to pieces of art, Jeremie at parties, and Jeremie with business partners. None of the faces except Jeremie\'s look familiar.');}
+			return channel.send('The bed is still made and unslept in. Several of Jeremie\'s outfits are strewn across the red carpet. A good quality digital camera can be found in his luggage.');
 		}
 
 		if (channel.id === client.channelDictionary['convention'])

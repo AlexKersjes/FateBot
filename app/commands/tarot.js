@@ -3,6 +3,7 @@ module.exports = {
 	aliases: ['cards'],
 	description: 'Read a fortune. It will not be the same tomorrow.',
 	channels: ['gameroom'],
+	visibleReject: true,
 	execute(message, args, client)
 	{
 		if(!client.save.starttime) { return; }
