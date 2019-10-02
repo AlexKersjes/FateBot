@@ -11,8 +11,2276 @@
   library: '621820106720149544',
   shop: '621820640005193800',
   convention: '621820667632943155',
-  bus: '621833585506385920' }
+  bus: '621833585506385920',
+  book: '623929647452913666',
+  invisible: '623929647452913666' }
 Ready
+wipe
+channel
+enter
+enter
+enter
+enter
+enter
+checkin
+Channel room14 was created.
+checkin
+Channel tiny-room was created.
+list
+list
+checkin
+Channel room-10 was created.
+lounge
+list
+move
+move
+checkin
+Channel room-5 was created.
+library
+lounge
+checkin
+Channel room-4 was created.
+lounge
+room
+list
+list
+movelobby
+move
+move
+list
+movelounge
+lobby
+movelobby
+move
+move
+move
+move
+move
+move
+move
+move
+thisisafakecommandthatshouldnotreasonablyexist
+look
+help
+look
+touch
+smell
+listen
+move
+look
+examine
+move
+read
+listen
+move
+list
+help
+lounge
+search
+go
+look
+listen
+open
+taste
+smell
+move
+touch
+toast
+proprioception
+move
+thirdeye
+thirdeye
+investigate
+move
+investigate
+enter
+books
+move
+move
+look
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 1): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+(node:19848) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+go
+move
+move
+move
+checkin
+Channel room was created.
+look
+look
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 2): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+listen
+go
+move
+look
+look
+listen
+move
+ping
+list
 ping
 ping
 ping
+ping
+help
+move
+8ball
+move
+look
+announce
+8ball
+listen
+minesweeper
+move
+move
+
+look
+move
+move
+move
+walk
+move
+list
+smell
+see
+pick
+sit
+nap
+move
+close
+8ball
+look
+announce
+move
+listen
+hear
+8ball
+move
+read
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 3): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+books
+8ball
+list
+move
+8ball
+take
+take
+move
+hear
+commands
+[ 'announce',
+  { name: 'announce',
+    description: 'The crow speaks. .announce <channel mention> <markup eg. ** >(optional) /<your message> ',
+    admin: 'true',
+    execute: [Function: execute] } ]
+[ 'bus',
+  { name: 'bus',
+    description: 'Take the bus to town. If you\'re already on the bus, go back instead.',
+    channels: [ 'lobby', 'dmchannel', 'bus' ],
+    cooldown: 40,
+    visibleReject: true,
+    disabled: false,
+    execute: [Function: execute] } ]
+[ 'buy',
+  { name: 'buy',
+    description: 'Buy something, anything.',
+    channels: [ 'convention', 'shop' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'channel',
+  { name: 'channel',
+    description: 'Modifies json file where channel ids are stored. Commands are ls, lsall, register, deregister, save, load.',
+    admin: true,
+    args: true,
+    aliases: [ 'channels' ],
+    execute: [Function: execute] } ]
+[ 'checkin',
+  { name: 'checkin',
+    description: 'Checks a player in to their private room.',
+    admin: true,
+    execute: [Function: execute] } ]
+[ 'commands',
+  { name: 'commands',
+    description: 'This list.',
+    admin: 'true',
+    aliases: [ 'command' ],
+    execute: [Function: execute] } ]
+[ 'disable',
+  { name: 'disable',
+    description: 'Disable a command.',
+    admin: 'true',
+    args: true,
+    execute: [Function: execute] } ]
+[ '8ball',
+  { name: '8ball',
+    description: 'A magic Eightball.',
+    channels: [ 'gameroom' ],
+    args: true,
+    visibleReject: true,
+    execute: [AsyncFunction: execute] } ]
+[ 'enable',
+  { name: 'enable',
+    description: 'Enable a command.',
+    admin: 'true',
+    args: true,
+    execute: [Function: execute] } ]
+[ 'enter',
+  { name: 'enter',
+    description: 'A player enters the game.',
+    admin: 'true',
+    execute: [Function: execute] } ]
+[ 'floorplan',
+  { name: 'floorplan',
+    aliases: [ 'map' ],
+    description: 'Look at the floor plan.',
+    channels: [ 'lobby' ],
+    disable: true,
+    execute: [Function: execute] } ]
+[ 'help',
+  { name: 'help',
+    args: true,
+    description: 'Shows description for a specific public command. Public.',
+    execute: [Function: execute] } ]
+[ 'intercom',
+  { name: 'intercom',
+    description: 'A creacky intercom. Leave a message, responsibly.',
+    channels: [ 'lobby', 'dmchannel' ],
+    cooldown: 120,
+    args: true,
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'kill',
+  { name: 'kill',
+    aliases: [ 'stab', 'murder' ],
+    description: 'Take a life.',
+    channels: [ 'kitchen', 'garden', 'library', 'roof' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'list',
+  { name: 'list',
+    description: 'A simple list pinned in the lobby.',
+    channels: [ 'lobby' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'listen',
+  { name: 'listen',
+    description: 'Listen closely.',
+    channels: [ 'garden', 'library', 'gameroom', 'lobby' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'lock',
+  { name: 'lock',
+    description: 'Denies access with the move command.',
+    admin: true,
+    execute: [Function: execute] } ]
+[ 'look',
+  { name: 'look',
+    description: 'Look around.',
+    aliases: [ 'investigate', 'explore', 'inspect' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'minesweeper',
+  { name: 'minesweeper',
+    description: 'Play minesweeper. .minesweeper <Width> <Height> <Mines>',
+    channels: [ 'gameroom' ],
+    execute: [Function: execute] } ]
+[ 'move',
+  { name: 'move',
+    description: 'Allows a player to move from one place to another.',
+    cooldown: 40,
+    channels: 
+     [ 'lobby',
+       'lounge',
+       'gameroom',
+       'garden',
+       'roof',
+       'library',
+       'crimescene' ],
+    aliases: [ 'go', 'goto' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'mute',
+  { name: 'mute',
+    description: 'Denies speaking permissions.',
+    admin: true,
+    execute: [Function: execute] } ]
+[ 'ping',
+  { name: 'ping',
+    description: 'Ping!',
+    channels: [ 'gameroom' ],
+    execute: [Function: execute] } ]
+[ 'proceed',
+  { name: 'proceed',
+    description: 'Continue to either the shops or the convention in Aldburgh.',
+    channels: [ 'bus', 'convention', 'shop' ],
+    cooldown: 40,
+    execute: [Function: execute] } ]
+[ 'take',
+  { name: 'take',
+    description: 'Take something, anything.',
+    channels: [ 'kitchen' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'tarot',
+  { name: 'tarot',
+    aliases: [ 'cards' ],
+    description: 'Read a fortune. It will not be the same tomorrow.',
+    channels: [ 'gameroom' ],
+    visibleReject: true,
+    execute: [Function: execute] } ]
+[ 'unlock',
+  { name: 'unlock',
+    description: 'Allows access with the move command.',
+    admin: true,
+    execute: [Function: execute] } ]
+[ 'unmute',
+  { name: 'unmute',
+    description: 'Grants speaking permissions.',
+    admin: true,
+    execute: [Function: execute] } ]
+[ 'wipe',
+  { name: 'wipe',
+    description: 'Wipe a channel (.wipe) or a specific amount of messages (.wipe x).',
+    admin: 'true',
+    execute: [Function: execute] } ]
+look
+listen
+cards
+cards
+ping
+beatrice
+cards
+cards
+..Someone
+cards
+ask
+help
+record
+catalogue
+help
+help
+help
+help
+tarot
+pick
+books
+help
+help
+move
+help
+help
+move
+help
+help
+look
+help
+listen
+minesweeper
+taste
+list
+minesweeper
+smell
+minesweeper
+maze
+help
+move
+move
+look
+listen
+owl
+hoot
+8ball
+help
+help
+move
+help
+help
+move
+help
+help
+help
+help
+look
+cards
+carf
+move
+help
+help
+ping
+go
+enter
+help
+help
+help
+announce
+look
+look
+look
+move
+enter
+exit
+move
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 4): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+look
+announce
+take
+take
+go
+go
+go
+go
+go
+look
+take
+help
+take
+talk
+give
+speak
+help
+help
+give
+move
+look
+..Huh.
+..Eugh.
+listen
+take
+smell
+taste
+touch
+talk
+move
+go
+look
+take
+look
+look
+take
+read
+go
+help
+enter
+checkin
+Channel room-7 was created.
+move
+
+move
+move
+move
+list
+list
+rooms
+show
+move
+unmute
+look
+listen
+look
+move
+look
+listen
+take
+take
+..I
+move
+take
+look
+read
+hush
+ask
+help
+help
+help
+search
+find
+call
+move
+feed
+call
+enter
+checkin
+Channel russels-room was created.
+caw
+ping
+help
+leave
+move
+exit
+no
+go
+go
+go
+move
+move
+murder
+go
+search
+examine
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 5): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+pet
+invite
+smoke
+go
+go
+go
+go
+depart
+devour
+move
+announce
+go
+go
+enter
+unmute
+help
+help
+go
+walk
+run
+search
+look
+moon
+sit
+lay
+talk
+breathe
+smell
+hear
+listen
+take
+help
+kill
+kill
+help
+help
+help
+help
+help
+help
+help
+help
+buy
+sell
+rest
+sleep
+help
+order
+eat
+help
+help
+commandlist
+help
+help
+help
+help
+help
+go
+go
+help
+help
+help
+help
+help
+help
+tarot
+help
+help
+go
+help
+help
+help
+help
+help
+help
+help
+help
+help
+help
+help
+help
+help
+move
+kill
+buy
+wind
+scream
+secret
+look
+move
+go
+go
+buy
+kill
+take
+look
+look
+listen
+buy
+move
+buy
+kill
+listen
+deer
+trophy
+take
+move
+buy
+kill
+move
+listen
+ping
+minesweeper
+look
+book
+take
+buy
+kill
+tarot
+games
+move
+unlock
+move
+announce
+go
+move
+menu
+buy
+list
+go
+help
+help
+help
+move
+move
+move
+look
+listen
+eat
+detect
+investigate
+look
+enter
+checkin
+Channel grand-suite was created.
+channel
+{ dmchannel: '621432483279536180',
+  reception: '621429173994389525',
+  intercom: '621448991929794574',
+  dininghall: '621429726841405461',
+  lobby: '621429664849592321',
+  lounge: '621430872188649472',
+  gameroom: '621430796745703506',
+  garden: '621430975229853716',
+  roof: '621435359426904074',
+  kitchen: '621820085975121936',
+  library: '621820106720149544',
+  shop: '621820640005193800',
+  convention: '621820667632943155',
+  bus: '621833585506385920',
+  book: '623929647452913666',
+  invisible: '623929647452913666',
+  suite: '624685546836328479' }
+channel
+go
+go
+go
+go
+go
+admire
+devour
+eat
+slorp
+walk
+stop
+look
+examine
+announce
+enter
+checkin
+Channel room-3 was created.
+go
+list
+list
+move
+list
+go
+move
+enter
+checkin
+Channel room-8 was created.
+go
+go
+goto
+move
+move
+go
+move
+announce
+go
+announce
+move
+move
+go
+list
+go
+move
+look
+listen
+move
+announce
+search
+examine
+help
+caw
+cawcawcawcawcawcawcawcaw
+move
+move
+move
+list
+move
+move
+move
+go
+go
+look
+move
+..
+..
+rest
+move
+move
+announce
+move
+desk
+intercom
+safe
+sit
+help
+go
+enter
+unmute
+move
+move
+move
+list
+move
+move
+move
+move
+look
+..
+...
+...
+"Nope!
+look
+look
+look
+move
+move
+TypeError: Cannot read property 'overwritePermissions' of undefined
+    at Object.move (/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/tools.js:8:4)
+    at Object.execute (/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/commands/move.js:15:10)
+    at Client.client.on.message (/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/index.js:127:12)
+    at emitOne (events.js:125:13)
+    at Client.emit (events.js:221:7)
+    at MessageCreateHandler.handle (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/packets/handlers/MessageCreate.js:9:34)
+    at WebSocketPacketManager.handle (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/packets/WebSocketPacketManager.js:105:65)
+    at WebSocketConnection.onPacket (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/WebSocketConnection.js:333:35)
+    at WebSocketConnection.onMessage (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/WebSocketConnection.js:296:17)
+    at WebSocket.onMessage (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/ws/lib/event-target.js:120:16)
+move
+TypeError: Cannot read property 'delete' of undefined
+    at Object.move (/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/tools.js:6:54)
+    at Object.execute (/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/commands/move.js:15:10)
+    at Client.client.on.message (/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/index.js:127:12)
+    at emitOne (events.js:125:13)
+    at Client.emit (events.js:221:7)
+    at MessageCreateHandler.handle (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/packets/handlers/MessageCreate.js:9:34)
+    at WebSocketPacketManager.handle (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/packets/WebSocketPacketManager.js:105:65)
+    at WebSocketConnection.onPacket (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/WebSocketConnection.js:333:35)
+    at WebSocketConnection.onMessage (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/discord.js/src/client/websocket/WebSocketConnection.js:296:17)
+    at WebSocket.onMessage (/home/i391113/domains/i391113.hera.fhict.nl/private_html/node_modules/ws/lib/event-target.js:120:16)
+...
+lock
+enter
+enter
+announce
+announce
+announce
+announce
+enter
+go
+time
+clock
+CAW!
+move
+look
+look
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 7): DiscordAPIError: Unknown Message
+look
+look
+look
+look
+look
+look
+list
+move
+list
+move
+move
+move
+move
+move
+listen
+look
+help
+tarot
+books
+games
+fiction
+move
+listen
+look
+list
+go
+move
+move
+examine
+move
+touch
+listen
+books
+shelf
+secretdoor
+move
+look
+go
+announce
+move
+move
+listen
+look
+move
+look
+move
+move
+look
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 8): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+map
+listen
+look
+raven
+move
+look
+listen
+move
+move
+move
+move
+move
+listen
+disable
+move
+owl
+intercom
+intercom
+move
+move
+go
+go
+go
+go
+go
+move
+list
+move
+move
+move
+minesweeper
+list
+move
+move
+move
+help
+books
+list
+move
+move
+move
+move
+move
+move
+move
+move
+move
+move
+investigate
+move
+move
+look
+take
+listen
+help
+move
+take
+move
+move
+help
+move
+move
+tarot
+book
+move
+help
+move
+minesweeper
+games
+go
+move
+look
+go
+go
+move
+examine
+consider
+look
+look
+eyes
+bird
+help
+sneak
+stealth
+peep
+interrogate
+ring
+call
+phone
+help
+caw
+list
+list
+help
+help
+help
+help
+look
+help
+help
+help
+help
+win
+help
+destroy
+love
+move
+open
+knock
+sudo
+boart
+move
+move
+go
+go
+go
+move
+move
+move
+move
+go
+move
+move
+go
+go
+..hi...??
+move
+listen
+look
+announce
+announce
+go
+listen
+go
+go
+go
+move
+move
+announce
+move
+go
+go
+go
+lock
+register
+channel
+{ dmchannel: '621432483279536180',
+  reception: '621429173994389525',
+  intercom: '621448991929794574',
+  dininghall: '621429726841405461',
+  lobby: '621429664849592321',
+  lounge: '621430872188649472',
+  gameroom: '621430796745703506',
+  garden: '621430975229853716',
+  roof: '621435359426904074',
+  kitchen: '621820085975121936',
+  library: '621820106720149544',
+  shop: '621820640005193800',
+  convention: '621820667632943155',
+  bus: '621833585506385920',
+  book: '623929647452913666',
+  invisible: '623929647452913666',
+  suite: '624685546836328479',
+  crimescene: '624685546836328479' }
+channel
+wipe
+announce
+go
+go
+look
+..
+
+move
+move
+move
+move
+move
+
+announce
+look
+announce
+announce
+announce
+announce
+announce
+announce
+go
+move
+move
+move
+move
+move
+movd
+move
+look
+move
+move
+move
+move
+move
+move
+go
+go
+sleep
+go
+go
+go
+go
+channel
+{ corpse: true,
+  corpse2: 0,
+  knifetaken: null,
+  starttime: 1568987963687 }
+channel
+enable
+unlock
+list
+move
+move
+move
+move
+look
+listen
+ghostbusters
+move
+take
+list
+go
+list
+go
+go
+go
+go
+go
+go
+go
+list
+list
+bus
+go
+move
+take
+bus
+move
+go
+look
+bus
+bus
+go
+look
+take
+move
+go
+move
+store
+move
+list
+bus
+bus
+bus
+proceed
+bus
+bus
+money
+look
+listen
+money
+bus
+bus
+bus
+bus
+bus
+bus
+bus
+bus
+move
+intercom
+intercom
+intercom
+intercom
+intercom
+
+intercom
+bus
+bus
+proceed
+proceed
+proceed
+move
+move
+move
+bus
+move
+bus
+proceed
+
+proceed
+bus
+go
+proceed
+bus
+go
+bus
+unbus
+debussify
+bus
+go
+tarot
+bus
+tarot
+bus
+go
+bus
+proceed
+proceed
+help
+intercom
+proceed
+proceed
+proceed
+proceed
+move
+proceed
+proceed
+proceed
+proceed
+proceed
+move
+proceed
+list
+destination
+destinations
+move
+move
+proceed
+proceed
+proceed
+proceed
+look
+listen
+listen
+minesweeper
+proceed
+proceed
+proceed
+proceed
+proceed
+proceed
+proceed
+look
+buy
+listen
+go
+move
+find
+stall
+go
+look
+examine
+look
+move
+look
+look
+look
+help
+look
+talk
+look
+look
+scream
+look
+look
+buy
+look
+take
+buy
+buy
+buy
+look
+buy
+lobby
+go
+look
+look
+list
+help
+go
+inventory
+look
+go
+go
+look
+look
+get
+take
+take
+go
+look
+look
+look
+listen
+go
+go
+look
+go
+go
+go
+go
+go
+look
+tarot
+listen
+go
+go
+go
+look
+look
+look
+look
+proceed
+go
+intercom
+go
+browse
+proceed
+look
+list
+newspaper
+gum
+buy
+buy
+listen
+buy
+buy
+talk
+buy
+move
+proceed
+proceed
+buy
+buy
+buy
+move
+move
+move
+bus
+home
+proceed
+proceed
+go
+look
+inspect
+proceed
+examine
+move
+go
+look
+move
+go
+take
+help
+help
+help
+proceed
+listen
+go
+look
+take
+listen
+shop
+buy
+inspect
+go
+buy
+go
+look
+look
+look
+look
+look
+buy
+buy
+look
+buy
+look
+listen
+buy
+go
+look
+go
+go
+listen
+look
+take
+proceed
+go
+listen
+go
+go
+go
+go
+buy+
+go
+proceed
+look
+go
+proceed
+go
+proceed
+proceed
+look
+buy
+buy
+buy
+buy
+buy
+buy
+buy
+buy
+buy
+buy
+buy
+chat
+proceed
+bus
+chat
+listen
+look
+list
+move
+leave
+proceed
+bus
+go
+go
+proceed
+proceed
+proceed
+read
+list
+unlock
+move
+bus
+move
+go
+move
+go
+go
+go
+list
+invite
+invite
+bus
+go
+depart
+move
+bus
+lobby
+go
+proceed
+proceed
+shop
+proceed
+proceed
+bus
+proceed
+proceed
+bus
+proceed
+bus
+leave
+chat
+help
+buy
+bus
+proceed
+proceed
+proceed
+bus
+timejump
+timeskip
+bus
+proceed
+go
+bus
+buy
+look
+buy
+money
+look
+bus
+..
+bus
+move
+move
+go
+bus
+move
+move
+move
+move
+move
+move
+move
+look
+move
+move
+look
+move
+move
+move
+move
+go
+look
+move
+move
+go
+bus
+bus
+bus
+bus
+bus
+proceed
+go
+goto
+go
+proceed
+proceed
+bus
+go
+..
+bus
+bus
+bus
+bus
+bus
+bus
+wipe
+bus
+bus
+bus
+bus
+bus
+move
+announce
+bus
+bus
+bus
+bus
+bus
+move
+move
+look
+unlock
+unlock
+move
+move
+go
+go
+move
+examine
+move
+look
+look
+look
+look
+look
+look
+look
+move
+look
+take
+look
+look
+proceed
+listen
+look
+buy
+buy
+bus
+look
+proceed
+proceed
+bus
+move
+look
+move
+move
+look
+move
+go
+go
+go
+move
+go
+look
+listen
+look
+look
+look
+look
+look
+lock
+look
+look
+look
+read
+take
+help
+take
+go
+go
+go
+look
+..Charity?
+bus
+move
+bus
+wipe
+bus
+move
+move
+go
+move
+look
+look
+look
+look
+look
+look
+look
+move
+go
+go
+lock
+look
+listen
+look
+look
+look
+look
+listen
+listen
+look
+look
+announce
+announce
+bus
+proceed
+bus
+move
+announce
+move
+list
+look
+move
+bus
+unlock
+go
+look
+look
+read
+take
+move
+move
+look
+look
+lock
+look
+listen
+pull
+look
+look
+look
+look
+look
+read
+look
+look
+pull
+look
+look
+look
+look
+switch
+pull
+wait
+pull
+touch
+look
+push
+take
+take
+checkout
+take
+read
+look
+look
+look
+unlock
+look
+look
+look
+look
+look
+look
+touch
+examine
+look
+move
+move
+move
+look
+list
+look
+look
+look
+look
+look
+look
+examine
+move
+take
+look
+read
+look
+move
+look
+move
+..
+move
+move
+look
+look
+move
+look
+move
+proceed
+buy
+shop
+look
+look
+move
+look
+listen
+bus
+look
+take
+proceed
+look
+proceed
+take
+proceed
+move
+look
+go
+bus
+look
+listen
+buy
+buy
+move
+move
+move
+look
+look
+look
+move
+look
+move
+move
+move
+move
+move
+buy
+list
+look
+move
+look
+look
+move
+move
+move
+move
+look
+look
+buy
+buy
+buy
+buy
+buy
+list
+buy
+proceed
+bus
+look
+wipe
+look
+bus
+move
+move
+look
+move
+look
+list
+look
+look
+look
+look
+move
+look
+move
+go
+look
+look
+look
+look
+listen
+..
+look
+listen
+..
+go
+..
+go
+go
+look
+move
+go
+move
+look
+move
+take
+move
+move
+look
+go
+go
+move
+move
+go
+move
+remove
+move
+..
+go
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 9): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+look
+look
+look
+go
+look
+go
+look
+take
+go
+move
+look
+look
+remove
+stab
+move
+stab
+look
+look
+move
+move
+map
+..
+..
+list
+take
+take
+move
+move
+eat
+move
+look
+move
+move
+move
+look
+move
+move
+move
+move
+move
+move
+move
+look
+move
+move
+look
+look
+move
+look
+take
+take
+take
+take
+look
+take
+take
+take
+take
+take
+move
+take
+go
+look
+look
+look
+look
+8ball
+8ballfg
+8ball
+take
+8ball
+move
+move
+move
+move
+go
+look
+cards
+go
+cards
+shuffle
+shuffle
+mix
+look
+move
+read
+read
+look
+open
+enter
+move
+go
+move
+move
+move
+move
+move
+read
+look
+draw
+read
+look
+take
+take
+take
+take
+look
+look
+take
+take
+listen
+look
+look
+take
+take
+read
+look
+look
+minesweeper
+move
+move
+minesweeper
+move
+look
+move
+look
+move
+look
+move
+list
+take
+move
+get
+pingpong
+pongping
+move
+look
+move
+move
+go
+intercom
+look
+look
+move
+tarot
+intercom
+tarot
+empress
+look
+ping
+pog
+pong
+bus
+bus
+look
+tarot
+proceed
+bus
+list
+go
+lock
+list
+move
+move
+list
+move
+go
+move
+move
+look
+go
+look
+look
+move
+move
+listen
+look
+go
+go
+move
+look
+look
+..
+move
+..
+go
+move
+move
+..
+look
+move
+knife
+look
+..
+listen
+look
+disable
+go
+list
+go
+move
+look
+enable
+move
+..
+move
+move
+..
+go
+move
+..
+go
+move
+move
+move
+move
+move
+move
+move
+move
+list
+move
+listen
+
+buy
+take
+move
+look
+inspect
+inspect
+..
+go
+move
+look
+look
+inspect
+move
+move
+move
+inspect
+take
+read
+
+listen
+move
+look
+
+
+tarot
+move
+enable
+floorplan
+unlock
+help
+
+proceed
+move
+look
+move
+listen
+move
+computer
+help
+buy
+buy
+move
+list
+move
+call
+proceed
+help
+proceed
+look
+
+camera
+take
+go
+take
+look
+proceed
+look
+look
+look
+look
+look
+avoid
+move
+look
+listen
+move
+buy
+move
+move
+look
+look
+look
+move
+move
+buy
+look
+look
+buy
+move
+look
+look
+examine
+go
+caw
+inspect
+go
+move
+go
+go
+bed
+take
+look
+look
+move
+move
+look
+move
+inspect
+look
+buy
+look
+look
+inspect
+take
+inspect
+look
+move
+look
+look
+look
+take
+look
+take
+move
+inspect
+move
+move
+move
+buy
+move
+read
+read
+list
+move
+look
+move
+move
+look
+look
+look
+move
+buy
+
+move
+move
+move
+bus
+proceed
+bus
+proceed
+bus
+bus
+bus
+bus
+bus
+wipe
+bus
+bus
+proceed
+go
+look
+listen
+take
+bus
+go
+move
+go
+go
+look
+listen
+take
+
+go
+go
+go
+go
+go
+go
+go
+look
+listen
+go
+move
+go
+go
+go
+go
+look
+listen
+(node:19848) UnhandledPromiseRejectionWarning: Unhandled promise rejection (rejection id: 10): Error: ENOENT: no such file or directory, stat '/home/i391113/domains/i391113.hera.fhict.nl/private_html/app/data/piano.ogg'
+go
+look
+go
+list
+go
+go
+
+go
+move
+look
+take
+look
+call
+phone
+look
+go
+move
+..
+move
+look
+look
+take
+move
+move
+look
+go
+go
+move
+look
+listen
+move
+8ball
+look
+move
+look
+listen
+look
+look
+go
+look
+look
+move
+move
+look
+look
+go
+look
+listen
+go
+look
+list
+go
+look
+look
+look
+look
+look
+look
+look
