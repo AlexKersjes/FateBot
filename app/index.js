@@ -3,7 +3,9 @@ const Discord = require('discord.js');
 const { prefix, token } = require('./data/config.json');
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
-const commandFiles = fs.readdirSync('app/commands').filter(file => file.endsWith('.js'));
+
+importCommands('commands/admin');
+importCommands('commands/player');
 
 let rawdata = fs.readFileSync('app/data/channelId.json');
 client.channelDictionary = JSON.parse(rawdata);
@@ -12,14 +14,6 @@ client.save = JSON.parse(rawdata);
 
 console.log(client.channelDictionary);
 
-for (const file of commandFiles)
-{
-	const command = require(`./commands/${file}`);
-
-	// set a new item in the Collection
-	// with the key as the command name and the value as the exported module
-	client.commands.set(command.name, command);
-}
 
 client.cooldowns = new Discord.Collection();
 
@@ -119,9 +113,8 @@ client.on('message', message =>
 
 
 		}
+
 		// Command Execution
-
-
 		try
 		{
 			command.execute(message, args, client);
@@ -140,4 +133,20 @@ function getKeyByValue(object, value)
 {
 	return Object.keys(object).find(key => object[key] === value);
 }
+
+function importCommands(path)
+{
+	const commandFiles = fs.readdirSync(`app/${path}`).filter(file => file.endsWith('.js'));
+
+	for (const file of commandFiles)
+	{
+		const command = require(`./${path}/${file}`);
+
+		// set a new item in the Collection
+		// with the key as the command name and the value as the exported module
+		client.commands.set(command.name, command);
+	}
+
+}
+
 client.login(token);
