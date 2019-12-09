@@ -3,7 +3,9 @@ module.exports = {
 	name: 'move',
 	description: 'Allows a player to move from one place to another.',
 	cooldown: 40,
-	channels: ['lobby', 'lounge', 'gameroom', 'garden', 'roof', 'library', 'crimescene'],
+	channels: [],
+	// TODO limit move command only to proper channels
+	disabled: true,
 	aliases: ['go', 'goto'],
 	visibleReject: true,
 	execute(message, args, client)

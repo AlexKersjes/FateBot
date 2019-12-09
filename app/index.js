@@ -9,12 +9,9 @@ client.commands = new Discord.Collection();
 importCommands('commands/admin');
 importCommands('commands/player');
 
-let rawdata = fs.readFileSync('app/data/channelId.json');
+const rawdata = fs.readFileSync('app/data/channelId.json');
 client.channelDictionary = JSON.parse(rawdata);
-rawdata = fs.readFileSync('app/data/savedata.json');
-client.save = JSON.parse(rawdata);
-
-console.log(client.channelDictionary);
+client.currentgame = {};
 
 
 client.cooldowns = new Discord.Collection();
@@ -30,7 +27,8 @@ client.on('message', message =>
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 	{
 		const args = message.content.slice(prefix.length).split(/ +/);
-		console.log(args[0]);
+		if (args[1])
+		{console.log(args[0] + ' ' + args[1]);}
 		const commandName = args.shift().toLowerCase();
 
 		// Dynamic Commands
