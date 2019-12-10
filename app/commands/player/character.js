@@ -11,9 +11,9 @@ module.exports = {
 		const savedata = client.currentgame;
 		let character;
 
+		// load character / create blank sheet for players without characters
 		try
 		{
-			console.log(savedata);
 			character = savedata.PCs[message.author.id];
 			if (!character)
 			{
@@ -44,12 +44,9 @@ module.exports = {
 				'Clever' : 0,
 				'Flashy' : 0,
 			},
-				'Stress' : 0,
-				'MaxStress' : 6,
-				'InPeril' : 0,
-				'MaxPeril' : 1,
-				'Doomed' : 0,
-				'MaxDoomed' : 1,
+				'Stress' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 6 },
+				'In Peril' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 1 },
+				'Doomed' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 1 },
 			};
 			client.currentgame.PCs[message.author.id] = character;
 			message.channel.send('Created character sheet');
@@ -60,32 +57,70 @@ module.exports = {
 		{
 			character.Name = character.Name ? character.Name : 'Unnamed';
 			character.HighConcept = character.HighConcept ? character.HighConcept : 'Undefined';
-			if (character.Aspects.length > 0) { character.Aspects = { 'No Aspects' : { 'Description' : 'No Aspects', 'Hidden': false } }; }
-			if (character.Conditions.length > 0) { character.Conditions = { 'No Conditions': { 'Description' : 'No Conditions', 'Hidden': false } }; }
-			if (character.Stunts.length > 0) { character.Stunts = { 'No Stunts' : { 'Description' : 'No Stunts', 'Hidden': false } }; }
 		}
 
-		const embed = new Discord.RichEmbed()
-			.setColor(message.member.displayColor)
-			.setTitle(character.Name)
-			.setDescription(`***${character.HighConcept}***`)
-			.addField('Aspects', keysstring(character.Aspects))
-			.addBlankField()
-			.addField('Conditions', keysstring(character.Conditions), true)
-			.addField('Stunts', keysstring(character.Stunts), true)
-			.addBlankField()
-			.addField('Stress', boxesmarked(character.MaxStress, character.Stress), true)
-			.addField('In Peril', boxesmarked(character.MaxPeril, character.InPeril), true)
-			.addField('Doomed', boxesmarked(character.MaxDoomed, character.Doomed), true)
-			.addBlankField()
-			.addField('Approaches', sortapproaches(character.Approaches))
-			.setThumbnail(message.author.avatarURL);
-		message.channel.send(embed);
+		switch (args[0])
+		{
+		case 'aspects' :
+			message.channel.send(detailembed(character, message, 'Aspects'));
+			break;
+		default :
+			message.channel.send(sheetembed(character, message));
+			break;
+		}
+		message.delete();
 	},
 };
 
+// default character sheet layout
+function sheetembed(character, message)
+{
+	console.log(character);
+	const embed = new Discord.RichEmbed()
+		.setColor(message.member.displayColor)
+		.setTitle(`**${character.Name}**`)
+		.setDescription(`the ***${character.HighConcept}***`)
+		.addField('Aspects', keysstring(character.Aspects))
+		.addBlankField()
+		.addField('Conditions', keysstring(character.Conditions), true)
+		.addField('Stunts', keysstring(character.Stunts), true)
+		.addBlankField();
+	findbymarker(character, 'Boxes').forEach(boxaspect =>
+	{
+		embed.addField(boxaspect, boxesmarked(character[boxaspect]), true);
+	}
+	);
+	embed.addBlankField()
+		.addField('Approaches', sortapproaches(character.Approaches))
+		.setThumbnail(character.imgURL ? character.imgURL : message.author.avatarURL);
+	return embed;
+}
+
+function detailembed(character, message, detail)
+{
+	const embed = new Discord.RichEmbed()
+		.setColor(message.member.displayColor)
+		.setThumbnail(character.imgURL ? character.imgURL : message.author.avatarURL)
+		.setTitle(character.Name)
+		.setDescription(`'s ${detail}`);
+	Object.keys(character[detail])
+		.forEach(key =>
+		{
+			if (character[detail][key].Hidden)
+			{
+				embed.addField('[HIDDEN]', '[REDACTED]');
+				return;
+			}
+			embed.addField(key, character[detail][key].Description);
+		});
+	return embed;
+}
+
+// utility functions below
 function keysstring(object)
 {
+	if (isEmpty(object))
+	{ return 'None'; }
 	const array = Object.keys(object);
 	let string = '';
 	array.forEach((key, index) =>
@@ -104,12 +139,12 @@ function keysstring(object)
 	return string;
 }
 
-function boxesmarked(max, current)
+function boxesmarked(boxcondition)
 {
 	let string = '';
-	for (let i = 0; i < max; i++)
+	for (let i = 0; i < boxcondition.Maximum; i++)
 	{
-		if (current <= i)
+		if (boxcondition.Current <= i)
 		{
 			string += '[ ] ';
 		}
@@ -123,32 +158,52 @@ function boxesmarked(max, current)
 
 function sortapproaches(approaches)
 {
-
-	console.log(approaches);
-
-	return 'WIP';
+	let str = '';
+	for (let i = -2; i < 9; i++)
+	{
+		if(i == 0)
+		{ continue; }
+		const filtered = findbyvalue(approaches, i);
+		if(filtered.length == 0)
+		{ continue; }
+		const plus = i > 0 ? '+' : '';
+		let tempstr = `${plus}${i}: `;
+		filtered.forEach(approach => { tempstr += `${approach}, `; });
+		tempstr = tempstr.slice(0, -2);
+		tempstr += '\n';
+		str = tempstr + str;
+	}
+	str = str.slice(0, -1);
+	if(!str)
+	{ str = 'No Approaches'; }
+	return str;
 }
 
 function findbyvalue(array, value)
 {
-	let result = {};
-	array.forEach(element =>
+	const result = [];
+	Object.keys(array).forEach(key =>
 	{
-		if (array[element] == value)
-		{ result += element; }
+		if(array[key] == value)
+		{ result.push(key); }
 	});
 	return result;
 }
-/* const embed = new Discord.RichEmbed()
-			.setColor(message.member.displayColor)
-			.setTitle('Mina Volare')
-			.setDescription('***the INTERPLANAR RANGER.***')
-			.addField('Aspects', 'Vigilante Legacy,\nToo cool for her own good,\nTinfoil Hat')
-			.addBlankField()
-			.addField('Conditions', 'Role: *The Smuggler* [Sticky],\n Flame-scarred [Lasting]', true)
-			.addField('Stunts', 'A trusty tool & A useful souvenir,\n Dramatic Exit', true)
-			.addBlankField()
-			.addField('Stress', '[ ]  [ ]  [ ]  [ ]  [ ]  [ ]', true)
-			.addField('In Peril', '[ ]', true)
-			.addField('Doomed', '[ ]', true)
-			.setThumbnail('https://cdn.discordapp.com/attachments/617186171612692491/650849322371383328/tfc_bluemoons_v3.png');*/
+
+function findbymarker(array, value)
+{
+	const result = [];
+	Object.keys(array).forEach(key =>
+	{
+		if(array[key][value])
+		{ result.push(key); }
+	});
+	return result;
+}
+
+function isEmpty(obj)
+{
+	if(Object.keys(obj).length == 0)
+	{ return true; }
+	return false;
+}
