@@ -9,19 +9,20 @@ module.exports = {
 		let modifier = 0;
 		let approachstr = '';
 		modifier = args[0] ? parseInt(args[0]) : 0;
+		let approachmodifier = 0;
 		try
 		{
 			if (isNaN(modifier))
 			{
 				const approachCapitalized = args[0].charAt(0).toUpperCase() + args[0].slice(1);
 				modifier = 0;
-				modifier += findApproach(message, approachCapitalized, client);
+				approachmodifier = findApproach(message, approachCapitalized, client);
 				approachstr = ` using **${approachCapitalized}**,` ;
 			}
 			else if(args[1])
 			{
 				const approachCapitalized = args[1].charAt(0).toUpperCase() + args[1].slice(1);
-				modifier += findApproach(message, approachCapitalized, client);
+				approachmodifier = findApproach(message, approachCapitalized, client);
 				approachstr = ` using **${approachCapitalized}**,`;
 			}
 		}
@@ -37,20 +38,22 @@ module.exports = {
 			switch (roll)
 			{
 			case 0:
-				string += '-';
+				string += '<:minuskey:653966380319899669> ';
 				total -= 1;
 				break;
 			case 1 :
-				string += '0';
+				string += '<:voidkey:653966403363274792> ';
 				break;
 			case 2:
-				string += '+';
+				string += '<:pluskey:653966438704480256> ';
 				total += 1;
 				break;
 			}
 		}
-		total += modifier;
-		message.channel.send(`${string}:${approachstr} with a modifier of ${modifier}, ${message.member.displayName} rolled **${total}**.`);
+		total += approachmodifier + modifier;
+		let modifierstr = '';
+		modifierstr = approachmodifier == 0 && modifier == 0 ? '' : approachmodifier == 0 ? ` with a modifier of ${modifier},` : modifier == 0 ? ` with a modifier of ${approachmodifier},` : ` with a modifier of ${approachmodifier} + ${modifier},`;
+		message.channel.send(`${string}:${approachstr}${modifierstr}\n${message.author} rolled **[ ${total} ]** .`);
 		return message.delete();
 	},
 };
@@ -58,7 +61,6 @@ module.exports = {
 function findApproach(message, approach, client)
 {
 	const character = client.currentgame.PCs[message.author.id];
-	console.log(character.Approaches);
 
 	const modifier = character.Approaches[approach];
 	if (modifier == undefined)

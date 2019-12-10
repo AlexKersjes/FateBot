@@ -1,7 +1,7 @@
 module.exports = {
 	name: 'delete',
-	description: 'Remove something from a character sheet.',
-	aliases: ['remove'],
+	description: 'Remove something from your character sheet. .del category "name" OR listnumber',
+	aliases: ['remove', 'del'],
 	args: true,
 	visibleReject: true,
 	execute(message, args, client)
@@ -9,7 +9,6 @@ module.exports = {
 		const name = message.cleanContent.split('"')[1];
 		const int = isNaN(parseInt(args[1])) ? undefined : parseInt(args[1]);
 
-		console.log(int);
 		if(!client.currentgame.GameName)
 		{ return message.channel.send('Game is not loaded'); }
 
@@ -33,7 +32,7 @@ module.exports = {
 			delete character.Stunts[name];
 			break;
 		case 'approach' :
-			character.Approaches[name].delete();
+			delete character.Approaches[name];
 			break;
 		default :
 			return message.channel.send('Please input a valid category.');

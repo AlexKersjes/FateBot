@@ -1,13 +1,21 @@
 module.exports = {
 	name: 'help',
-	args: true,
 	description: 'Shows description for a specific public command. Public.',
 	execute(message, args, client)
 	{
+		if(!args[0])
+		{
+			return client.commands.get('commands').execute(message, args, client);
+		}
 		const command = client.commands.get(args[0]) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(args[0]));
 		if(command && !command.admin)
 		{
-			return message.channel.send(`${command.name}: ${command.description}`);
+			let aliases = '';
+			command.aliases.forEach(alias =>
+			{
+				aliases += `'${alias}' `;
+			});
+			return message.channel.send(`'${command.name}' ${aliases}: ${command.description}`);
 		}
 	},
 };

@@ -5,6 +5,7 @@ module.exports = {
 	admin: true,
 	args: true,
 	aliases: ['channels'],
+	disabled: true,
 	execute(message, args, client)
 	{
 		let newstring;

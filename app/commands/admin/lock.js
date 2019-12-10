@@ -2,6 +2,7 @@ module.exports = {
 	name: 'lock',
 	description: 'Denies access with the move command.',
 	admin: true,
+	disabled: true,
 	execute(message, args, client)
 	{
 		const locations = client.commands.get('move').channels;

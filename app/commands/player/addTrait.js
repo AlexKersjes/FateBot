@@ -1,18 +1,18 @@
 module.exports = {
 	name: 'add',
-	description: 'Add something to a character sheet.',
+	description: 'Add something to or change something your character sheet. Editable categories are: name concept aspect condition stunt approach img.\nnon-optional: "trait name". optional: /trait description/, [severity], Hidden',
 	aliases: ['edit'],
 	args: true,
 	visibleReject: true,
 	execute(message, args, client)
 	{
 		const name = message.cleanContent.split('"')[1];
-		let description = message.cleanContent.split('(').pop().split(')')[0];
-		if (!message.cleanContent.includes('(')) { description = 'No description.'; }
+		let description = message.cleanContent.split('/')[1];
+		if (!message.cleanContent.includes('/')) { description = 'No description.'; }
 		let severity = message.cleanContent.split('[').pop().split(']')[0];
 		if (!message.cleanContent.includes('[')) { severity = ''; }
 		const hidden = args.includes('Hidden') ? true : false;
-		const int = isNaN(parseInt(args[1])) ? undefined : parseInt(args[1]);
+		const int = isNaN(parseInt(args[1])) || parseInt(args[1]) == undefined ? 0 : parseInt(args[1]);
 
 		if(!client.currentgame.GameName)
 		{ return message.channel.send('Game is not loaded'); }
@@ -43,7 +43,7 @@ module.exports = {
 			if(int) { character.Stunts[name].Cost = int; }
 			break;
 		case 'approach' :
-			character.Approaches[name] = int;
+			character.Approaches[name.charAt(0).toUpperCase() + name.slice(1)] = int;
 			break;
 		case 'img' :
 			character.imgURL = args[1];

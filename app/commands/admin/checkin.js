@@ -2,6 +2,7 @@ module.exports = {
 	name: 'checkin',
 	description: 'Checks a player in to their private room.',
 	admin: true,
+	disabled: true,
 	execute(message, args, client)
 	{
 		checkin(message, args, client);

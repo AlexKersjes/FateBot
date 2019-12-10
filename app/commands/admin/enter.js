@@ -2,6 +2,7 @@ module.exports = {
 	name: 'enter',
 	description: 'A player enters the game.',
 	admin: 'true',
+	disabled: true,
 	execute(message, args, client)
 	{
 		const newPlayer = message.mentions.members.first();

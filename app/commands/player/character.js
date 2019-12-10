@@ -64,6 +64,12 @@ module.exports = {
 		case 'aspects' :
 			message.channel.send(detailembed(character, message, 'Aspects'));
 			break;
+		case 'conditions' :
+			message.channel.send(detailembed(character, message, 'Conditions'));
+			break;
+		case 'stunts' :
+			message.channel.send(detailembed(character, message, 'Stunts'));
+			break;
 		default :
 			message.channel.send(sheetembed(character, message));
 			break;
@@ -82,9 +88,9 @@ function sheetembed(character, message)
 		.setDescription(`the ***${character.HighConcept}***`)
 		.addField('Aspects', keysstring(character.Aspects))
 		.addBlankField()
-		.addField('Conditions', keysstring(character.Conditions), true)
-		.addField('Stunts', keysstring(character.Stunts), true)
-		.addBlankField();
+		.addField('Stunts', keysstring(character.Stunts), true);
+	if(!isEmpty(character.Conditions)) { embed.addField('Conditions', keysstring(character.Conditions), true); }
+	embed.addBlankField();
 	findbymarker(character, 'Boxes').forEach(boxaspect =>
 	{
 		embed.addField(boxaspect, boxesmarked(character[boxaspect]), true);
@@ -102,7 +108,7 @@ function detailembed(character, message, detail)
 		.setColor(message.member.displayColor)
 		.setThumbnail(character.imgURL ? character.imgURL : message.author.avatarURL)
 		.setTitle(character.Name)
-		.setDescription(`'s ${detail}`);
+		.setDescription(`${detail}:`);
 	Object.keys(character[detail])
 		.forEach(key =>
 		{
@@ -111,7 +117,10 @@ function detailembed(character, message, detail)
 				embed.addField('[HIDDEN]', '[REDACTED]');
 				return;
 			}
-			embed.addField(key, character[detail][key].Description);
+			const severity = character[detail][key].Severity ? ` [${character[detail][key].Severity}]` : '' ;
+			const cost = character[detail][key].Cost ? `{${character[detail][key].Cost}} ` : '' ;
+			const boxes = character[detail][key].Boxes ? boxesmarked(character[detail][key]) + ': ' : '';
+			embed.addField(`${cost}${key}:${severity}`, boxes + character[detail][key].Description);
 		});
 	return embed;
 }

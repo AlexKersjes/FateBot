@@ -3,6 +3,7 @@ module.exports = {
 	description: 'A creacky intercom. Leave a message, responsibly.',
 	channels: ['lobby', 'dmchannel'],
 	cooldown: 120,
+	disabled: true,
 	args: true,
 	visibleReject: true,
 	execute(message, args, client)
