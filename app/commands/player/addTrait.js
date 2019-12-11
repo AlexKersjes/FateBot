@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'add',
-	description: 'Add something to or change something your character sheet. Editable categories are: name concept aspect condition stunt approach img.\nnon-optional: "trait name". optional: /trait description/, [severity], Hidden',
+	description: 'Add something to or change something your character sheet. Editable categories are: name, concept, aspect, condition, stunt, approach, img.\nrequired: **"**trait name**"**. optional: **/**trait description**/**, **[**severity**]**, **Hidden**\ne.g. .add aspect Hidden "Aspect of Dummy Value" /This aspect signifies the value of dumminess./',
 	aliases: ['edit'],
 	args: true,
 	visibleReject: true,
@@ -30,7 +30,7 @@ module.exports = {
 			character.Name = name;
 			break;
 		case 'concept' :
-			character.HighConcept = name;
+			character['High Concept'] = name;
 			break;
 		case 'aspect' :
 			character.Aspects[name] = { 'Description' : description, 'Hidden' : hidden };

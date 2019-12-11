@@ -6,7 +6,7 @@
 		"snowflake" : 
 		{
 			"Name" : "dummy name",
-			"HighConcept" : "dummy concept",
+			"High Concept" : "dummy concept",
 			"Aspects" : 
 			{
 				"Aspect One" : {"Description" : "Aspect one dummy description, which talks about aspect one.", "Hidden" : true},

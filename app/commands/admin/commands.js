@@ -15,7 +15,7 @@ module.exports = {
 				if (!message.member.hasPermission('ADMINISTRATOR')) { continue; }
 				admin = ', **admin only**';
 			}
-			newstring += `*${command[0]}* : ${command[1].description}${admin}\n`;
+			newstring += `**${command[0]}** : ${command[1].description}${admin}\n`;
 		}
 		message.channel.send(newstring);
 		message.delete();

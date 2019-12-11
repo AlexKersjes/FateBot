@@ -25,7 +25,7 @@ module.exports = {
 			character =
 			{
 				'Name' : '',
-				'HighConcept' : '',
+				'High Concept' : '',
 				'Aspects' :
 			{
 			},
@@ -56,22 +56,22 @@ module.exports = {
 		// fixing null fields
 		{
 			character.Name = character.Name ? character.Name : 'Unnamed';
-			character.HighConcept = character.HighConcept ? character.HighConcept : 'Undefined';
+			character['High Concept'] = character['High Concept'] ? character['High Concept'] : 'Undefined';
 		}
 
 		switch (args[0])
 		{
 		case 'aspects' :
-			message.channel.send(detailembed(character, message, 'Aspects'));
+			message.channel.send(detailembed(character, message, 'Aspects')).then(m => createlistener(m, character, message));
 			break;
 		case 'conditions' :
-			message.channel.send(detailembed(character, message, 'Conditions'));
+			message.channel.send(detailembed(character, message, 'Conditions')).then(m => createlistener(m, character, message));
 			break;
 		case 'stunts' :
-			message.channel.send(detailembed(character, message, 'Stunts'));
+			message.channel.send(detailembed(character, message, 'Stunts')).then(m => createlistener(m, character, message));
 			break;
 		default :
-			message.channel.send(sheetembed(character, message));
+			message.channel.send(sheetembed(character, message)).then(m => createlistener(m, character, message));
 			break;
 		}
 		message.delete();
@@ -81,11 +81,10 @@ module.exports = {
 // default character sheet layout
 function sheetembed(character, message)
 {
-	console.log(character);
 	const embed = new Discord.RichEmbed()
 		.setColor(message.member.displayColor)
 		.setTitle(`**${character.Name}**`)
-		.setDescription(`the ***${character.HighConcept}***`)
+		.setDescription(`the ***${character['High Concept']}***`)
 		.addField('Aspects', keysstring(character.Aspects))
 		.addBlankField()
 		.addField('Stunts', keysstring(character.Stunts), true);
@@ -123,6 +122,74 @@ function detailembed(character, message, detail)
 			embed.addField(`${cost}${key}:${severity}`, boxes + character[detail][key].Description);
 		});
 	return embed;
+}
+
+function plainembed(character, message)
+{
+	const embed = new Discord.RichEmbed()
+		.setColor(message.member.displayColor)
+		.setThumbnail(character.imgURL ? character.imgURL : message.author.avatarURL)
+		.setTitle(character.Name)
+		.setDescription('Details:');
+	findbytype(character, 'string')
+		.forEach(key =>
+		{
+			embed.addField(`${key}:`, character[key]);
+		});
+	return embed;
+}
+
+async function createlistener(message, character, originalmessage)
+{
+	const filter = (reaction, user) =>
+	{
+		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨') && user.id === originalmessage.author.id;
+	};
+
+	try
+	{
+		await message.react('🏠');
+		await message.react('🇩');
+		await message.react('🇦');
+		await message.react('🇸');
+		await message.react('🇨');
+	}
+	catch
+	{
+		console.error('reaction promise failed');
+	}
+	// message.react('🏠').then(message.react('🇩')).then(message.react('🇦')).then(message.react('🇸')).then(message.react(''));
+
+	const collector = message.createReactionCollector(filter, { time: 120000 });
+
+	collector.on('collect', (reaction, reactionCollector) =>
+	{
+		switch(reaction.emoji.name)
+		{
+		case '🏠' :
+			message.edit(sheetembed(character, originalmessage));
+			break;
+		case '🇦':
+			message.edit(detailembed(character, originalmessage, 'Aspects'));
+			break;
+		case '🇸':
+			message.edit(detailembed(character, originalmessage, 'Stunts'));
+			break;
+		case '🇨':
+			message.edit(detailembed(character, originalmessage, 'Conditions'));
+			break;
+		case '🇩':
+			message.edit(plainembed(character, originalmessage));
+			break;
+		}
+		reaction.remove(originalmessage.author.id);
+	});
+
+	collector.on('end', collected =>
+	{
+		message.clearReactions();
+	});
+
 }
 
 // utility functions below
@@ -205,6 +272,17 @@ function findbymarker(array, value)
 	Object.keys(array).forEach(key =>
 	{
 		if(array[key][value])
+		{ result.push(key); }
+	});
+	return result;
+}
+
+function findbytype(array, type)
+{
+	const result = [];
+	Object.keys(array).forEach(key =>
+	{
+		if(typeof (array[key]) == type)
 		{ result.push(key); }
 	});
 	return result;

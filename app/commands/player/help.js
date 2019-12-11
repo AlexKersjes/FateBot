@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'help',
-	description: 'Shows description for a specific public command. Public.',
+	description: 'Shows description and shorthands/aliases for a specific public command.',
 	execute(message, args, client)
 	{
 		if(!args[0])
