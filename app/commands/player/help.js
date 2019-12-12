@@ -11,10 +11,15 @@ module.exports = {
 		if(command && !command.admin)
 		{
 			let aliases = '';
-			command.aliases.forEach(alias =>
+			if (command.aliases != undefined)
 			{
-				aliases += `'${alias}' `;
-			});
+				command.aliases.forEach(alias =>
+				{
+					aliases += `'${alias}' `;
+				});
+
+			}
+
 			return message.channel.send(`'${command.name}' ${aliases}: ${command.description}`);
 		}
 	},

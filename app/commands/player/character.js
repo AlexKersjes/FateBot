@@ -1,9 +1,9 @@
 const Discord = require('discord.js');
 module.exports = {
-	name: 'charactersheet',
-	description: 'Display your character sheet.',
+	name: 'sheet',
+	description: 'Display your character sheet. Click the buttons to refresh or navigate. 🏠:home, D:details, A:aspects, S:stunts, C:conditions',
 	visibleReject: true,
-	aliases: ['character', 'sheet', 'status'],
+	aliases: ['character', 'charactersheet', 'status'],
 	execute(message, args, client)
 	{
 		if(!client.currentgame.GameName)
@@ -26,6 +26,10 @@ module.exports = {
 			{
 				'Name' : '',
 				'High Concept' : '',
+				'Trouble' : ['No Trouble', 'No description'],
+				'Stress' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 6 },
+				'In Peril' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 1 },
+				'Doomed' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 1 },
 				'Aspects' :
 			{
 			},
@@ -44,9 +48,7 @@ module.exports = {
 				'Clever' : 0,
 				'Flashy' : 0,
 			},
-				'Stress' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 6 },
-				'In Peril' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 1 },
-				'Doomed' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 1 },
+
 			};
 			client.currentgame.PCs[message.author.id] = character;
 			message.channel.send('Created character sheet');
@@ -84,15 +86,16 @@ function sheetembed(character, message)
 	const embed = new Discord.RichEmbed()
 		.setColor(message.member.displayColor)
 		.setTitle(`**${character.Name}**`)
-		.setDescription(`the ***${character['High Concept']}***`)
-		.addField('Aspects', keysstring(character.Aspects))
+		.setDescription(`the ***${character['High Concept']}***`);
+	if (character.Trouble[0] != 'No Trouble') { embed.addField('Trouble', `${character.Trouble[0]}`); }
+	embed.addField('Aspects', keysstring(character.Aspects))
 		.addBlankField()
 		.addField('Stunts', keysstring(character.Stunts), true);
 	if(!isEmpty(character.Conditions)) { embed.addField('Conditions', keysstring(character.Conditions), true); }
 	embed.addBlankField();
-	findbymarker(character, 'Boxes').forEach(boxaspect =>
+	findbymarkerrecursive(character, 'Boxes').forEach(boxaspect =>
 	{
-		embed.addField(boxaspect, boxesmarked(character[boxaspect]), true);
+		embed.addField(boxaspect[0], boxesmarked(boxaspect[1]), true);
 	}
 	);
 	embed.addBlankField()
@@ -108,6 +111,8 @@ function detailembed(character, message, detail)
 		.setThumbnail(character.imgURL ? character.imgURL : message.author.avatarURL)
 		.setTitle(character.Name)
 		.setDescription(`${detail}:`);
+	if (detail == 'Aspects')
+	{ if (character.Trouble[0] != 'No Trouble') { embed.addField(character.Trouble[0], character.Trouble[1]); } }
 	Object.keys(character[detail])
 		.forEach(key =>
 		{
@@ -119,7 +124,7 @@ function detailembed(character, message, detail)
 			const severity = character[detail][key].Severity ? ` [${character[detail][key].Severity}]` : '' ;
 			const cost = character[detail][key].Cost ? `{${character[detail][key].Cost}} ` : '' ;
 			const boxes = character[detail][key].Boxes ? boxesmarked(character[detail][key]) + ': ' : '';
-			embed.addField(`${cost}${key}:${severity}`, boxes + character[detail][key].Description);
+			embed.addField(`${boxes}${cost}${key}:${severity}`, character[detail][key].Description);
 		});
 	return embed;
 }
@@ -134,7 +139,8 @@ function plainembed(character, message)
 	findbytype(character, 'string')
 		.forEach(key =>
 		{
-			embed.addField(`${key}:`, character[key]);
+			if(key != 'imgURL')
+			{ embed.addField(`${key}:`, character[key]); }
 		});
 	return embed;
 }
@@ -266,13 +272,18 @@ function findbyvalue(array, value)
 	return result;
 }
 
-function findbymarker(array, value)
+function findbymarkerrecursive(array, value)
 {
 	const result = [];
 	Object.keys(array).forEach(key =>
 	{
 		if(array[key][value])
-		{ result.push(key); }
+		{ result.push([key, array[key]]); }
+		else if (typeof array[key] == 'object')
+		{
+			if(!isEmpty(findbymarkerrecursive(array[key], value)))
+			{result.push(findbymarkerrecursive(array[key], value)[0]);}
+		}
 	});
 	return result;
 }

@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'roll',
-	description: 'Roll dice.',
+	description: 'Roll dice. syntax: .roll modifier approach. modifier and approach are optional.',
 	visibleReject: true,
 	execute(message, args, client)
 	{

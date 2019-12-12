@@ -34,6 +34,10 @@ module.exports = {
 		case 'approach' :
 			delete character.Approaches[name];
 			break;
+		case 'detail':
+			if(character[name] == undefined || typeof character[name] == 'string' && name != 'Name' || name != 'Trouble' || name != 'High Concept')
+			{ delete character[name]; }
+			break;
 		default :
 			return message.channel.send('Please input a valid category.');
 		}
