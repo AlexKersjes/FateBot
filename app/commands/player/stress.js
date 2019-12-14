@@ -1,4 +1,4 @@
-const sheet = require('./character.js');
+const sheet = require('./sheet.js');
 module.exports = {
 	name: 'stress',
 	description: 'Adjust Stress with + or - or an integer.',
@@ -10,7 +10,7 @@ module.exports = {
 		let int = parseInt(args[0]);
 		try
 		{
-			character = client.currentgame.PCs[message.author.id];
+			character = client.currentgame[message.guild.id].PCs[message.author.id];
 			if (!character)
 			{
 				throw new console.error('No character found.');

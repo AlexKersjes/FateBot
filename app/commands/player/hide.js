@@ -9,10 +9,10 @@ module.exports = {
 		const name = message.cleanContent.split('"')[1];
 		const int = isNaN(parseInt(args[1])) ? undefined : parseInt(args[1]);
 
-		if(!client.currentgame.GameName)
+		if(!client.currentgame[message.guild.id].GameName)
 		{ return message.channel.send('Game is not loaded'); }
 
-		const character = client.currentgame.PCs[message.author.id];
+		const character = client.currentgame[message.guild.id].PCs[message.author.id];
 
 		switch (args[0].toLowerCase())
 		{

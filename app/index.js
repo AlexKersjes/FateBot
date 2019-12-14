@@ -31,6 +31,12 @@ client.on('message', message =>
 		{console.log(args[0] + ' ' + args[1]);}
 		const commandName = args.shift().toLowerCase();
 
+		if(commandName == 'reloadcommands')
+		{
+			importCommands('commands/admin');
+			importCommands('commands/player');
+			return message.channel.send('Reloaded commands.');
+		}
 		// Dynamic Commands
 		const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 		if(!command) { return; }

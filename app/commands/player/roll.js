@@ -4,7 +4,7 @@ module.exports = {
 	visibleReject: true,
 	execute(message, args, client)
 	{
-		if(!client.currentgame.GameName)
+		if(!client.currentgame[message.guild.id].GameName)
 		{ return message.channel.send('Game is not loaded'); }
 		let modifier = 0;
 		let approachstr = '';
@@ -60,7 +60,7 @@ module.exports = {
 
 function findApproach(message, approach, client)
 {
-	const character = client.currentgame.PCs[message.author.id];
+	const character = client.currentgame[message.guild.id].PCs[message.author.id];
 
 	const modifier = character.Approaches[approach];
 	if (modifier == undefined)

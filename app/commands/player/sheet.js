@@ -6,9 +6,10 @@ module.exports = {
 	aliases: ['character', 'charactersheet', 'status'],
 	execute(message, args, client)
 	{
-		if(!client.currentgame.GameName)
+		if(!client.currentgame[message.guild.id])
 		{ return message.channel.send('Game not loaded'); }
-		const savedata = client.currentgame;
+		const savedata = client.currentgame[message.guild.id];
+		console.log(savedata);
 		let character;
 
 		// load character / create blank sheet for players without characters
@@ -24,8 +25,8 @@ module.exports = {
 		{
 			character =
 			{
-				'Name' : '',
-				'High Concept' : '',
+				'Name' : 'Unnamed',
+				'High Concept' : 'Undefined',
 				'Trouble' : ['No Trouble', 'No description'],
 				'Stress' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 6 },
 				'In Peril' : { 'Boxes' : true, 'Current' : 0, 'Maximum' : 1 },
@@ -48,17 +49,12 @@ module.exports = {
 				'Clever' : 0,
 				'Flashy' : 0,
 			},
-
+				'imgURL' : '',
+				'NPC' : false,
 			};
-			client.currentgame.PCs[message.author.id] = character;
+			savedata.PCs[message.author.id] = character;
 			message.channel.send('Created character sheet');
 			return;
-		}
-
-		// fixing null fields
-		{
-			character.Name = character.Name ? character.Name : 'Unnamed';
-			character['High Concept'] = character['High Concept'] ? character['High Concept'] : 'Undefined';
 		}
 
 		switch (args[0])
@@ -71,6 +67,13 @@ module.exports = {
 			break;
 		case 'stunts' :
 			message.channel.send(detailembed(character, message, 'Stunts')).then(m => createlistener(m, character, message));
+			break;
+		case 'icebox':
+			if(character.Name == 'Unnamed')
+			{ message.delete(); return message.channel.send('Name character to icebox.'); }
+			savedata.NPCs[character.name] = character;
+			delete savedata.PCs[message.author.id];
+			message.channel.send(`Iceboxed ${character.name}`);
 			break;
 		default :
 			message.channel.send(sheetembed(character, message)).then(m => createlistener(m, character, message));
@@ -85,12 +88,15 @@ function sheetembed(character, message)
 {
 	const embed = new Discord.RichEmbed()
 		.setColor(message.member.displayColor)
-		.setTitle(`**${character.Name}**`)
-		.setDescription(`the ***${character['High Concept']}***`);
+		.setTitle(`**${character.Name}**`);
+	if(!character.NPC) { embed.setDescription(`the ***${character['High Concept']}***`); }
 	if (character.Trouble[0] != 'No Trouble') { embed.addField('Trouble', `${character.Trouble[0]}`); }
-	embed.addField('Aspects', keysstring(character.Aspects))
-		.addBlankField()
-		.addField('Stunts', keysstring(character.Stunts), true);
+	if(!isEmpty(character.Aspects) || !character.NPC)
+	{
+		embed.addField('Aspects', keysstring(character.Aspects))
+			.addBlankField();
+	}
+	if(!isEmpty(character.Aspects) || !character.NPC) {embed.addField('Stunts', keysstring(character.Stunts), true);}
 	if(!isEmpty(character.Conditions)) { embed.addField('Conditions', keysstring(character.Conditions), true); }
 	embed.addBlankField();
 	findbymarkerrecursive(character, 'Boxes').forEach(boxaspect =>
@@ -98,9 +104,12 @@ function sheetembed(character, message)
 		embed.addField(boxaspect[0], boxesmarked(boxaspect[1]), true);
 	}
 	);
-	embed.addBlankField()
-		.addField('Approaches', sortapproaches(character.Approaches))
-		.setThumbnail(character.imgURL ? character.imgURL : message.author.avatarURL);
+	if(!isEmpty(character.Aspects) || !character.NPC)
+	{
+		embed.addBlankField()
+			.addField('Approaches', sortapproaches(character.Approaches));
+	}
+	embed.setThumbnail(character.imgURL ? character.imgURL : message.author.avatarURL);
 	return embed;
 }
 
@@ -149,16 +158,16 @@ async function createlistener(message, character, originalmessage)
 {
 	const filter = (reaction, user) =>
 	{
-		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨') && user.id === originalmessage.author.id;
+		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨') && user.id != message.author.id;
 	};
 
 	try
 	{
 		await message.react('🏠');
 		await message.react('🇩');
-		await message.react('🇦');
-		await message.react('🇸');
-		await message.react('🇨');
+		if(!isEmpty(character.Aspects)) {await message.react('🇦');}
+		if(!isEmpty(character.Stunts)) {await message.react('🇸');}
+		if(!isEmpty(character.Conditions)) {await message.react('🇨');}
 	}
 	catch
 	{
@@ -166,7 +175,7 @@ async function createlistener(message, character, originalmessage)
 	}
 	// message.react('🏠').then(message.react('🇩')).then(message.react('🇦')).then(message.react('🇸')).then(message.react(''));
 
-	const collector = message.createReactionCollector(filter, { time: 120000 });
+	const collector = message.createReactionCollector(filter, { time: 180000 });
 
 	collector.on('collect', (reaction, reactionCollector) =>
 	{
@@ -188,7 +197,8 @@ async function createlistener(message, character, originalmessage)
 			message.edit(plainembed(character, originalmessage));
 			break;
 		}
-		reaction.remove(originalmessage.author.id);
+		reaction.users.forEach(i =>
+		{ if(i.id != reactionCollector.message.author.id) { reaction.remove(i);}});
 	});
 
 	collector.on('end', collected =>

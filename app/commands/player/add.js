@@ -17,7 +17,7 @@ module.exports = {
 		const currentboxes = parseInt(message.cleanContent.split('|')[1]);
 		const maxboxes = parseInt(message.cleanContent.split('|')[1]);
 
-		if(!client.currentgame.GameName)
+		if(!client.currentgame[message.guild.id])
 		{ return message.channel.send('Game is not loaded'); }
 
 		if (name == undefined && args[0].toLowerCase() != 'img')
@@ -25,11 +25,13 @@ module.exports = {
 			return message.channel.send('Please enter a valid name for your trait.');
 		}
 
-		const character = client.currentgame.PCs[message.author.id];
+		const character = client.currentgame[message.guild.id].PCs[message.author.id];
 		if(character == undefined)
 		{
 			message.channel.send('No character found.');
 		}
+
+		if (hidden) {message.delete();}
 
 		switch (args[0].toLowerCase())
 		{

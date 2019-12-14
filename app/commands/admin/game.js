@@ -7,7 +7,9 @@ module.exports = {
 	aliases: ['save', 'savedata'],
 	execute(message, args, client)
 	{
-		const savedata = client.currentgame;
+		if (!client.currentgame[message.guild.id])
+		{ client.currentgame[message.guild.id] = {}; }
+		let savedata = client.currentgame[message.guild.id];
 		let rawdata;
 		switch(args[0])
 		{
@@ -20,7 +22,7 @@ module.exports = {
 			break;
 		case 'load':
 			let filename;
-			if(savedata.GameName)
+			if(savedata)
 			{
 				filename = savedata.GameName;
 			}
@@ -40,9 +42,10 @@ module.exports = {
 			{
 				return message.channel.send('Save File could not be found.');
 			}
-			client.currentgame = JSON.parse(rawdata);
+			client.currentgame[message.guild.id] = JSON.parse(rawdata);
+			savedata = client.currentgame[message.guild.id];
 			message.channel.send('Game loaded!');
-			this.execute(message, ['autosave', '5'], client);
+			this.execute(message, ['autosave', savedata.saveTimer], client);
 			break;
 		case 'start':
 			if (!args[1])
@@ -52,7 +55,9 @@ module.exports = {
 			savedata.starttime = Date.now();
 			savedata.GameName = args[1];
 			savedata.GuildId = message.guild.id;
+			savedata.saveTimer = 5;
 			savedata.PCs = {};
+			savedata.NPCs = {};
 			rawdata = JSON.stringify(savedata);
 			fs.writeFileSync(`app/data/${savedata.GameName}game.json`, rawdata);
 			message.channel.send('The game has started.');
@@ -61,11 +66,14 @@ module.exports = {
 			if(args[1] == 'stop')
 			{
 				message.channel.send('Stopping autosaver.');
-				return clearInterval(client.currentgame.autosave);
+				return clearInterval(savedata.autosave);
 			}
 			if (!isNaN(parseInt(args[1])))
 			{
-				client.currentgame.autosave = autosave(message, savedata, parseInt(args[1]));
+				if (savedata.autosave)
+				{ clearInterval(savedata.autosave); }
+				savedata.autosave = autosave(message, savedata, parseInt(args[1]));
+				savedata.saveTimer = parseInt(args[1]);
 				message.channel.send(`Autosave started with ${args[1]} minute interval.`);
 			}
 			else
@@ -79,7 +87,7 @@ module.exports = {
 };
 function save(message, savedata)
 {
-	console.log('save');
+	delete savedata.autosave;
 	const rawdata = JSON.stringify(savedata);
 	fs.writeFileSync(`app/data/${savedata.GameName}game.json`, rawdata);
 	message.channel.send('Game saved!');
