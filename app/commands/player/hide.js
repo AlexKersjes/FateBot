@@ -1,3 +1,4 @@
+const sheet = require('./sheet');
 module.exports = {
 	name: 'hide',
 	description: 'Hide something on your character sheet. .hide category "name" OR listnumber',
@@ -12,7 +13,7 @@ module.exports = {
 		if(!client.currentgame[message.guild.id].GameName)
 		{ return message.channel.send('Game is not loaded'); }
 
-		const character = client.currentgame[message.guild.id].PCs[message.author.id];
+		const character = sheet.retrievecharacter(message, client);
 
 		switch (args[0].toLowerCase())
 		{

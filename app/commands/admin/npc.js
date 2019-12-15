@@ -1,3 +1,4 @@
+const sheet = require('./sheet');
 module.exports = {
 	name: 'npc',
 	description: 'Flip NPC condition on the current sheet.',
@@ -5,19 +6,7 @@ module.exports = {
 	admin: true,
 	execute(message, args, client)
 	{
-		let character;
-		try
-		{
-			character = client.currentgame[message.guild.id].PCs[message.author.id];
-			if (!character)
-			{
-				throw new console.error('No character found.');
-			}
-		}
-		catch
-		{
-			return message.channel.send('No character found.');
-		}
+		const character = sheet.retrievecharacter(message, client);
 
 		message.delete();
 

@@ -15,16 +15,13 @@ module.exports = {
 		// load character / create blank sheet for players without characters
 		try
 		{
-			character = savedata.PCs[message.author.id];
-			if (!character)
-			{
-				throw new console.error('No character found.');
-			}
+			this.retrievecharacter(message, client);
 		}
 		catch
 		{
 			character =
 			{
+				'Fate' : { 'Current' : 3, 'Refresh' : 3 },
 				'Name' : 'Unnamed',
 				'High Concept' : 'Undefined',
 				'Trouble' : ['No Trouble', 'No description'],
@@ -71,15 +68,36 @@ module.exports = {
 		case 'icebox':
 			if(character.Name == 'Unnamed')
 			{ message.delete(); return message.channel.send('Name character to icebox.'); }
-			savedata.NPCs[character.name] = character;
+			savedata.NPCs[character.Name] = character;
+			message.channel.send(`Iceboxed ${character.Name}`);
 			delete savedata.PCs[message.author.id];
-			message.channel.send(`Iceboxed ${character.name}`);
 			break;
 		default :
 			message.channel.send(sheetembed(character, message)).then(m => createlistener(m, character, message));
 			break;
 		}
 		message.delete();
+	},
+
+	retrievecharacter : function(message, client)
+	{
+		try
+		{
+			let character;
+			if(message.mentions && message.member.hasPermission('ADMINISTRATOR'))
+			{ character = client.currentgame[message.guild.id].PCs[message.mentions.member.first().id]; }
+			else
+			{ character = client.currentgame[message.guild.id].PCs[message.author.id]; }
+			if (!character)
+			{
+				throw new console.error('No character found.');
+			}
+			return character;
+		}
+		catch
+		{
+			throw new console.error('No character found.');
+		}
 	},
 };
 

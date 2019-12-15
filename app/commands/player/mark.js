@@ -7,19 +7,7 @@ module.exports = {
 	visibleReject: true,
 	execute(message, args, client)
 	{
-		let character;
-		try
-		{
-			character = client.currentgame[message.guild.id].PCs[message.author.id];
-			if (!character)
-			{
-				throw new console.error('No character found.');
-			}
-		}
-		catch
-		{
-			return message.channel.send('No character found.');
-		}
+		const character = sheet.retrievecharacter(message, client);
 
 		const name = message.cleanContent.split('"')[1];
 		const int = isNaN(parseInt(args[1])) ? undefined : parseInt(args[1]);

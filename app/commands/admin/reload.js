@@ -1,7 +1,7 @@
-module.exports =
-{
+module.exports = {
 	name: 'reload',
 	admin: true,
+	description: 'Reload a command\'s code',
 	execute(message, args, client)
 	{
 		if(!args || args.length < 1) return message.reply('Must provide a command name to reload.');

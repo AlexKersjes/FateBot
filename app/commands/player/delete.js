@@ -1,3 +1,4 @@
+const sheet = require('./sheet');
 module.exports = {
 	name: 'delete',
 	description: 'Remove something from your character sheet. .del category "name" OR listnumber',
@@ -12,7 +13,7 @@ module.exports = {
 		if(!client.currentgame[message.guild.id].GameName)
 		{ return message.channel.send('Game is not loaded'); }
 
-		const character = client.currentgame[message.guild.id].PCs[message.author.id];
+		const character = sheet.retrievecharacter(message, client);
 
 		switch (args[0].toLowerCase())
 		{
@@ -26,6 +27,10 @@ module.exports = {
 			{ deletebyindex(character.Conditions, int); break;}
 			delete character.Conditions[name];
 			break;
+		case 'boxcondition':
+			if(!character[name].Boxes) { return message.channel.send('Not a boxcondition.'); }
+			delete character[name];
+			break;
 		case 'stunt' :
 			if(int)
 			{ deletebyindex(character.Stunts, int); break;}
@@ -35,7 +40,7 @@ module.exports = {
 			delete character.Approaches[name];
 			break;
 		case 'detail':
-			if(character[name] == undefined || typeof character[name] == 'string' && name != 'Name' || name != 'Trouble' || name != 'High Concept')
+			if(character[name] == undefined || typeof character[name] == 'string' && name != 'Name' || name != 'High Concept')
 			{ delete character[name]; }
 			break;
 		default :

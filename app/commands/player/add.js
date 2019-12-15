@@ -1,6 +1,7 @@
+const sheet = require('./sheet');
 module.exports = {
 	name: 'add',
-	description: 'Add something to or edit something your character sheet. Editable categories are: name, trouble, concept, aspect, condition, stunt, approach, detail, img.\nSyntax: __.add category **"**trait name**"**__ **/**trait description**/** **[**severity**]** **Hidden** **\\|**current boxes**\\|**max boxes**\\|**\ne.g. .add aspect Hidden "Aspect of Dummy Value" /This aspect signifies the value of dumminess./',
+	description: 'Add something to or edit something your character sheet. Editable categories are: name, trouble, concept, aspect, condition, stunt, approach, boxcondition, detail, img.\nSyntax: __.add category **"**trait name**"**__ **/**trait description**/** **[**severity**]** **Hidden** **\\|**current boxes**\\|**max boxes**\\|**\ne.g. .add aspect Hidden "Aspect of Dummy Value" /This aspect signifies the value of dumminess./',
 	aliases: ['edit'],
 	args: true,
 	visibleReject: true,
@@ -25,11 +26,7 @@ module.exports = {
 			return message.channel.send('Please enter a valid name for your trait.');
 		}
 
-		const character = client.currentgame[message.guild.id].PCs[message.author.id];
-		if(character == undefined)
-		{
-			message.channel.send('No character found.');
-		}
+		const character = sheet.retrievecharacter(message, client);
 
 		if (hidden) {message.delete();}
 
@@ -52,7 +49,7 @@ module.exports = {
 			if(maxboxes && currentboxes)
 			{
 				if(currentboxes > maxboxes || currentboxes < 0)
-				{ message.channel.send('Invalid boxes'); }
+				{ message.channel.send('Invalid boxes.'); }
 				else
 				{
 					character.Conditions[name].Boxes = true;
@@ -60,6 +57,20 @@ module.exports = {
 					character.Conditions[name].Current = currentboxes;
 				}
 			}
+			break;
+		case 'boxcondition' :
+			if(maxboxes && currentboxes)
+			{
+				if(currentboxes > maxboxes || currentboxes < 0)
+				{ message.channel.send('Invalid boxes.'); }
+				else
+				{
+					character[name].Boxes = true;
+					character[name].Maximum = maxboxes;
+					character[name].Current = currentboxes;
+				}
+			}
+			else { message.channel.send('Invalid boxcondition.'); }
 			break;
 		case 'stunt' :
 			character.Stunts[name] = { 'Description' : description, 'Hidden' : hidden };
