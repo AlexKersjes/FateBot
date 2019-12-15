@@ -1,4 +1,4 @@
-const sheet = require('./sheet');
+const sheet = require('./sheet.js');
 module.exports = {
 	name: 'charselect',
 	description: 'Options for character selection. **icebox** your sheet, or **load** a character by **"**name**"**',
@@ -13,7 +13,7 @@ module.exports = {
 		switch (args[0])
 		{
 		case 'icebox':
-
+			this.icebox(message, client);
 			break;
 		case 'load':
 			if(!name)
@@ -40,7 +40,7 @@ module.exports = {
 		if(character.Name == 'Unnamed')
 		{
 			message.delete();
-			return message.channel.send(`${character.Name} sent to icebox.`);
+			return message.channel.send(`${character.Name} can not be iceboxed, to icebox a name is required .`);
 		}
 		if(client.currentgame[message.guild.id].NPCs[character.Name])
 		{ throw console.error('Character with that name already in icebox, rename to stash.'); }

@@ -9,16 +9,16 @@ module.exports = {
 		if(!client.currentgame[message.guild.id])
 		{ return message.channel.send('Game not loaded'); }
 		const savedata = client.currentgame[message.guild.id];
-		console.log(savedata);
 		let character;
 
 		// load character / create blank sheet for players without characters
 		try
 		{
-			this.retrievecharacter(message, client);
+			character = this.retrievecharacter(message, client);
 		}
-		catch
+		catch (error)
 		{
+			console.log(error);
 			character =
 			{
 				'Fate' : { 'Current' : 3, 'Refresh' : 3 },
@@ -81,23 +81,16 @@ module.exports = {
 
 	retrievecharacter : function(message, client)
 	{
-		try
-		{
-			let character;
-			if(message.mentions && message.member.hasPermission('ADMINISTRATOR'))
-			{ character = client.currentgame[message.guild.id].PCs[message.mentions.member.first().id]; }
-			else
-			{ character = client.currentgame[message.guild.id].PCs[message.author.id]; }
-			if (!character)
-			{
-				throw new console.error('No character found.');
-			}
-			return character;
-		}
-		catch
+		let character;
+		if(message.mentions.members.first() != undefined && message.member.hasPermission('ADMINISTRATOR'))
+		{ character = client.currentgame[message.guild.id].PCs[message.mentions.members.first()[0]]; }
+		else
+		{ character = client.currentgame[message.guild.id].PCs[message.author.id]; }
+		if (character == undefined)
 		{
 			throw new console.error('No character found.');
 		}
+		return character;
 	},
 };
 
@@ -107,7 +100,7 @@ function sheetembed(character, message)
 	const embed = new Discord.RichEmbed()
 		.setColor(message.member.displayColor)
 		.setTitle(`**${character.Name}**`);
-	if(!character.NPC) { embed.setDescription(`the ***${character['High Concept']}***`); }
+	if(!character.NPC || character['High Concept']) { embed.setDescription(`the ***${character['High Concept']}***`); }
 	if (character.Trouble[0] != 'No Trouble') { embed.addField('Trouble', `${character.Trouble[0]}`); }
 	if(!isEmpty(character.Aspects) || !character.NPC)
 	{

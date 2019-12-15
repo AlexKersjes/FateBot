@@ -1,4 +1,4 @@
-const sheet = require('./sheet');
+const sheet = require('./sheet.js');
 module.exports = {
 	name: 'hide',
 	description: 'Hide something on your character sheet. .hide category "name" OR listnumber',

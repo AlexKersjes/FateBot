@@ -1,4 +1,4 @@
-const sheet = require('./sheet');
+const sheet = require('./sheet.js');
 module.exports = {
 	name: 'add',
 	description: 'Add something to or edit something your character sheet. Editable categories are: name, trouble, concept, aspect, condition, stunt, approach, boxcondition, detail, img.\nSyntax: __.add category **"**trait name**"**__ **/**trait description**/** **[**severity**]** **Hidden** **\\|**current boxes**\\|**max boxes**\\|**\ne.g. .add aspect Hidden "Aspect of Dummy Value" /This aspect signifies the value of dumminess./',

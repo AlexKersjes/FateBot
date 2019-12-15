@@ -42,10 +42,14 @@ module.exports = {
 			{
 				return message.channel.send('Save File could not be found.');
 			}
-			client.currentgame[message.guild.id] = JSON.parse(rawdata);
+			const temp = JSON.parse(rawdata);
+			if (message.guild.id != temp.GuildId)
+			{ throw console.error('This game is played on another server.'); }
+			client.currentgame[message.guild.id] = temp;
 			savedata = client.currentgame[message.guild.id];
 			message.channel.send('Game loaded!');
 			this.execute(message, ['autosave', savedata.saveTimer], client);
+			//
 			break;
 		case 'start':
 			if (!args[1])
@@ -60,6 +64,7 @@ module.exports = {
 			savedata.NPCs = {};
 			rawdata = JSON.stringify(savedata);
 			fs.writeFileSync(`app/data/${savedata.GameName}game.json`, rawdata);
+			// TODO prevent overwrite griefing
 			message.channel.send('The game has started.');
 			break;
 		case 'autosave' :

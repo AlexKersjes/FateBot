@@ -1,4 +1,4 @@
-const sheet = require('./sheet');
+const sheet = require('./sheet.js');
 module.exports = {
 	name: 'delete',
 	description: 'Remove something from your character sheet. .del category "name" OR listnumber',

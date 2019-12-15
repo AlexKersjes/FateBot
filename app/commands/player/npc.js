@@ -1,4 +1,4 @@
-const sheet = require('./sheet');
+const sheet = require('./sheet.js');
 module.exports = {
 	name: 'npc',
 	description: 'Flip NPC condition on the current sheet.',

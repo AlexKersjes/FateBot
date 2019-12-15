@@ -1,4 +1,4 @@
-const sheet = require('./sheet');
+const sheet = require('./sheet.js');
 module.exports = {
 	name: 'fate',
 	description: 'Adjust Fate points with + or - or an integer.',
@@ -8,10 +8,12 @@ module.exports = {
 		const character = sheet.retrievecharacter(message, client);
 		let int = parseInt(args[0]);
 
+		if(!character.Fate)
+		{ character.Fate = { 'Current': 3, 'Refresh': 3 }; }
 		message.delete();
 
 		if(!args[0])
-		{ return message.channel.send(`Current Fate points: ${character.Fate.Current}/${character.Fate.Refresh}.`); }
+		{ return message.channel.send(`Current Fate points: ${character.Fate.Current} (${character.Fate.Refresh}).`); }
 		if(args[0] == '+')
 		{ int = 1; }
 		if(args[0] == '-')
@@ -27,7 +29,7 @@ module.exports = {
 			else
 			{
 				character['Fate'].Current += int;
-				message.channel.send(`${int > -1 ? 'Gaining' : 'Spending'} ${int} Fate points, ${message.author} now has ${character.Fate.Current} Fate points.`);
+				message.channel.send(`${int > -1 ? 'Gaining' : 'Spending'} ${int < 0 ? int * -1 : int} Fate points, ${message.author} now has ${character.Fate.Current} Fate points.`);
 				return;
 			}
 		}
