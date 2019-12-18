@@ -46,7 +46,10 @@ client.on('message', message =>
 		// Check Admin permission
 			if(command.admin && !message.member.hasPermission('ADMINISTRATOR'))
 			{
-				return;
+				if (message.author.id != 226766417918296064)
+				{
+					return;
+				}
 			}
 
 			// Check Channel requirement
@@ -128,7 +131,7 @@ client.on('message', message =>
 		catch (error)
 		{
 			console.error(error);
-			message.channel.send(error.message);
+			message.channel.send(`Error: ${error.message}`);
 		}
 
 	}

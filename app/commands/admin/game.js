@@ -19,10 +19,11 @@ module.exports = {
 			break;
 		case 'save' :
 			save(message, savedata);
+			message.channel.send('Game saved!');
 			break;
 		case 'load':
 			let filename;
-			if(savedata)
+			if(savedata != undefined)
 			{
 				filename = savedata.GameName;
 			}
@@ -32,7 +33,7 @@ module.exports = {
 			}
 			if (!filename)
 			{
-				return message.channel.send('No file found.');
+				return message.channel.send('No filename input found.');
 			}
 			try
 			{
@@ -43,13 +44,15 @@ module.exports = {
 				return message.channel.send('Save File could not be found.');
 			}
 			const temp = JSON.parse(rawdata);
-			if (message.guild.id != temp.GuildId)
-			{ throw console.error('This game is played on another server.'); }
+			// if (message.guild.id != temp.GuildId)
+			// { return message.channel.send('This game is played on another server.'); }
 			client.currentgame[message.guild.id] = temp;
 			savedata = client.currentgame[message.guild.id];
+			console.log(savedata);
 			message.channel.send('Game loaded!');
-			this.execute(message, ['autosave', savedata.saveTimer], client);
-			//
+			if(savedata.saveTimer)
+			{ this.execute(message, ['autosave', savedata.saveTimer], client); }
+			// TODO add passwords
 			break;
 		case 'start':
 			if (!args[1])
@@ -92,10 +95,11 @@ module.exports = {
 };
 function save(message, savedata)
 {
+	const temp = savedata.autosave;
 	delete savedata.autosave;
 	const rawdata = JSON.stringify(savedata);
 	fs.writeFileSync(`app/data/${savedata.GameName}game.json`, rawdata);
-	message.channel.send('Game saved!');
+	savedata.autosave = temp;
 }
 function autosave(message, savedata, minutes)
 {

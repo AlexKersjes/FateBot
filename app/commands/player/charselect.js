@@ -21,7 +21,7 @@ module.exports = {
 			if(!savedata.NPCs[name])
 			{ return message.channel.send(`Can't find ${name}.`); }
 			if(savedata.NPCs[name].NPC == true && !message.member.hasPermission('ADMINISTRATOR'))
-			{ throw console.error('You do not have permission to load this character.'); }
+			{ return message.channel.send('You do not have permission to load this character.'); }
 			this.icebox(message, client);
 			savedata.PCs[message.author.id] = savedata.NPCs[name];
 			message.channel.send(`Loaded ${name}.`);
