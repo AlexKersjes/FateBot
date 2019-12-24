@@ -48,11 +48,11 @@ module.exports = {
 			// { return message.channel.send('This game is played on another server.'); }
 			client.currentgame[message.guild.id] = temp;
 			savedata = client.currentgame[message.guild.id];
-			console.log(savedata);
 			message.channel.send('Game loaded!');
 			if(savedata.saveTimer)
 			{ this.execute(message, ['autosave', savedata.saveTimer], client); }
 			// TODO add passwords
+			// TODO on startup, load the last played game on the server
 			break;
 		case 'start':
 			if (!args[1])
@@ -65,6 +65,7 @@ module.exports = {
 			savedata.saveTimer = 5;
 			savedata.PCs = {};
 			savedata.NPCs = {};
+			savedata.Log = [];
 			rawdata = JSON.stringify(savedata);
 			fs.writeFileSync(`app/data/${savedata.GameName}game.json`, rawdata);
 			// TODO prevent overwrite griefing

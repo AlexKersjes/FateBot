@@ -25,4 +25,56 @@ module.exports = {
 		timestamps.set(user.id, { now, cooldownAmount });
 		setTimeout(() => timestamps.delete(user.id), cooldownAmount);
 	},
+
+	log: function(savedata, subjectid, logstr, args)
+	{
+		const logentry = { subject : subjectid, spoiler : args.spoiler ? true : false, link : args.url, logstr : logstr, timestamp : Date.now };
+		savedata.Log.push(logentry);
+		return logentry;
+	},
+
+	findbyvalue: function(array, value)
+	{
+		const result = [];
+		Object.keys(array).forEach(key =>
+		{
+			if(array[key] == value)
+			{ result.push(key); }
+		});
+		return result;
+	},
+
+	findbymarkerrecursive: function(array, value)
+	{
+		const result = [];
+		Object.keys(array).forEach(key =>
+		{
+			if(array[key][value])
+			{ result.push([key, array[key]]); }
+			else if (typeof array[key] == 'object')
+			{
+				if(!this.isEmpty(this.findbymarkerrecursive(array[key], value)))
+				{result.push(this.findbymarkerrecursive(array[key], value)[0]);}
+			}
+		});
+		return result;
+	},
+
+	findbytype: function(array, type)
+	{
+		const result = [];
+		Object.keys(array).forEach(key =>
+		{
+			if(typeof (array[key]) == type)
+			{ result.push(key); }
+		});
+		return result;
+	},
+
+	isEmpty: function(obj)
+	{
+		if(Object.keys(obj).length == 0)
+		{ return true; }
+		return false;
+	},
 };

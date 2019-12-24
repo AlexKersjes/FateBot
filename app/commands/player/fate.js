@@ -29,7 +29,7 @@ module.exports = {
 			else
 			{
 				character['Fate'].Current += int;
-				message.channel.send(`${int > -1 ? 'Gaining' : 'Spending'} ${int < 0 ? int * -1 : int} Fate points, ${message.author} now has ${character.Fate.Current} Fate points.`);
+				message.channel.send(`${int > -1 ? 'Gaining' : 'Spending'} ${int < 0 ? int * -1 : int} Fate point${ int * int > 1 ? 's' : ''}, ${message.author} now has ${character.Fate.Current} Fate points.`);
 				return;
 			}
 		}

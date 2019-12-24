@@ -1,4 +1,5 @@
 const sheet = require('./sheet.js');
+const tools = require('../../tools.js');
 module.exports = {
 	name: 'charselect',
 	description: 'Options for character selection. **icebox** your sheet, or **load** a character by **"**name**"**',
@@ -32,20 +33,23 @@ module.exports = {
 	},
 	icebox : function(message, client)
 	{
+		const savedata = client.currentgame[message.guild.id];
 		let character;
 		try{ character = sheet.retrievecharacter(message, client); }
 		catch {}
 		if(!character)
 		{ return message.channel.send('Nothing to icebox.'); }
-		if(character.Name == 'Unnamed')
+		const name = character.Name;
+		if(name == 'Unnamed')
 		{
 			message.delete();
 			return message.channel.send(`${character.Name} can not be iceboxed, to icebox a name is required .`);
 		}
-		if(client.currentgame[message.guild.id].NPCs[character.Name])
+		if(savedata.NPCs[name])
 		{ throw console.error('Character with that name already in icebox, rename to stash.'); }
-		client.currentgame[message.guild.id].NPCs[character.Name] = character;
-		message.channel.send(`Iceboxed ${character.Name}.`);
-		delete client.currentgame[message.guild.id].PCs[message.author.id];
+		savedata.NPCs[name] = character;
+		message.channel.send(`Iceboxed ${name}.`);
+		delete savedata.PCs[tools.findbyvalue(savedata.PCs, character)];
+		return savedata.NPCs[name];
 	},
 };

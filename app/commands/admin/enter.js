@@ -6,7 +6,7 @@ module.exports = {
 	execute(message, args, client)
 	{
 		const newPlayer = message.mentions.members.first();
-		newPlayer.addRole('621431140330373141');
+		newPlayer.roles.add('621431140330373141');
 		const channel = client.channels.get(client.channelDictionary['lobby']);
 		channel.overwritePermissions(newPlayer, {
 			VIEW_CHANNEL: true,

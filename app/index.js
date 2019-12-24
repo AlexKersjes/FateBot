@@ -3,7 +3,8 @@ const Discord = require('discord.js');
 const dotenv = require('dotenv');
 dotenv.config();
 const { prefix } = require('./data/config.json');
-const client = new Discord.Client();
+const tools = require('./tools.js');
+const client = new Discord.Client({ 'messageCacheMaxSize' : 2000 });
 client.commands = new Discord.Collection();
 
 importCommands('commands/admin');
@@ -12,7 +13,6 @@ importCommands('commands/player');
 const rawdata = fs.readFileSync('app/data/channelId.json');
 client.channelDictionary = JSON.parse(rawdata);
 client.currentgame = {};
-
 
 client.cooldowns = new Discord.Collection();
 
@@ -136,6 +136,26 @@ client.on('message', message =>
 
 	}
 
+});
+
+client.on('messageReactionAdd', (reaction, user) =>
+{
+	try
+	{
+
+		if(reaction.emoji.name == 'log' && !reaction.me)
+		{
+			console.log('log react');
+			if(!client.currentgame[reaction.message.guild.id]) { return reaction.message.channel.send('Game not loaded.'); }
+			tools.log(client.currentgame[reaction.message.guild.id], reaction.message.author.id, `"${reaction.message.cleanContent.slice(0, 80)}${reaction.message.cleanContent.length > 81 ? '...' : '' }"`, { 'link': reaction.message.url });
+			reaction.users.remove(user);
+			reaction.message.react('📝');
+		}
+	}
+	catch(error)
+	{
+		reaction.message.channel.send(error.message);
+	}
 });
 
 function getKeyByValue(object, value)

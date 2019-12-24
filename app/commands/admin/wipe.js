@@ -28,7 +28,7 @@ module.exports = {
 			let fetched;
 			if(args[0])
 			{
-				fetched = message.channel.fetchMessages({ limit: args[0] })
+				fetched = message.channel.messages.fetch({ limit: args[0] })
 					.then(unfiltered =>
 					{
 						const notPinned = unfiltered.filter(fetchedMsg => !fetchedMsg.pinned);
@@ -39,7 +39,7 @@ module.exports = {
 
 			do
 			{
-				fetched = message.channel.fetchMessages({ limit: 100 })
+				fetched = message.channel.messages.fetch({ limit: 100 })
 					.then(unfiltered =>
 					{
 						const notPinned = unfiltered.filter(fetchedMsg => !fetchedMsg.pinned);
