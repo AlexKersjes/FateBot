@@ -167,23 +167,8 @@ async function createlistener(message, client, character, originalmessage)
 {
 	const filter = (reaction, user) =>
 	{
-		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨')
-			&& user.id != client.me.user.id;
+		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨') && user.id != client.user.id;
 	};
-
-	try
-	{
-		await message.react('🏠');
-		await message.react('🇩');
-		if(!tools.isEmpty(character.Aspects)) {await message.react('🇦');}
-		if(!tools.isEmpty(character.Stunts)) {await message.react('🇸');}
-		if(!tools.isEmpty(character.Conditions)) {await message.react('🇨');}
-	}
-	catch
-	{
-		console.error('reaction promise failed');
-	}
-
 
 	const collector = message.createReactionCollector(filter, { time: 180000 });
 
@@ -214,9 +199,21 @@ async function createlistener(message, client, character, originalmessage)
 
 	collector.on('end', collected =>
 	{
-		message.clearReactions();
+		message.reactions.removeAll();
 	});
 
+	try
+	{
+		await message.react('🏠');
+		await message.react('🇩');
+		if(!tools.isEmpty(character.Aspects)) {await message.react('🇦');}
+		if(!tools.isEmpty(character.Stunts)) {await message.react('🇸');}
+		if(!tools.isEmpty(character.Conditions)) {await message.react('🇨');}
+	}
+	catch
+	{
+		console.error('reaction promise failed');
+	}
 }
 
 // utility functions below

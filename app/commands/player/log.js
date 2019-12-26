@@ -9,19 +9,61 @@ module.exports = {
 		// getting appropriate log
 		const savedata = client.currentgame[message.guild.id];
 		if(!savedata) { return message.channel.send('Game not loaded.'); }
-		if (!savedata.Log || args[0] == 'wipe')
+		if (!savedata.Log || args[0] == 'wipeall')
 		{
 			if(!message.member.hasPermission('ADMINISTRATOR')) { return message.channel.send('You do not have permission to reset the log.'); }
 			savedata.Log = [];
 			message.delete();
 			return message.channel.send('Log reset.');
 		}
+		if(args[0] == 'wipe')
+		{
+			savedata.Log = savedata.Log.filter(entry => entry.loggerid != message.author.id);
+			return message.channel.send('Your log was wiped.');
+		}
 
 		// user calls log display
 		if(!args[0])
 		{
 			message.delete();
-			return message.channel.send(buildembeds(message, client, savedata)[0]);
+			const embeds = buildembeds(message, client, savedata);
+			message.channel.send(embeds[0]).then(m => createlistener(m, client, embeds));
+			return;
+		}
+		if(args[0] == 'full' || args[0] == 'all' || args[0] == 'spoilers')
+		{
+			message.delete();
+			const embeds = buildembeds(message, client, savedata, true);
+			message.channel.send(embeds[0]).then(m => createlistener(m, client, embeds));
+			return;
+		}
+
+		if(args[0] == 'sort')
+		{savedata.Log.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));}
+
+		// deleting a log entry
+		if (args[0] == 'delete')
+		{
+			const a = parseInt(args[1]);
+			const b = parseInt(args[2]);
+			if(!isNaN(a) && a)
+			{
+				let entries = savedata.Log.filter(entry => entry.loggerid == message.member.id);
+				if(!isNaN(b) && b)
+				{
+					entries = entries.slice(a - 1, b);
+
+					entries.forEach(element =>
+					{
+						savedata.Log.splice(savedata.Log.indexOf(element), 1);
+					});
+					return message.channel.send('Log entries deleted.');
+				}
+				const index = savedata.Log.indexOf(entries[a - 1]);
+				savedata.Log.splice(index, 1);
+				return message.channel.send('Log entry deleted.');
+			}
+			return message.channel.send('Failed to delete. Please check syntax.');
 		}
 
 		// making a log entry
@@ -96,10 +138,10 @@ module.exports = {
 
 };
 
-function buildembeds(message, client, savedata)
+function buildembeds(message, client, savedata, showspoilers)
 {
 	let copylog = JSON.parse(JSON.stringify(savedata.Log));
-	if (!message.member.hasPermission('ADMINISTRATOR'))
+	if (showspoilers != true)
 	{
 		copylog = copylog.filter(entry => !entry.spoiler);
 	}
@@ -107,10 +149,11 @@ function buildembeds(message, client, savedata)
 
 	let result = '';
 	const resultarray = [];
+	const entrycount = copylog.length;
 	while(copylog[0])
 	{
 		const entry = copylog.shift();
-		const tempresult = `• ${entry.quote ? '"' : ''}[${entry.logstr}](${entry.url})${entry.quote ? '"' : ''}\n`;
+		const tempresult = `${showspoilers ? `${entrycount - copylog.length}:` : '•'} ${entry.quote ? '"' : ''}[${entry.logstr}](${entry.url})${entry.quote ? '"' : ''}\n`;
 		if (tempresult.length + result.length < 950)
 		{
 			result += tempresult;
@@ -134,7 +177,7 @@ function buildembeds(message, client, savedata)
 		const embed = new Discord.MessageEmbed();
 		embed.setTitle(`${message.member.displayName}'s Log:`)
 			.setColor(client.guilds.get(message.guild.id).me.displayColor);
-		for(let i = 0; i < 6; i++)
+		for(let i = 0; i < 1; i++)
 		{
 			if(resultarray[0])
 			{
@@ -143,7 +186,6 @@ function buildembeds(message, client, savedata)
 			}
 			else
 			{
-				embeds.push(embed);
 				break;
 			}
 		}
@@ -157,36 +199,54 @@ async function createlistener(message, client, embeds)
 {
 	const filter = (reaction, user) =>
 	{
-		return user.id != client.me.user.id;
+		return (reaction.emoji.name == '◀️' || reaction.emoji.name == '▶️') && user.id != client.user.id;
 	};
 
-	try
-	{
-		for(let i = 0; i < embeds.length; i++)
-		{
-			await message.react(emojis[i]);
-		}
-	}
-	catch
-	{
-		console.error('reaction promise failed');
-	}
-
-
 	const collector = message.createReactionCollector(filter, { time: 180000 });
-
 	collector.on('collect', (reaction, user) =>
 	{
+		switch (reaction.emoji.name)
+		{
+		case '◀️' :
+			embeds.unshift(embeds.pop());
+			message.edit(embeds[0]);
+			break;
+		case '▶️' :
+			embeds.push(embeds.shift());
+			message.edit(embeds[0]);
+			break;
+		}
+		/*
 		const index = emojis.indexOf(reaction.name);
 		if(index)
 		{ message.edit(embeds[index]); }
+		*/
 		reaction.users.remove(user);
 	});
 
 	collector.on('end', collected =>
 	{
-		message.clearReactions();
+		message.reactions.removeAll();
 	});
+
+	try
+	{
+		if(embeds.length > 1)
+		{
+			await message.react('◀️');
+			await message.react('▶️');
+		}
+		/*
+		for(let i = 0; i < embeds.length; i++)
+		{
+			await message.react(emojis[i]);
+		}
+		*/
+	}
+	catch
+	{
+		console.error('reaction promise failed');
+	}
 
 }
 

@@ -39,7 +39,7 @@ module.exports = {
 			quote : options.quote == undefined ? true : options.quote,
 		};
 		savedata.Log.push(logentry);
-		console.log(logentry);
+		savedata.Log.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 		return logentry;
 	},
 

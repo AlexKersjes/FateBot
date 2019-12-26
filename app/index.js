@@ -142,17 +142,15 @@ client.on('messageReactionAdd', (reaction, user) =>
 {
 	try
 	{
-		console.log(reaction);
 		if(reaction.emoji.name == 'log' && !reaction.me)
 		{
 			console.log('log react');
 			if(!client.currentgame[reaction.message.guild.id]) { return reaction.message.channel.send('Game not loaded.'); }
-			if(!client.currentgame[reaction.message.guild.id].Log.filter(entry => entry.url == reaction.message.url)[0])
+			// if(!client.currentgame[reaction.message.guild.id].Log.filter(entry => entry.url == reaction.message.url)[0])
 			{
-				console.log(reaction.message.cleanContent);
 				tools.log(client.currentgame[reaction.message.guild.id], user.id, `${reaction.message.cleanContent.slice(0, 80)}${reaction.message.cleanContent.length > 81 ? '...' : '' }`, { 'url': reaction.message.url, 'subjectid': reaction.message.author.id, 'timestamp' : reaction.message.createdAt });
 				reaction.message.react('📝')
-					.then(r => setTimeout(function() { r.users.remove(client.user.id); }, 10000));
+					.then(r => setTimeout(function() { r.users.remove(client.user.id); }, 30000));
 			}
 			reaction.users.remove(user);
 		}
