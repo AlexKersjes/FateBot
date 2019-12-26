@@ -26,10 +26,20 @@ module.exports = {
 		setTimeout(() => timestamps.delete(user.id), cooldownAmount);
 	},
 
-	log: function(savedata, subjectid, logstr, args)
+	log: function(savedata, loggerid, logstr, options)
 	{
-		const logentry = { subject : subjectid, spoiler : args.spoiler ? true : false, link : args.url, logstr : logstr, timestamp : Date.now };
+		const logentry =
+		{
+			loggerid : loggerid,
+			spoiler : options.spoiler ? true : false,
+			url : options.url,
+			logstr : logstr,
+			timestamp : options.timestamp ? options.timestamp : Date.now,
+			subject : options.subjectid ? options.subjectid : loggerid,
+			quote : options.quote == undefined ? true : options.quote,
+		};
 		savedata.Log.push(logentry);
+		console.log(logentry);
 		return logentry;
 	},
 

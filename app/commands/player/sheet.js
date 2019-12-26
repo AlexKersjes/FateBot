@@ -167,7 +167,8 @@ async function createlistener(message, client, character, originalmessage)
 {
 	const filter = (reaction, user) =>
 	{
-		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨') && user.id != message.author.id;
+		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨')
+			&& user.id != client.me.user.id;
 	};
 
 	try
@@ -182,7 +183,7 @@ async function createlistener(message, client, character, originalmessage)
 	{
 		console.error('reaction promise failed');
 	}
-	// message.react('🏠').then(message.react('🇩')).then(message.react('🇦')).then(message.react('🇸')).then(message.react(''));
+
 
 	const collector = message.createReactionCollector(filter, { time: 180000 });
 

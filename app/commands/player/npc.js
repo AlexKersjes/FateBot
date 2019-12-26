@@ -3,7 +3,6 @@ module.exports = {
 	name: 'npc',
 	description: 'Flip NPC condition on the current sheet.',
 	visibleReject: true,
-	admin: true,
 	execute(message, args, client)
 	{
 		const character = sheet.retrievecharacter(message, client);
