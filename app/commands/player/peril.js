@@ -1,4 +1,4 @@
-const sheet = require('./sheet.js');
+const tools = require('../../tools.js');
 module.exports = {
 	name: 'peril',
 	description: 'Adjust In Peril with + or - or an integer.',
@@ -6,7 +6,7 @@ module.exports = {
 	visibleReject: true,
 	execute(message, args, client)
 	{
-		const character = sheet.retrievecharacter(message, client);
+		const character = tools.retrievecharacter(message, client);
 		let int = parseInt(args[0]);
 
 		message.delete();

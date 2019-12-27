@@ -7,7 +7,7 @@ module.exports = {
 		if(!client.currentgame[message.guild.id])
 		{ return message.channel.send('Game is not loaded'); }
 		const savedata = client.currentgame[message.guild.id];
-		let str;
+		let str = '';
 		str += 'PCs:\n';
 		Object.keys(savedata.PCs).forEach(key => {str += `   ${savedata.PCs[key].Name}\n`;});
 		str += 'NPCs:\n';

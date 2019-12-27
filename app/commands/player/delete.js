@@ -1,4 +1,4 @@
-const sheet = require('./sheet.js');
+const tools = require('../../tools.js');
 module.exports = {
 	name: 'delete',
 	description: 'Remove something from your character sheet. .del category "name" OR listnumber',
@@ -13,7 +13,7 @@ module.exports = {
 		if(!client.currentgame[message.guild.id].GameName)
 		{ return message.channel.send('Game is not loaded'); }
 
-		const character = sheet.retrievecharacter(message, client);
+		const character = tools.retrievecharacter(message, client);
 
 		switch (args[0].toLowerCase())
 		{
@@ -42,6 +42,16 @@ module.exports = {
 		case 'detail':
 			if(character[name] == undefined || typeof character[name] == 'string' && name != 'Name' || name != 'High Concept')
 			{ delete character[name]; }
+			break;
+		case 'concept':
+			if(character['High Concept'] && character.NPC == false)
+			{ return message.channel.send('Player characters require a High Concept.'); }
+			delete character['High Concept'];
+			break;
+		case 'trouble':
+			if(character.Trouble && character.NPC == false)
+			{ return message.channel.send('Player characters require a Trouble.'); }
+			delete character.Trouble;
 			break;
 		default :
 			return message.channel.send('Please input a valid category.');

@@ -1,4 +1,4 @@
-const sheet = require('./sheet.js');
+const tools = require('../../tools.js');
 module.exports = {
 	name: 'add',
 	description: 'Add something to or edit something your character sheet. Editable categories are: name, trouble, concept, aspect, condition, stunt, approach, boxcondition, detail, img.\nSyntax: __.add category **"**trait name**"**__ **/**trait description**/** **[**severity**]** **Hidden** **\\|**current boxes**\\|**max boxes**\\|**\ne.g. .add aspect Hidden "Aspect of Dummy Value" /This aspect signifies the value of dumminess./',
@@ -15,7 +15,7 @@ module.exports = {
 		const hidden = args.includes('Hidden') ? true : false;
 		const int = isNaN(parseInt(args[1])) || parseInt(args[1]) == undefined ? 0 : parseInt(args[1]);
 
-		const currentboxes = parseInt(message.cleanContent.split('|')[1]);
+		const currentboxes = 0;
 		const maxboxes = parseInt(message.cleanContent.split('|')[1]);
 
 		if(!client.currentgame[message.guild.id])
@@ -26,7 +26,7 @@ module.exports = {
 			return message.channel.send('Please enter a valid name for your trait.');
 		}
 
-		const character = sheet.retrievecharacter(message, client);
+		const character = tools.retrievecharacter(message, client);
 
 		if (hidden) {message.delete();}
 
@@ -46,7 +46,7 @@ module.exports = {
 			break;
 		case 'condition' :
 			character.Conditions[name] = { 'Description' : description, 'Severity' : severity, 'Hidden' : hidden };
-			if(maxboxes && currentboxes)
+			if(maxboxes)
 			{
 				if(currentboxes > maxboxes || currentboxes < 0)
 				{ message.channel.send('Invalid boxes.'); }
@@ -59,7 +59,7 @@ module.exports = {
 			}
 			break;
 		case 'boxcondition' :
-			if(maxboxes && currentboxes)
+			if(maxboxes)
 			{
 				if(currentboxes > maxboxes || currentboxes < 0)
 				{ message.channel.send('Invalid boxes.'); }

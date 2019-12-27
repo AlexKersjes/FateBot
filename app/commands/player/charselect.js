@@ -1,11 +1,10 @@
-const sheet = require('./sheet.js');
 const tools = require('../../tools.js');
 module.exports = {
 	name: 'charselect',
 	description: 'Options for character selection. **icebox** your sheet, or **load** a character by **"**name**"**',
 	visibleReject: true,
 	args: true,
-	aliases: ['characterselect'],
+	aliases: ['characterselect', 'select'],
 	execute(message, args, client)
 	{
 		const savedata = client.currentgame[message.guild.id];
@@ -17,6 +16,7 @@ module.exports = {
 			this.icebox(message, client);
 			break;
 		case 'load':
+		default :
 			if(!name)
 			{ return message.channel.send('Please provide a name.'); }
 			if(!savedata.NPCs[name])
@@ -34,16 +34,15 @@ module.exports = {
 	icebox : function(message, client)
 	{
 		const savedata = client.currentgame[message.guild.id];
-		let character;
-		try{ character = sheet.retrievecharacter(message, client); }
-		catch {}
+		const character = tools.retrievecharacter(message, client);
+
 		if(!character)
 		{ return message.channel.send('Nothing to icebox.'); }
 		const name = character.Name;
-		if(name == 'Unnamed')
+		if(name == 'Unnamed' || name == undefined)
 		{
 			message.delete();
-			return message.channel.send(`${character.Name} can not be iceboxed, to icebox a name is required .`);
+			return message.channel.send(`${character.Name} could not be iceboxed, to icebox a name is required .`);
 		}
 		if(savedata.NPCs[name])
 		{ throw console.error('Character with that name already in icebox, rename to stash.'); }

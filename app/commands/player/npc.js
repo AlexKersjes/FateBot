@@ -1,11 +1,11 @@
-const sheet = require('./sheet.js');
+const tools = require('../../tools.js');
 module.exports = {
 	name: 'npc',
 	description: 'Flip NPC condition on the current sheet.',
 	visibleReject: true,
 	execute(message, args, client)
 	{
-		const character = sheet.retrievecharacter(message, client);
+		const character = tools.retrievecharacter(message, client);
 
 		message.delete();
 

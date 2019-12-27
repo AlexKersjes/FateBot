@@ -41,7 +41,7 @@ module.exports = {
 				message.channel.send('Please enter a name.');
 				break;
 			}
-			// TODO
+			message.channel.send(`${savedata.Shortlist.splice(savedata.Shortlist.indexOf(c => c.Name == name), 1)[0].Name}`);
 			break;
 		case 'reset':
 			savedata.Shortlist.forEach(listchar =>

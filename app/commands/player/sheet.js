@@ -16,7 +16,7 @@ module.exports = {
 		// load character / create blank sheet for players without characters
 		try
 		{
-			character = this.retrievecharacter(message, client);
+			character = tools.retrievecharacter(message, client);
 		}
 		catch (error)
 		{
@@ -77,19 +77,6 @@ module.exports = {
 		message.delete();
 	},
 
-	retrievecharacter : function(message, client)
-	{
-		let character;
-		if(message.mentions.users.first() != undefined && message.member.hasPermission('ADMINISTRATOR'))
-		{ character = client.currentgame[message.guild.id].PCs[message.mentions.users.first().id]; }
-		else
-		{ character = client.currentgame[message.guild.id].PCs[message.author.id]; }
-		if (character == undefined)
-		{
-			throw new console.error('No character found.');
-		}
-		return character;
-	},
 };
 
 // default character sheet layout
@@ -98,7 +85,7 @@ function sheetembed(character, message)
 	const embed = new Discord.MessageEmbed()
 		.setColor(message.member.displayColor)
 		.setTitle(`**${character.Name}**`);
-	if(!character.NPC || character['High Concept']) { embed.setDescription(`the ***${character['High Concept']}***`); }
+	if(character['High Concept']) { embed.setDescription(`the ***${character['High Concept']}***`); }
 	if (character.Trouble[0] != 'No Trouble') { embed.addField('Trouble', `${character.Trouble[0]}`); }
 	if(!tools.isEmpty(character.Aspects) || !character.NPC)
 	{
