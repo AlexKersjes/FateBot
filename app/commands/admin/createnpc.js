@@ -3,7 +3,6 @@ module.exports = {
 	name: 'createnpc',
 	description: 'Create a new NPC.',
 	admin: 'true',
-	args: true,
 	execute(message, args, client)
 	{
 		if(message.mentions.users.first()) { return message.channel.send('Mentions are disabled for this command.'); }
@@ -19,6 +18,6 @@ module.exports = {
 			'imgURL' : '',
 			'NPC' : true,
 		};
-		return;
+		return message.channel.send('New NPC created.');
 	},
 };

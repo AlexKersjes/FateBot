@@ -59,19 +59,20 @@ module.exports = {
 			}
 			break;
 		case 'boxcondition' :
-			if(maxboxes)
+			if(!isNaN(maxboxes))
 			{
-				if(currentboxes > maxboxes || currentboxes < 0)
-				{ message.channel.send('Invalid boxes.'); }
+				if(currentboxes > maxboxes)
+				{ return message.channel.send('Invalid boxes.'); }
 				else
 				{
+					character[name] = {};
 					character[name].Boxes = true;
 					character[name].Maximum = maxboxes;
 					character[name].Current = currentboxes;
+					break;
 				}
 			}
-			else { message.channel.send('Invalid boxcondition.'); }
-			break;
+			else { return message.channel.send('Invalid boxcondition.'); }
 		case 'stunt' :
 			character.Stunts[name] = { 'Description' : description, 'Hidden' : hidden };
 			if(int) { character.Stunts[name].Cost = int; }

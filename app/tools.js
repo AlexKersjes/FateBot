@@ -35,7 +35,7 @@ module.exports = {
 		{ character = client.currentgame[message.guild.id].PCs[message.author.id]; }
 		if (character == undefined)
 		{
-			throw console.error('No character found.');
+			return;
 		}
 		return character;
 	},

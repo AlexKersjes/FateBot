@@ -12,6 +12,11 @@ module.exports = {
 		Object.keys(savedata.PCs).forEach(key => {str += `   ${savedata.PCs[key].Name}\n`;});
 		str += 'NPCs:\n';
 		Object.keys(savedata.NPCs).forEach(key => {str += `   ${savedata.NPCs[key].Name}\n`;});
+		if(savedata.Shortlist)
+		{
+			str += 'Shortlist:\n';
+			Object.keys(savedata.Shortlist).forEach(key => {str += `   ${savedata.Shortlist[key].Name}\n`;});
+		}
 
 		return message.channel.send(str);
 	},

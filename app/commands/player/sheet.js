@@ -11,16 +11,11 @@ module.exports = {
 		if(!client.currentgame[message.guild.id])
 		{ return message.channel.send('Game not loaded'); }
 		const savedata = client.currentgame[message.guild.id];
-		let character;
+		let character = tools.retrievecharacter(message, client);
 
 		// load character / create blank sheet for players without characters
-		try
+		if(character == undefined)
 		{
-			character = tools.retrievecharacter(message, client);
-		}
-		catch (error)
-		{
-			console.log(error);
 			character =
 			{
 				'Fate' : { 'Current' : 3, 'Refresh' : 3 },
@@ -86,21 +81,22 @@ function sheetembed(character, message)
 		.setColor(message.member.displayColor)
 		.setTitle(`**${character.Name}**`);
 	if(character['High Concept']) { embed.setDescription(`the ***${character['High Concept']}***`); }
-	if (character.Trouble[0] != 'No Trouble') { embed.addField('Trouble', `${character.Trouble[0]}`); }
+	if (character.Trouble ? character.Trouble[0] != 'No Trouble' : false) { embed.addField('Trouble', `${character.Trouble[0]}`); }
 	if(!tools.isEmpty(character.Aspects) || !character.NPC)
 	{
 		embed.addField('Aspects', keysstring(character.Aspects))
 			.addBlankField();
 	}
-	if(!tools.isEmpty(character.Aspects) || !character.NPC) {embed.addField('Stunts', keysstring(character.Stunts), true);}
+	if(!tools.isEmpty(character.Stunts) || !character.NPC) {embed.addField('Stunts', keysstring(character.Stunts), true);}
 	if(!tools.isEmpty(character.Conditions)) { embed.addField('Conditions', keysstring(character.Conditions), true); }
-	embed.addBlankField();
-	tools.findbymarkerrecursive(character, 'Boxes').forEach(boxaspect =>
+	const boxes = tools.findbymarkerrecursive(character, 'Boxes');
+	if(boxes) {embed.addBlankField();}
+	boxes.forEach(boxaspect =>
 	{
 		embed.addField(boxaspect[0], boxesmarked(boxaspect[1]), true);
-	}
+	},
 	);
-	if(!tools.isEmpty(character.Aspects) || !character.NPC)
+	if(!tools.isEmpty(character.Approaches) || !character.NPC)
 	{
 		embed.addBlankField()
 			.addField('Approaches', sortapproaches(character.Approaches));
@@ -193,7 +189,7 @@ async function createlistener(message, client, character, originalmessage)
 	{
 		await message.react('🏠');
 		await message.react('🇩');
-		if(!tools.isEmpty(character.Aspects)) {await message.react('🇦');}
+		if(!tools.isEmpty(character.Aspects) || character.Trouble) {await message.react('🇦');}
 		if(!tools.isEmpty(character.Stunts)) {await message.react('🇸');}
 		if(!tools.isEmpty(character.Conditions)) {await message.react('🇨');}
 	}

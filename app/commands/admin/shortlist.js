@@ -9,29 +9,15 @@ module.exports = {
 	{
 		const savedata = client.currentgame[message.guild.id];
 		let name = message.cleanContent.split('"')[1];
+		let character;
 		if (!savedata.Shortlist)
 		{ savedata.Shortlist = []; }
 		switch (args[0])
 		{
-		case 'add':
-			if(name)
-			{
-				savedata.Shortlist.push(savedata.NPCs[name]);
-				delete savedata.NPCs[name];
-			}
-			else
-			{
-				const character = charselect.icebox(message, client);
-				savedata.Shortlist.push(character);
-				delete savedata.NPCs[character.name];
-				name = character.name;
-			}
-			message.channel.send(`${name} was added to shortlist.`);
-			break;
 		case 'rotate':
 			if(savedata.PCs[message.author.id])
 			{ savedata.Shortlist.push(savedata.PCs[message.author.id]); }
-			const character = savedata.Shortlist.shift();
+			character = savedata.Shortlist.shift();
 			savedata.PCs[message.author.id] = character;
 			message.channel.send(`${character.Name} is now your active character.`);
 			break;
@@ -41,18 +27,39 @@ module.exports = {
 				message.channel.send('Please enter a name.');
 				break;
 			}
-			message.channel.send(`${savedata.Shortlist.splice(savedata.Shortlist.indexOf(c => c.Name == name), 1)[0].Name}`);
+			message.channel.send(`${savedata.Shortlist.splice(savedata.Shortlist.indexOf(c => c.Name == name), 1)[0].Name} was removed.`);
 			break;
 		case 'reset':
-			savedata.Shortlist.forEach(listchar =>
+			if(args[1] != 'hard')
 			{
-				savedata.NPCs[listchar.Name] = listchar;
-			});
+				savedata.Shortlist.forEach(listchar =>
+				{
+					savedata.NPCs[listchar.Name] = listchar;
+				});
+			}
 			savedata.Shortlist = [];
 			message.channel.send('Shortlist cleared.');
 			break;
+		case 'add':
+			if(savedata.NPCs[name])
+			{
+				savedata.Shortlist.push(savedata.NPCs[name]);
+				delete savedata.NPCs[name];
+			}
+			else
+			{
+				character = charselect.icebox(message, client);
+				if(!character)
+				{ message.channel.send('No character selected to add to list.'); break; }
+				savedata.Shortlist.push(character);
+				delete savedata.NPCs[character.Name];
+				name = character.name;
+			}
+			message.channel.send(`${savedata.Shortlist[savedata.Shortlist.length - 1].Name} was added to shortlist.`);
+			break;
+		default :
+			break;
 		}
 		message.delete();
-		return;
 	},
 };

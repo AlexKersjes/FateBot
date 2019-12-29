@@ -23,8 +23,12 @@ module.exports = {
 			{ return message.channel.send(`Can't find ${name}.`); }
 			if(savedata.NPCs[name].NPC == true && !message.member.hasPermission('ADMINISTRATOR'))
 			{ return message.channel.send('You do not have permission to load this character.'); }
-			this.icebox(message, client);
-			savedata.PCs[message.author.id] = savedata.NPCs[name];
+			if(tools.retrievecharacter(message, client))
+			{ this.icebox(message, client); }
+			let id = message.author.id;
+			if(message.mentions.users.first() != undefined && message.member.hasPermission('ADMINISTRATOR'))
+			{ id = message.mentions.users.first().id; }
+			savedata.PCs[id] = savedata.NPCs[name];
 			message.channel.send(`Loaded ${name}.`);
 			delete savedata.NPCs[name];
 			break;
@@ -37,12 +41,13 @@ module.exports = {
 		const character = tools.retrievecharacter(message, client);
 
 		if(!character)
-		{ return message.channel.send('Nothing to icebox.'); }
+		{ message.channel.send('Nothing to icebox.'); return; }
 		const name = character.Name;
 		if(name == 'Unnamed' || name == undefined)
 		{
 			message.delete();
-			return message.channel.send(`${character.Name} could not be iceboxed, to icebox a name is required .`);
+			message.channel.send(`${character.Name} could not be iceboxed, to icebox a name is required .`);
+			return;
 		}
 		if(savedata.NPCs[name])
 		{ throw console.error('Character with that name already in icebox, rename to stash.'); }

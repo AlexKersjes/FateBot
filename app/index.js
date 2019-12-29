@@ -2,7 +2,7 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const dotenv = require('dotenv');
 dotenv.config();
-const { prefix } = require('./data/config.json');
+const prefix = process.env.PREFIX;
 const tools = require('./tools.js');
 const client = new Discord.Client({ 'messageCacheMaxSize' : 2000 });
 client.commands = new Discord.Collection();
