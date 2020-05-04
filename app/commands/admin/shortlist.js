@@ -2,7 +2,7 @@ const sheet = require('../player/sheet.js');
 const charselect = require('../player/charselect.js');
 module.exports = {
 	name: 'shortlist',
-	description: 'Use for quick access between multiple NPCs.',
+	description: 'Use for quick access between multiple NPCs. *syntax:* **add**/**remove** **"**name**"**. **reset** iceboxes all. **rotate** makes the first character on the list your active character and adds your current character to the end of the list. **unrotate**, same but inverted.',
 	visibleReject: true,
 	admin: true,
 	execute(message, args, client)
@@ -18,6 +18,13 @@ module.exports = {
 			if(savedata.PCs[message.author.id])
 			{ savedata.Shortlist.push(savedata.PCs[message.author.id]); }
 			character = savedata.Shortlist.shift();
+			savedata.PCs[message.author.id] = character;
+			message.channel.send(`${character.Name} is now your active character.`);
+			break;
+		case 'unrotate':
+			if(savedata.PCs[message.author.id])
+			{ savedata.Shortlist.unshift(savedata.PCs[message.author.id]); }
+			character = savedata.Shortlist.pop();
 			savedata.PCs[message.author.id] = character;
 			message.channel.send(`${character.Name} is now your active character.`);
 			break;
@@ -58,6 +65,9 @@ module.exports = {
 			message.channel.send(`${savedata.Shortlist[savedata.Shortlist.length - 1].Name} was added to shortlist.`);
 			break;
 		default :
+			let str = 'Shortlist:\n';
+			Object.keys(savedata.Shortlist).forEach(key => {str += `   ${savedata.Shortlist[key].Name}\n`;});
+			message.channel.send(str);
 			break;
 		}
 		message.delete();

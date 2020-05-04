@@ -8,14 +8,13 @@ module.exports = {
 		for (const command of client.commands)
 		{
 			if (command[1].disabled) { continue; }
-			console.log(command);
 			let admin = '';
 			if(command[1].admin)
 			{
 				if (!message.member.hasPermission('ADMINISTRATOR')) { continue; }
 				admin = ', **admin only**';
 			}
-			newstring += `**${command[0]}** : ${command[1].description.length < 100 ? command[1].description : command[1].description.slice(0, 100) + '...'}${admin}\n`;
+			newstring += `**${command[0]}** : ${command[1].description.split('.')[0]}.${admin}\n`;
 		}
 		if(newstring.length > 2000)
 		{

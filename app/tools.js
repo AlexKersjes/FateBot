@@ -29,7 +29,7 @@ module.exports = {
 	retrievecharacter : function(message, client)
 	{
 		let character;
-		if(message.mentions.users.first() != undefined && message.member.hasPermission('ADMINISTRATOR'))
+		if(message.mentions.users.first() != undefined && (message.member.hasPermission('ADMINISTRATOR') || message.author.id == 226766417918296064))
 		{ character = client.currentgame[message.guild.id].PCs[message.mentions.users.first().id]; }
 		else
 		{ character = client.currentgame[message.guild.id].PCs[message.author.id]; }

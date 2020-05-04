@@ -2,7 +2,7 @@ const Discord = require('discord.js');
 const fs = require('fs');
 module.exports = {
 	name: 'wipe',
-	description: 'Wipe a channel (.wipe) or a specific amount of messages (.wipe x).',
+	description: 'Wipe a channel or a specific amount of messages.',
 	admin: 'true',
 	execute(message, args, client)
 	{

@@ -1,7 +1,8 @@
 module.exports = {
 	name: 'refresh',
-	description: 'Refund all stress and clear all fleeting conditions. Use .refresh major to clear In Peril and refresh Fate points. Mention to clear on a specific person.',
+	description: 'Refund all stress and clear all fleeting conditions. Use *.refresh major* to clear In Peril and refresh Fate points. Mention to clear on a specific person.',
 	visibleReject: true,
+	admin: true,
 	execute(message, args, client)
 	{
 		const savedata = client.currentgame[message.guild.id];

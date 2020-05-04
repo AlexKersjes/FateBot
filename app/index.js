@@ -13,6 +13,29 @@ importCommands('commands/player');
 const rawdata = fs.readFileSync('app/data/channelId.json');
 client.channelDictionary = JSON.parse(rawdata);
 client.currentgame = {};
+try
+{
+	client.defaultload = JSON.parse(fs.readFileSync('app/data/defaultgames.json'));
+}
+catch (error)
+{
+	console.log(error);
+	client.defaultload = {};
+}
+for(const k in client.defaultload)
+{
+	try
+	{
+		const savedata = JSON.parse(fs.readFileSync(`app/data/${client.defaultload[k]}game.json`));
+		client.currentgame[k] = savedata;
+	}
+	catch (error)
+	{
+		console.log('error during loading default games');
+		console.log(error);
+	}
+}
+
 
 client.cooldowns = new Discord.Collection();
 
@@ -31,12 +54,6 @@ client.on('message', message =>
 		{console.log(args[0] + ' ' + args[1]);}
 		const commandName = args.shift().toLowerCase();
 
-		if(commandName == 'reloadcommands')
-		{
-			importCommands('commands/admin');
-			importCommands('commands/player');
-			return message.channel.send('Reloaded commands.');
-		}
 		// Dynamic Commands
 		const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 		if(!command) { return; }

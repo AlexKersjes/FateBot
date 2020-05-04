@@ -6,11 +6,12 @@ module.exports = {
 	execute(message, args, client)
 	{
 		if(message.mentions.users.first()) { return message.channel.send('Mentions are disabled for this command.'); }
+		const name = message.cleanContent.split('"')[1];
 		const savedata = client.currentgame[message.guild.id];
 		charselect.icebox(message, client);
 		savedata.PCs[message.author.id] =
 		{
-			'Name' : 'Unnamed',
+			'Name' : name ? name : 'Unnamed',
 			'Aspects' : {},
 			'Conditions' : {},
 			'Stunts' : {},
