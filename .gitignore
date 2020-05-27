@@ -1,3 +1,4 @@
 node_modules
 .env
+ts-build
 app/data

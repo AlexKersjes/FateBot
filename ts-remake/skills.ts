@@ -46,7 +46,7 @@ class SkillList {
 		}
 	}
 	FindSkill(Name: string, Options?:FateOptions): Skill {
-		const skill = this.Skills.find(s => s.Name = Name.toLowerCase());
+		const skill = this.Skills.find(s => s.Name === Name.toLowerCase());
 		if (!skill)
 		{
 			throw Error(`No ${Options?.FateVersion == FateVersion.Accelerated ? 'Approach' : 'Skill'} found by that name.`)
