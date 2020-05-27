@@ -61,7 +61,7 @@ module.exports = {
 			}
 			if(fs.existsSync(`app/data/${savedata.GameName}game.json`))
 			{
-				return message.channel.send('That game already exists.');
+				return message.channel.send('You already have a game loaded on this server.');
 				// TODO allow overwrites if you have the password
 			}
 			const newgame = {};
@@ -99,6 +99,10 @@ module.exports = {
 			break;
 		case 'password':
 			passwordset(message, client, savedata);
+			break;
+		case 'stop':
+			save(message, savedata);
+			delete client.currentgame[message.guild.id];
 			break;
 		}
 

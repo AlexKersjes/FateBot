@@ -14,17 +14,6 @@ module.exports = {
 				return;
 			}
 
-			if(args[0] === 'save')
-			{
-				client.save.corpse = 0;
-				client.save.corpse2 = 0;
-				client.save.knifetaken = null;
-				const savedata = JSON.stringify(client.save);
-				fs.writeFileSync('app/data/savedata.json', savedata);
-				message.channel.send('Save data was wiped.');
-				return;
-			}
-
 			let fetched;
 			if(args[0])
 			{
