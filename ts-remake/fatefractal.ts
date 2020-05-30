@@ -1,4 +1,6 @@
-class FateFractal {
+import { SkillList } from './skills';
+import { Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable } from './dataelements'
+export class FateFractal {
 	FractalName: string | undefined;
 	HighConcept: Aspect | undefined;
 	Trouble: Aspect | undefined;
@@ -70,7 +72,7 @@ class FateFractal {
 }
 
 function IsFractal(element: FateFractal | any): element is FateFractal {
-	return (element as FateFractal).FractalName !== undefined
+	return (element as FateFractal).FractalName !== undefined;
 }
 
 const deepCopy = <T>(target: T): T => {

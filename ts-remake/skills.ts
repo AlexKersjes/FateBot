@@ -1,4 +1,4 @@
-class SkillList {
+export class SkillList {
 	SkillPoints: number = -1;
 	Skills: Skill[] = [];
 

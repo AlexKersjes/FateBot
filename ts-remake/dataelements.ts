@@ -1,5 +1,5 @@
 type Constructor<T = {}> = new (...args: any[]) => T;
-
+import { FateFractal } from './fatefractal';
 
 class Atom {
 	Name: string;
@@ -107,7 +107,7 @@ function Markable<TBase extends Constructor>(Base: TBase) {
 	}
 }
 
-function Invokable<TBase extends Constructor>(Base: TBase) {
+export function Invokable<TBase extends Constructor>(Base: TBase) {
 	return class extends Base {
 		BonusShifts: number = 2;
 		InvokeCost: number = 1;
@@ -127,17 +127,17 @@ function Invokable<TBase extends Constructor>(Base: TBase) {
 	}
 }
 
-function IsInvokable(element: InvokableObject | FateFractal): element is InvokableObject {
+export function IsInvokable(element: InvokableObject | FateFractal): element is InvokableObject {
 	return (element as InvokableObject).InvokeCost !== undefined && (element as InvokableObject).Name !== undefined;
 }
-function IsMarkable(element: MarkableObject | FateFractal): element is MarkableObject {
+export function IsMarkable(element: MarkableObject | FateFractal): element is MarkableObject {
 	return (element as MarkableObject).BoxMarks !== undefined
 }
 
-class InvokableObject extends Invokable(Atom) { }
-class MarkableObject extends Markable(Atom) { }
+export class InvokableObject extends Invokable(Atom) { }
+export class MarkableObject extends Markable(Atom) { }
 
-class Track extends Markable(Atom)
+export class Track extends Markable(Atom)
 {
 	CreatesCondition : ConditionSeverity = ConditionSeverity.None;
 	constructor(Name: string, Boxes: number, Description?: string) { super(Name, Description); this.SetMaxBoxes(Boxes) }
@@ -150,19 +150,19 @@ class Track extends Markable(Atom)
 		return value;
 	}
 }
-class Stunt extends Invokable(Atom)
+export class Stunt extends Invokable(Atom)
 {
 	constructor(Name: string, Description: string) { super(Name, Description); this.InvokeCost = 0; this.BonusShifts = 0; }
 }
-class Aspect extends Invokable(Atom)
+export class Aspect extends Invokable(Atom)
 {
 	constructor(Name: string, Description: string) { super(Name, Description); }
 }
-class Condition extends Conditionable(Invokable(Atom))
+export class Condition extends Conditionable(Invokable(Atom))
 {
 	constructor(Name: string, Severity: ConditionSeverity, Description?: string) { super(Name, Description); this.Severity = Severity; }
 }
-class BoxCondition extends Markable(Condition)
+export class BoxCondition extends Markable(Condition)
 {
 	constructor(Name: string, Severity: ConditionSeverity, Boxes: number, Description?: string) { super(Name, Severity, Description); this.SetMaxBoxes(Boxes); }
 }
