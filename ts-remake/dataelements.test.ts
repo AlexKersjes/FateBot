@@ -1,15 +1,38 @@
 import { FateFractal}  from './fatefractal';
-import { Aspect, Condition, } from './dataelements';
+import { Aspect, Condition, Track } from './dataelements';
+import { FateOptions } from './options';
+
 
 const TestSheet = new FateFractal("Testy");
 const TestAspect = new Aspect("A test aspect", "A test description");
-TestSheet.Aspects.push(TestAspect)
+const TestConcept =  new Aspect ("A test concept");
+const StressTrack = new Track('Stress', 3);
+StressTrack.StaircaseValues();
+TestSheet.Aspects.push(TestAspect);
+TestSheet.Tracks.push(StressTrack);
 const TestUserId = "123456789";
+const SuperTestSheet = new FateFractal("SuperTesty");
+SuperTestSheet.Aspects.push(TestSheet);
+SuperTestSheet.HighConcept = TestConcept;
 
-test("Add a free invoke", () => {
+test("Find an aspect and give it a free invoke", () => {
 
 	const FoundAspect = TestSheet.FindInvokable("A test aspect")
 	if (FoundAspect!= undefined)
 		FoundAspect.AddFreeInvoke(TestUserId);
 	expect(TestAspect.FreeInvokes).toStrictEqual([TestUserId]);
 })
+
+test("Recursively finding an aspect", () => {
+	expect(SuperTestSheet.FindInvokable("A test aspect")).not.toBeUndefined()
+})
+
+test("Mark a stress box", () => {
+	const Options = new FateOptions()
+	Options.UseConditions = true;
+	Options.DresdenStress = false;
+	const markedvalue = TestSheet.FindMarkable("Stress")?.Mark(3, Options);
+	expect(StressTrack.BoxMarks).toStrictEqual([false, false, true]);
+	expect(markedvalue).toBe(3);
+})
+

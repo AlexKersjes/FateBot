@@ -1,7 +1,7 @@
 import { SkillList } from './skills';
 import { Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable } from './dataelements'
 export class FateFractal {
-	FractalName: string | undefined;
+	FractalName: string;
 	HighConcept: Aspect | undefined;
 	Trouble: Aspect | undefined;
 	Aspects: (Aspect | FateFractal)[] = [];
@@ -9,41 +9,42 @@ export class FateFractal {
 	Stunts: (Stunt | FateFractal)[] = [];
 	Conditions: (BoxCondition | Condition | FateFractal)[] = [];
 	Skills: SkillList = new SkillList;
+	CurrentLocation : string | undefined;
 
 	constructor(Name: string, Prototype?: FateFractal) {
+		this.FractalName = Name;
 		if (Prototype) {
 			const cp = deepCopy(Prototype)
 			cp.FractalName = Name;
 			this
 			return cp;
 		}
-		this.FractalName = Name;
 	}
 	
 	FindInvokable(input : string) : InvokableObject | undefined
 	{
 		input = input.toLowerCase();
-		const Invokables = this.FindInvokables()
-		return Invokables.find(I => I.Name.toLowerCase() === input);
+		const Invokables = this.FindInvokables();
+		return Invokables.find(I => I.Name.toLowerCase() == input);
 	}
 
 	private FindInvokables(): InvokableObject[] {
-		const result = new Array<InvokableObject>();
+		let result = new Array<InvokableObject>(0);
 		if (this.HighConcept)
 			result.push(this.HighConcept);
 		if (this.Trouble)
 			result.push(this.Trouble);
 		this.Aspects.forEach(a => {
 			if (IsInvokable(a)) { result.push(a); }
-			else { result.concat(a.FindInvokables()); }
+			else { result = result.concat(a.FindInvokables()); }
 		});
 		this.Conditions.forEach(a => {
 			if (IsInvokable(a)) { result.push(a); }
-			else { result.concat(a.FindInvokables()); }
+			else { result = result.concat(a.FindInvokables()); }
 		});
 		this.Stunts.forEach(a => {
 			if (IsInvokable(a)) { result.push(a); }
-			else { result.concat(a.FindInvokables()); }
+			else { result = result.concat(a.FindInvokables()); }
 		})
 		return result;
 	}

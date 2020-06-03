@@ -1,5 +1,5 @@
 
-class FateOptions
+export class FateOptions
 {
 	GameMasters: string[] = [];
 	Notifications : TurnNotifications = 0;
@@ -7,7 +7,7 @@ class FateOptions
 	DresdenStress : boolean = false;
 	FateVersion : FateVersion = 1;
 	SkillColumns : boolean = false;
-	SkillMax : number | undefined = 4;
+	SkillMax : number | undefined = 5;
 
 	notificationType (arg : string) : string 
 	{
@@ -32,14 +32,14 @@ class FateOptions
 	}
 }
 
-enum TurnNotifications
+export enum TurnNotifications
 {
 	None = 0,
 	DMNotification = 1,
 	ChannelNotification = 2
 }
 
-enum FateVersion
+export enum FateVersion
 {
 	Core = 0,
 	Accelerated = 1

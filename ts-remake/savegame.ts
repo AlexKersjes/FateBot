@@ -1,10 +1,14 @@
 import Discord = require('discord.js');
-class SaveGame {
+import { FateFractal } from './fatefractal';
+import { FateOptions } from './options';
+import { ChannelDictionary } from './channelstructure';
+export class SaveGame {
 	GameName: string;
 	Password: string = '';
 	CurrentGuild: string | undefined;
 	Folders: Folder[];
 	Options: FateOptions = new FateOptions();
+	Channels: ChannelDictionary = new ChannelDictionary;
 
 	constructor(GameName: string, message: Discord.Message) {
 		this.GameName = GameName;
@@ -14,7 +18,7 @@ class SaveGame {
 	}
 }
 
-class Folder {
+export class Folder {
 	FolderName: string;
 	Contents: FateFractal[] = [];
 	constructor(Name: string) {

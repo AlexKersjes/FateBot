@@ -1,3 +1,4 @@
+import { FateOptions, FateVersion } from './options';
 export class SkillList {
 	SkillPoints: number = -1;
 	Skills: Skill[] = [];
@@ -10,6 +11,8 @@ export class SkillList {
 			this.SkillPoints -= Amount;
 		}
 		const skill = this.FindSkill(Name);
+		if(skill == undefined)
+			throw Error(`No ${Options?.FateVersion == FateVersion.Accelerated? 'Approach' : 'Skill'} found by that name.`)
 		if (Options?.SkillMax) {
 			if (Options?.SkillMax < skill?.Value + Amount) {
 				throw Error('Increase exceeds skill Maximum.')
@@ -25,6 +28,8 @@ export class SkillList {
 				throw Error('Invalid Skill Columns.');
 			}
 		}
+
+		this.SortSkills();
 	}
 	AddSkill(Name: string, Value: number, Options?: FateOptions)
 	{
@@ -44,24 +49,33 @@ export class SkillList {
 				throw Error('Invalid Skill Columns.');
 			}
 		}
+		this.SortSkills();
 	}
-	FindSkill(Name: string, Options?:FateOptions): Skill {
-		const skill = this.Skills.find(s => s.Name === Name.toLowerCase());
-		if (!skill)
-		{
-			throw Error(`No ${Options?.FateVersion == FateVersion.Accelerated ? 'Approach' : 'Skill'} found by that name.`)
-		}
-		return skill;
+	
+	FindSkill(Name: string): Skill | undefined {
+		return this.Skills.find(s => s.Name.toLowerCase() === Name.toLowerCase());
 	}
 
 	SwapSkills(Name1:string, Name2:string)
 	{
-		throw Error('Not Implemented.')
+		const Skill1 = this.FindSkill(Name1);
+		const Skill2 = this.FindSkill(Name2);
+		if(Skill1 == undefined || Skill2 == undefined)
+			throw Error('One of the skills could not be found.')
+		const Rating1 = Skill1.Value;
+		Skill1.Value = Skill2.Value;
+		Skill2.Value = Rating1;
+		this.SortSkills();
 	}
 
 	AddSkillPoints(Value:number)
 	{
 		this.SkillPoints += Value;
+	}
+
+	SortSkills()
+	{
+		this.Skills.sort((a,b) => b.Value - a.Value);
 	}
 
 	CheckColumns(): boolean {
@@ -80,10 +94,11 @@ export class SkillList {
 }
 
 class Skill {
-	Name: string;
+	readonly Name : string;
 	Value: number;
 	constructor(Name: string, Value: number) {
-		this.Name = Name.toLowerCase();
+		Name = Name.toLowerCase();
+		this.Name = Name[0].toUpperCase() + Name.slice(1);
 		this.Value = Value;
 	}
 }

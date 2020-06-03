@@ -1,5 +1,6 @@
 type Constructor<T = {}> = new (...args: any[]) => T;
 import { FateFractal } from './fatefractal';
+import { FateOptions } from './options';
 
 class Atom {
 	Name: string;
@@ -140,23 +141,32 @@ export class MarkableObject extends Markable(Atom) { }
 export class Track extends Markable(Atom)
 {
 	CreatesCondition : ConditionSeverity = ConditionSeverity.None;
-	constructor(Name: string, Boxes: number, Description?: string) { super(Name, Description); this.SetMaxBoxes(Boxes) }
+	constructor(Name: string, Boxes: number, CreatesCondition?: ConditionSeverity, Description?: string) { 
+		super(Name, Description); 
+		this.SetMaxBoxes(Boxes); 
+		if(CreatesCondition == undefined)
+			this.CreatesCondition = ConditionSeverity.None
+		else
+			this.CreatesCondition = CreatesCondition; 
+	}
 	Mark(int: number, Options?: FateOptions) :number
 	{
 		const value = super.Mark(int, Options);
 		// TODO prompt aspect/condition creation
-		if(Options?.UseConditions)
-			console.log('Create a condition of severity ' + this.CreatesCondition);
+		if(Options?.UseConditions && this.CreatesCondition != ConditionSeverity.None)
+			console.log('Create a condition of severity ' + ConditionSeverity[this.CreatesCondition]);
+		else if(this.CreatesCondition != ConditionSeverity.None)
+			console.log('Create an aspect to reflect your consequence.');
 		return value;
 	}
 }
 export class Stunt extends Invokable(Atom)
 {
-	constructor(Name: string, Description: string) { super(Name, Description); this.InvokeCost = 0; this.BonusShifts = 0; }
+	constructor(Name: string, Description : string, InvokeBonus:number) { super(Name, Description); this.InvokeCost = 0; this.BonusShifts = InvokeBonus; }
 }
 export class Aspect extends Invokable(Atom)
 {
-	constructor(Name: string, Description: string) { super(Name, Description); }
+	constructor(Name: string, Description? : string) { super(Name, Description); }
 }
 export class Condition extends Conditionable(Invokable(Atom))
 {
