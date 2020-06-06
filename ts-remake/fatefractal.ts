@@ -1,13 +1,42 @@
 import { SkillList } from './skills';
-import { Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable } from './dataelements'
+import { Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
+import { Type } from 'class-transformer';
+import "reflect-metadata";
 export class FateFractal {
 	FractalName: string;
+	@Type(() => Aspect)
 	HighConcept: Aspect | undefined;
+	@Type(() => Aspect)
 	Trouble: Aspect | undefined;
-	Aspects: (Aspect | FateFractal)[] = [];
+	@Type(() => Object, { discriminator: {
+		property: "_type",
+		subTypes : [
+			{ value: Aspect, name: "Aspect" },
+			{ value: Boost, name: "Boost" },
+			{ value: FateFractal, name: "Fractal" }
+		]
+	} })
+	Aspects: (Aspect | Boost | FateFractal)[] = [];
+	@Type(() => Track)
 	Tracks: Track[] = [];
+	@Type(() => Object, { discriminator: {
+		property: "_type",
+		subTypes : [
+			{ value: Stunt, name: "Stunt" },
+			{ value: FateFractal, name: "Fractal" }
+		]
+	} })
 	Stunts: (Stunt | FateFractal)[] = [];
+	@Type(() => Object, { discriminator: {
+		property: "_type",
+		subTypes : [
+			{ value: BoxCondition, name: "BoxC" },
+			{ value: Condition, name: "Condition" },
+			{ value: FateFractal, name: "Fractal" }
+		]
+	} })
 	Conditions: (BoxCondition | Condition | FateFractal)[] = [];
+	@Type(() => SkillList)
 	Skills: SkillList = new SkillList;
 	CurrentLocation : string | undefined;
 

@@ -23,7 +23,7 @@ function Conditionable<TBase extends Constructor>(Base: TBase) {
 		Severity: ConditionSeverity = ConditionSeverity.Fleeting;
 	}
 }
-enum ConditionSeverity {
+export enum ConditionSeverity {
 	None = -1,
 	Fleeting = 1,
 	Sticky = 2,
@@ -167,6 +167,11 @@ export class Stunt extends Invokable(Atom)
 export class Aspect extends Invokable(Atom)
 {
 	constructor(Name: string, Description? : string) { super(Name, Description); }
+}
+export class Boost extends Aspect
+{
+	Boost : boolean = true;
+	constructor(Name: string) { super(Name) }
 }
 export class Condition extends Conditionable(Invokable(Atom))
 {
