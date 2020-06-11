@@ -1,10 +1,12 @@
 import Discord = require('discord.js');
 import * as fs from 'fs';
-import { FateFractal } from './fatefractal';
+import { deepCopy } from './fatefractal';
 import { Type, classToClass } from 'class-transformer';
 import { FateOptions } from './options';
 import { ChannelDictionary } from './channelstructure';
 import { serialize , deserialize } from 'class-transformer';
+import { FateFractal } from './fatefractal';
+import { DefaultServers } from './app';
 export class SaveGame {
 	GameName: string;
 	Password: string = '';
@@ -23,20 +25,19 @@ export class SaveGame {
 		this.GameName = GameName;
 		this.CurrentGuild = message?.guild?.id;
 		if(message?.author.id)
-			this.Options.GameMasters.push(message?.author.id);
+			this.Options.GMToggle(message?.author.id);
 		this.Folders = [new Folder('PCs'), new Folder('NPCs'), new Folder('Shortlist')]
 	}
 
-	static async save(save:SaveGame) {
-		let copySave = classToClass(save);
-		let copyString = JSON.stringify(serialize(copySave));
+	static async save(save:SaveGame) : Promise<void> {
+		let copySave : SaveGame = deepCopy(save);
+		let copyString = serialize(copySave);
 		fs.writeFileSync(`${process.env.SAVEPATH}${save.GameName}game.json`, copyString, 'utf-8');
 	}
 	static async load(gameName:string) : Promise<SaveGame> {
 		let rawdata = fs.readFileSync( `${process.env.SAVEPATH}${gameName}game.json`, 'utf-8');
-		let s2 = JSON.parse(rawdata);
-		deserialize(SaveGame, s2);
-		return (s2 as SaveGame);
+		let s2 = deserialize(SaveGame, rawdata);
+		return s2;
 	}
 }
 
@@ -60,14 +61,14 @@ export class Folder {
 
 export class defaultServerObject {
 	private lastLogged : [string, string][] = [];
-	add(guild : Discord.Guild, gameName: string)
+	add(guildId : string, gameName: string)
 	{
-		this.delete(guild);
-		this.lastLogged.push([guild.id, gameName])
+		this.delete(guildId);
+		this.lastLogged.push([guildId, gameName])
 	}
-	delete(guild: Discord.Guild)
+	delete(guildId: string)
 	{
-		const g = this.lastLogged.find(i => guild.id === i[0]);
+		const g = this.lastLogged.find(i => guildId  === i[0]);
 		if(g != undefined)
 			this.lastLogged.splice(this.lastLogged.indexOf(g), 1);
 	}
@@ -79,6 +80,17 @@ export class defaultServerObject {
 				console.log(`Loaded ${s.GameName} @ ${i[0]}`);
 			});
 		})
+	}
+	async save() : Promise<void>
+	{
+		const ServersCopy = deepCopy(DefaultServers)
+		try{
+			fs.writeFileSync(`${process.env.SAVEPATH}defaultservers.json`, serialize(ServersCopy), 'utf-8');
+		}
+		catch(err)
+		{
+			console.log(err);
+		}
 	}
 }
 

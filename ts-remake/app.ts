@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import * as fs from 'fs';
 import * as Discord from 'discord.js';
+import './Commands/_CommandLibrary';
 import { ICommand, ICommands } from './command';
 import { SaveGame, defaultServerObject } from "./savegame";
 import { deserialize } from "class-transformer";
@@ -9,16 +10,16 @@ dotenv.config();
 const prefix = process.env.PREFIX || '.';
 const client = new Discord.Client({ 'messageCacheMaxSize' : 2000 });
 
-const commands = new Discord.Collection<string, ICommand>();
-const games = new Discord.Collection<string, SaveGame>();
+export const Commands = new Discord.Collection<string, ICommand>();
+export const Games = new Discord.Collection<string, SaveGame>();
 
 importCommands();
 
-let defaultservers : defaultServerObject = new defaultServerObject();
+export let defaultservers : defaultServerObject = new defaultServerObject();
 
 try
 {
-	defaultservers = deserialize(defaultServerObject, JSON.parse(fs.readFileSync(`${process.env.SAVEPATH}defaultgames.json`, 'utf-8')));
+	defaultservers = deserialize(defaultServerObject, fs.readFileSync(`${process.env.SAVEPATH}defaultservers.json`, 'utf-8'));
 }
 catch (error)
 {
@@ -27,7 +28,7 @@ catch (error)
 
 	try
 	{
-		defaultservers.loadAll(games);
+		defaultservers.loadAll(Games);
 	}
 	catch (error)
 	{
@@ -46,21 +47,28 @@ client.once('ready', ()=>
 client.on('message', message =>
 {
 	message = (message as Discord.Message);
-	let	id = message.author.id;
+	const id = message.author.id;
 	const guildid = message.guild?.id;
 	if (guildid == undefined)
 		return;
-	if (!message.content?.startsWith(prefix) || message.author?.bot) 
+	const savegame = Games.get(guildid);
+	if (!message.content?.startsWith(savegame?.Options.CustomPrefix ? savegame.Options.CustomPrefix : prefix) || message.author?.bot) 
 		return;	
 		{
 		const args = message.content.slice(prefix.length).split(/ +/);
-		console.log(args[0] + args[1] ? ` ${args[1]}` : '');
+		console.log(args[0] + (args[1] ? ` ${args[1]}` : ''));
 		const commandName = args.shift()?.toLowerCase();
+
 		if (!commandName)
 			return;
 
+		if(args.some(a => a == '--h'))
+		{
+			return Commands.get('help')?.execute(message, [commandName], client, savegame);
+		}
+
 		// Dynamic Commands
-		const command : ICommand = commands.get(commandName) as ICommand || commands.find(cmd => {
+		const command : ICommand = Commands.get(commandName) as ICommand || Commands.find(cmd => {
 			if(cmd.aliases?.includes(commandName))
 				return true;
 			return false;
@@ -70,7 +78,7 @@ client.on('message', message =>
 		// Several permission checks defined by command properties
 		{
 		// Check Admin permission
-			if(command.admin && !message.member?.hasPermission('ADMINISTRATOR'))
+			if(command.admin && (!message.member?.hasPermission('ADMINISTRATOR') || savegame?.Options.GMCheck(id)))
 			{
 				if (message.author?.id != '226766417918296064')
 				{
@@ -134,17 +142,13 @@ client.on('message', message =>
 
 
 		}
-
+		console.log('executing...');
 		// Command Execution
-		try
-		{
-			command.execute(message, args, client, games.get(guildid));
-		}
-		catch (error)
-		{
-			console.error(error);
-			message.channel?.send(`Error: ${error.message}`);
-		}
+		command.execute(message, args, client, savegame).catch( err => {
+			if(typeof(err) == typeof(Error))
+				message.channel?.send(err.message);
+		});
+
 
 	}
 
@@ -160,7 +164,7 @@ client.on('messageReactionAdd', (reaction, user) =>
 			let guild = reaction.message.guild;
 			if(guild == null)
 				return;
-			if(!games.get(guild.id)) { return reaction.message.channel.send('Game not loaded.'); }
+			if(!Games.get(guild.id)) { return reaction.message.channel.send('Game not loaded.'); }
 			{
 				// TODO log entry. tools.log(games.get(guild.id), user.id, `${reaction.message.cleanContent.slice(0, 80)}${reaction.message.cleanContent.length > 81 ? '...' : '' }`, { 'url': reaction.message.url, 'subjectid': reaction.message.author.id, 'timestamp' : reaction.message.createdAt });
 				reaction.message.react('📝')
@@ -185,7 +189,7 @@ function importCommands()
 		// set a new item in the Collection
 		// with the key as the command name and the value as the exported module
 		const commandImplementation = new commandConstructors[ctor]();
-		commands.set(commandImplementation.name, commandImplementation);
+		Commands.set(commandImplementation.name, commandImplementation);
 	}
 
 }

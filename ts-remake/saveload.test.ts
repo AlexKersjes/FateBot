@@ -6,9 +6,9 @@ import 'fs';
 import * as Discord from 'discord.js';
 import { FateFractal } from "./fatefractal";
 import { Aspect, Track, Stunt, Condition, ConditionSeverity, BoxCondition } from "./dataelements";
-import { writeFileSync, readFileSync, fstat, unlinkSync,  } from "fs";
+import { writeFileSync, readFileSync, fstat, unlinkSync, readdirSync } from "fs";
 
-let s = new SaveGame('TestGame');
+const s = new SaveGame('TestGame');
 let FractalBase = new FateFractal('Testy');
 s.Folders[0].Contents.push(FractalBase);
 let TestAspect = new Aspect('TestosAspectost');
@@ -25,14 +25,26 @@ FractalBase.Conditions.push(new Condition('Mouthful of tests', ConditionSeverity
 FractalBase.Conditions.push(new BoxCondition('Boxy', ConditionSeverity.Fleeting, 2));
 
 
+
+test('Actual save/load functionality', async () => {
+	await SaveGame.save(s);
+	let s2 = await SaveGame.load(s.GameName);
+	expect(s2).toEqual(s);
+})
+
 test('Serialisation test to ensure consistent loading.', () => {
 	let copyofs = classToClass(s);
-	let stringofs = JSON.stringify(serialize(copyofs));
+	let stringofs = serialize(copyofs);
 	writeFileSync('./testy.json', stringofs, 'utf-8');
 	let rawdata = readFileSync('./testy.json', 'utf-8');
-	let s2 = JSON.parse(rawdata);
-	s2 = deserialize(SaveGame, s2);
+	let s2 = deserialize(SaveGame, rawdata);
 	expect(s).toStrictEqual(s2);
 	unlinkSync('./testy.json');
+})
+
+
+test('Finding if a game exists.', () => {
+	let dir = readdirSync('./', 'utf-8');
+	console.log(dir);
 })
 

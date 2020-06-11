@@ -2,7 +2,7 @@ import { ICommands, ICommand } from "../command";
 import { TextChannel } from "discord.js";
 
 @ICommands.register
-class announce implements ICommand {
+export class announce implements ICommand {
 	helptext: string | undefined = '*syntax:* .announce <channel mention> <markup e.g. \\*\\* [optional] > /<your message> ';
 	name: string = 'announce';
 	description: string = 'The Raven speaks.';
@@ -10,7 +10,7 @@ class announce implements ICommand {
 	args: boolean = true;
 	aliases: string[] | undefined;
 	cooldown: number | undefined;
-	execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client): void {
+	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client): Promise<void> {
 		let markup = args[1];
 		if (args[2]) {
 			if (!args[2].includes('/')) {

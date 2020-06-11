@@ -1,13 +1,13 @@
-
 export class FateOptions
 {
-	GameMasters: string[] = [];
+	private GameMasters: string[] = [];
 	Notifications : TurnNotifications = 0;
 	UseConditions : boolean = false;
 	DresdenStress : boolean = false;
 	FateVersion : FateVersion = 1;
 	SkillColumns : boolean = false;
 	SkillMax : number | undefined = 5;
+	CustomPrefix : string | undefined;
 
 	notificationType (arg : string) : string 
 	{
@@ -29,6 +29,13 @@ export class FateOptions
 		if(!UserId)
 		{return false;}
 		return this.GameMasters.some(id => id === UserId);
+	}
+	GMToggle(UserId: string)
+	{
+		if(this.GMCheck(UserId))
+			this.GameMasters.splice(this.GameMasters.indexOf(UserId), 1);
+		else
+			this.GameMasters.push(UserId);
 	}
 }
 

@@ -101,11 +101,11 @@ export class FateFractal {
 	}
 }
 
-function IsFractal(element: FateFractal | any): element is FateFractal {
+export function IsFractal(element: FateFractal | any): element is FateFractal {
 	return (element as FateFractal).FractalName !== undefined;
 }
 
-const deepCopy = <T>(target: T): T => {
+export const deepCopy = <T>(target: T): T => {
 	if (target === null) {
 		return target;
 	}
