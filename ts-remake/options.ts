@@ -8,6 +8,7 @@ export class FateOptions
 	SkillColumns : boolean = false;
 	SkillMax : number | undefined = 5;
 	CustomPrefix : string | undefined;
+	DefaultSkills : string[] | undefined;
 
 	notificationType (arg : string) : string 
 	{
@@ -49,5 +50,6 @@ export enum TurnNotifications
 export enum FateVersion
 {
 	Core = 0,
-	Accelerated = 1
+	Accelerated = 1,
+	Condensed = 2
 }

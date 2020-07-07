@@ -2,8 +2,11 @@ import { SkillList } from './skills';
 import { Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
 import { Type } from 'class-transformer';
 import "reflect-metadata";
+import { FateOptions } from './options';
 export class FateFractal {
 	FractalName: string;
+	FatePoints: number | undefined;
+	Refresh: number | undefined
 	@Type(() => Aspect)
 	HighConcept: Aspect | undefined;
 	@Type(() => Aspect)
@@ -37,11 +40,13 @@ export class FateFractal {
 	} })
 	Conditions: (BoxCondition | Condition | FateFractal)[] = [];
 	@Type(() => SkillList)
-	Skills: SkillList = new SkillList;
+	Skills: SkillList[] = [];
 	CurrentLocation : string | undefined;
 
-	constructor(Name: string, Prototype?: FateFractal) {
+	constructor(Name: string, Options?: FateOptions, Prototype?: FateFractal) {
 		this.FractalName = Name;
+		if(Options)
+			this.Skills.push(new SkillList(Options))
 		if (Prototype) {
 			const cp = deepCopy(Prototype)
 			cp.FractalName = Name;

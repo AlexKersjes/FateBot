@@ -1,13 +1,14 @@
 import "reflect-metadata";
 import { classToPlain, classToClass, plainToClass, serialize, deserialize, ClassTransformOptions } from 'class-transformer';
-import { SaveGame } from './savegame';
+import { SaveGame } from '../savegame';
 import 'fs';
 
 import * as Discord from 'discord.js';
-import { FateFractal } from "./fatefractal";
-import { Aspect, Track, Stunt, Condition, ConditionSeverity, BoxCondition } from "./dataelements";
+import { FateFractal } from "../fatefractal";
+import { Aspect, Track, Stunt, Condition, ConditionSeverity, BoxCondition } from "../dataelements";
 import { writeFileSync, readFileSync, fstat, unlinkSync, readdirSync } from "fs";
 
+process.env.SAVEPATH = './';
 const s = new SaveGame('TestGame');
 let FractalBase = new FateFractal('Testy');
 s.Folders[0].Contents.push(FractalBase);
@@ -30,6 +31,7 @@ test('Actual save/load functionality', async () => {
 	await SaveGame.save(s);
 	let s2 = await SaveGame.load(s.GameName);
 	expect(s2).toEqual(s);
+	unlinkSync(`${process.env.SAVEPATH}${s.GameName}game.json`);
 })
 
 test('Serialisation test to ensure consistent loading.', () => {
@@ -41,10 +43,3 @@ test('Serialisation test to ensure consistent loading.', () => {
 	expect(s).toStrictEqual(s2);
 	unlinkSync('./testy.json');
 })
-
-
-test('Finding if a game exists.', () => {
-	let dir = readdirSync('./', 'utf-8');
-	console.log(dir);
-})
-

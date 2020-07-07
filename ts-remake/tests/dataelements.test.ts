@@ -1,6 +1,6 @@
-import { FateFractal}  from './fatefractal';
-import { Aspect, Condition, Track } from './dataelements';
-import { FateOptions } from './options';
+import { FateFractal}  from '../fatefractal';
+import { Aspect, Condition, Track } from '../dataelements';
+import { FateOptions } from '../options';
 
 
 const TestSheet = new FateFractal("Testy");

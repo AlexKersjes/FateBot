@@ -3,3 +3,4 @@ node_modules
 ts-build
 app/data
 coverage
+ts-remake/data

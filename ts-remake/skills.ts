@@ -1,5 +1,6 @@
 import { FateOptions, FateVersion } from './options';
 export class SkillList {
+	ListName : string;
 	SkillPoints: number = -1;
 	Skills: Skill[] = [];
 
@@ -90,6 +91,34 @@ export class SkillList {
 		}
 		if (skillsChecked < this.Skills.length) { return false }
 		return true;
+	}
+
+	constructor(Options: FateOptions, prefill: boolean = false){
+		this.ListName = (Options.FateVersion == FateVersion.Accelerated) ? 'Approaches' : 'Skills';
+		if (prefill) {
+			if(Options.DefaultSkills)
+			{
+				Options.DefaultSkills.forEach(s => {
+					this.Skills.unshift(new Skill(s, 0));
+				});
+			}
+			else
+			{
+				switch (Options.FateVersion)
+				{
+					case FateVersion.Accelerated:
+						this.Skills = [new Skill('Careful', 0), new Skill('Clever', 0), new Skill('Flashy', 0), new Skill('Forceful', 0),new Skill('Quick', 0), new Skill('Sneaky', 0)];
+						break;
+					case FateVersion.Condensed:
+						this.Skills.push(new Skill('Academics', 0));
+					case FateVersion.Core:
+						const list = ['Academics', 'Athletics', 'Burglary', 'Contacts', 'Crafts', 'Deceive', 'Drive', 'Empathy', 'Fight', 'Investigate', 'Lore', 'Notice', 'Physique', 'Provoke', 'Rapport', 'Resources', 'Shoot', 'Stealth', 'Will'];
+						list.forEach(i => this.Skills.push(new Skill(i, 0)));
+						break;
+					
+				}
+			}
+		}
 	}
 }
 

@@ -1,4 +1,7 @@
 import * as Discord from 'discord.js';
+import { Exclude } from 'class-transformer';
+import { RollContest } from './rollcontest';
+import { FateFractal } from './fatefractal';
 
 export class ChannelDictionary
 {
@@ -90,7 +93,10 @@ class Channel {
 	id : string;
 	name : string;
 	defaulttimeout : number = 0;
+	situation : FateFractal | undefined;
 	private connections : [string, number, boolean][] = [];
+	@Exclude()
+	contest : RollContest | undefined;
 
 	constructor(channel : Discord.GuildChannel)
 	{

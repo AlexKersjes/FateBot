@@ -15,11 +15,11 @@ export const Games = new Discord.Collection<string, SaveGame>();
 
 importCommands();
 
-export let defaultservers : defaultServerObject = new defaultServerObject();
+export let DefaultServers : defaultServerObject = new defaultServerObject();
 
 try
 {
-	defaultservers = deserialize(defaultServerObject, fs.readFileSync(`${process.env.SAVEPATH}defaultservers.json`, 'utf-8'));
+	DefaultServers = deserialize(defaultServerObject, fs.readFileSync(`${process.env.SAVEPATH}defaultservers.json`, 'utf-8'));
 }
 catch (error)
 {
@@ -28,7 +28,7 @@ catch (error)
 
 	try
 	{
-		defaultservers.loadAll(Games);
+		DefaultServers.loadAll(Games);
 	}
 	catch (error)
 	{
@@ -62,9 +62,11 @@ client.on('message', message =>
 		if (!commandName)
 			return;
 
-		if(args.some(a => a == '--h'))
+		if(args.some(a => a.startsWith('--h')))
 		{
-			return Commands.get('help')?.execute(message, [commandName], client, savegame);
+			return Commands.get('help')?.execute(message, [commandName], client, savegame).catch( err => {
+				message.channel?.send((err as Error).message);
+			});
 		}
 
 		// Dynamic Commands
@@ -142,11 +144,9 @@ client.on('message', message =>
 
 
 		}
-		console.log('executing...');
 		// Command Execution
 		command.execute(message, args, client, savegame).catch( err => {
-			if(typeof(err) == typeof(Error))
-				message.channel?.send(err.message);
+			message.channel?.send((err as Error).message);
 		});
 
 

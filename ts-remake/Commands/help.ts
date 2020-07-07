@@ -24,7 +24,7 @@ export class help implements ICommand {
 		if (command == undefined)
 			throw Error('No command with that name could be found.');
 
-		if (command.admin && !save?.Options.GMCheck(message.author.id))
+		if (command.admin && !(save?.Options.GMCheck(message.author.id)||message.member?.hasPermission("ADMINISTRATOR")))
 			throw Error('You do not have access to this command.');
 
 		let aliases = '';
