@@ -1,0 +1,19 @@
+import { ICommands, ICommand } from "../command";
+import { Message, Client } from "discord.js";
+import { SaveGame } from '../savegame';
+
+@ICommands.register
+export class CLASSNAME implements ICommand{
+	name: string = ;
+	description: string = ;
+	helptext: string | undefined;
+	admin: boolean = ;
+	args: boolean = ;
+	requireSave: boolean = ;
+	aliases: string[] | undefined;
+	cooldown: number | undefined;
+	async execute(message: Message, args: string[], client: Client, save: SaveGame | undefined): Promise<any> {
+		throw new Error("Method not implemented.");
+	}
+	
+}

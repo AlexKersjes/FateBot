@@ -79,7 +79,7 @@ client.on('message', message =>
 
 		// Several permission checks defined by command properties
 		{
-		// Check Admin permission
+			// Check Admin permission
 			if(command.admin && (!message.member?.hasPermission('ADMINISTRATOR') || savegame?.Options.GMCheck(id)))
 			{
 				if (message.author?.id != '226766417918296064')
@@ -94,6 +94,12 @@ client.on('message', message =>
 				return message.channel?.send('Please provide the required arguments.');
 			}
 
+			// Check save presence
+			if(!savegame && command.requireSave)
+			{
+				return message.channel.send('A game has to be loaded for this command');
+			}
+			
 			// Check Cooldown
 			if(command.cooldown && !message.member?.hasPermission('ADMINISTRATOR'))
 			{
@@ -141,11 +147,9 @@ client.on('message', message =>
 				timestamps.set(id, [now, cooldownAmount]);
 				setTimeout(() => timestamps?.delete(id), cooldownAmount);
 			}
-
-
 		}
 		// Command Execution
-		command.execute(message, args, client, savegame).catch( err => {
+		command.execute(message, args, client, savegame).then(() => (message as Discord.Message).delete()).catch( err => {
 			message.channel?.send((err as Error).message);
 		});
 

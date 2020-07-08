@@ -6,7 +6,8 @@ import { SaveGame } from "../savegame";
 import { DefaultServers } from '../app';
 
 @ICommands.register
-export class newgame implements ICommand {
+export class newgameCommand implements ICommand {
+	requireSave: boolean = false;
 	name: string = 'newgame';
 	description: string = 'Start a new game.';
 	helptext: string | undefined = 'Game names cannot be shorter than 5 characters. Game names cannot contain spaces.';
@@ -14,6 +15,7 @@ export class newgame implements ICommand {
 	args: boolean = true;
 	aliases: string[] | undefined = ['start', 'startgame'];
 	cooldown: number | undefined = 30;
+	
 	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save?: import("../savegame").SaveGame | undefined): Promise<void> {
 		const guildId = message.guild?.id;
 		// Guilds must be checked.

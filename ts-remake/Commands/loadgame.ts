@@ -5,7 +5,8 @@ import { SaveGame } from "../savegame";
 import { Games } from '../app';
 
 @ICommands.register
-export class loadgame implements ICommand {
+export class loadgameCommand implements ICommand {
+	requireSave: boolean = false;
 	name: string = 'loadgame';
 	description: string = 'Load an existing game by name.';
 	helptext: string | undefined;

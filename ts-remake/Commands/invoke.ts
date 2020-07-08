@@ -2,7 +2,8 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 
 @ICommands.register
-export class invoke implements ICommand {
+export class invokeCommand implements ICommand {
+	requireSave: boolean = true;
 	name: string = 'invoke';
 	description: string = 'Invoke an aspect or use a stunt.';
 	helptext: string | undefined = 'Use this command to add a bonus to an ongoing roll.';

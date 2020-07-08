@@ -3,14 +3,14 @@ import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
 
 @ICommands.register
-export class teamworkCommand implements ICommand{
+export class charselectCommand implements ICommand{
 	requireSave: boolean = true;
-	name: string = 'teamwork';
-	description: string = 'Assist a roll by using teamwork.';
+	name: string = 'charselect';
+	description: string = 'Load a character';
 	helptext: string | undefined;
 	admin: boolean = false;
-	args: boolean = false;
-	aliases: string[] | undefined = ['tw'];
+	args: boolean = true;
+	aliases: string[] | undefined = ['select', 'cs'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<any> {
 		throw new Error("Method not implemented.");

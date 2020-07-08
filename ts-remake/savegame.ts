@@ -68,6 +68,24 @@ export class SaveGame {
 			message.author.deleteDM();
 		}
 	}
+
+	getPlayer(message: Discord.Message) : Player
+	{
+		const mention = message.mentions.members?.first();
+		if(mention && this.Options.GMCheck(message.author.id)){
+			return this.getOrCreatePlayer(mention.user);
+		}
+		return this.getOrCreatePlayer(message.author);
+	}
+
+	private getOrCreatePlayer(user: Discord.User) {
+		let p = this.Players.find(i => user.id == i.id);
+		if (!p) {
+			p = new Player(user);
+			this.Players.push(p);
+		}
+		return p;
+	}
 }
 
 export class Folder {

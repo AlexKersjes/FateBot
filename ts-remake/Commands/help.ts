@@ -2,7 +2,8 @@ import { ICommands, ICommand } from "../command";
 import { Commands } from '../app';
 
 @ICommands.register
-export class help implements ICommand {
+export class helpCommand implements ICommand {
+	requireSave: boolean = false;
 	name: string = 'help';
 	description: string = 'Shows description and shorthands/aliases for a specific public command.';
 	helptext: string | undefined = 'When using a command, you can use **--h** somewhere in the message. If you do, it will bring up the help text for that command.';
@@ -12,7 +13,7 @@ export class help implements ICommand {
 	cooldown: number | undefined;
 	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save?: import("../savegame").SaveGame | undefined): Promise<void> {
 		if (!args[0]) {
-			message.channel.send('Use this command with a command name or alias (or use the optional argument --h in a command) to view a detailed description of the command.\nUse the command "commandlist" to view commands available to you.');
+			message.channel.send('Use this command with a command name or alias (or use the optional argument --h in a command) to view a detailed description of the command.\nUse the command "commandlist" to view commands available to you.\nCreate a new game with "start"\nSetting a custom prefix with "options" is recommended.');
 			return;
 		}
 

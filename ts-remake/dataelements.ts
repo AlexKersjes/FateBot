@@ -2,14 +2,29 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 import { FateFractal } from './fatefractal';
 import { FateOptions } from './options';
 
-class Atom {
+export class Atom {
 	Name: string;
 	Description: string | undefined = undefined;
+	Hidden: boolean | undefined = undefined;
 
 
 	constructor(Name: string, Description?: string) {
 		this.Name = Name;
 		this.Description = Description;
+	}
+
+	match(input: string) : boolean
+	{
+		let regStr = '.*';
+		for (let i = 0; i < input.length; i++) {
+			regStr +=  `${input[i]}.*`;
+		}
+		const expression = new RegExp(regStr, 'gi');
+		if(this.Name.match(expression) == null)
+		{
+			return false;
+		}
+		return true;
 	}
 }
 
@@ -36,20 +51,25 @@ function Markable<TBase extends Constructor>(Base: TBase) {
 		constructor(...args: any[]) {
 			super(...args);
 		}
-		BoxValues: number[] = [0];
-		BoxMarks: boolean[] = [false];
+		
+		private _BoxValues: number[] = [0];
+		get BoxValues() { return this._BoxValues; };
+		private _BoxMarks: boolean[] = [false];
+		get BoxMarks() { return this._BoxMarks };
+
+
 		SetMaxBoxes(n: number) {
 			if(n === 0)
 				throw Error('Markable objects must have at least one box.');
-			this.BoxMarks = new Array<boolean>(n).fill(false);
-			this.BoxValues = new Array<number>(n).fill(this.BoxValues[0]);
+			this._BoxMarks = new Array<boolean>(n).fill(false);
+			this._BoxValues = new Array<number>(n).fill(this._BoxValues[0]);
 		}
 		SetBoxValue(boxNumber:number, value:number){
-			this.BoxValues[boxNumber -1] = value;
+			this._BoxValues[boxNumber -1] = value;
 		}
 		StaircaseValues() {
-			for (let i = 0; i < this.BoxValues.length; i++) {
-				this.BoxValues[i] = i + 1;
+			for (let i = 0; i < this._BoxValues.length; i++) {
+				this._BoxValues[i] = i + 1;
 			}
 		}
 		Mark(int: number, Options?: FateOptions) :number {
@@ -60,49 +80,49 @@ function Markable<TBase extends Constructor>(Base: TBase) {
 					let index = 0;
 					
 					while (int > 0) {
-						if (index > this.BoxMarks.length) {
+						if (index > this._BoxMarks.length) {
 							throw Error(`Could not fully absorb hit. ${int} boxes left. ${total} absorbed.`);
 						}
-						if (!this.BoxMarks[index]) {
-							this.BoxMarks[index] = true;
-							total += this.BoxValues[index];
+						if (!this._BoxMarks[index]) {
+							this._BoxMarks[index] = true;
+							total += this._BoxValues[index];
 							int--;
 						}
 						index++;
 					}
 				}
 				else if (int < 0) {
-					this.BoxMarks.reverse();
-					this.BoxValues.reverse();
+					this._BoxMarks.reverse();
+					this._BoxValues.reverse();
 					int = -int;
 					let index = 0;
 					while (int > 0) {
-						if (index > this.BoxMarks.length) {
+						if (index > this._BoxMarks.length) {
 							throw Error('Could not recover more boxes.');
 						}
-						if (this.BoxMarks[index]) {
-							this.BoxMarks[index] = false;
-							total -= this.BoxValues[index];
+						if (this._BoxMarks[index]) {
+							this._BoxMarks[index] = false;
+							total -= this._BoxValues[index];
 							int--;
 						}
 						index++;
 					}
-					this.BoxMarks.reverse();
-					this.BoxValues.reverse();
+					this._BoxMarks.reverse();
+					this._BoxValues.reverse();
 				}
 				return total;
 			}
 
-			this.BoxMarks[int - 1] = !this.BoxMarks[int - 1];
-			if(this.BoxMarks[int -1])
-				return this.BoxValues[int -1];
+			this._BoxMarks[int - 1] = !this._BoxMarks[int - 1];
+			if(this._BoxMarks[int -1])
+				return this._BoxValues[int -1];
 			else
-				return -this.BoxValues[int -1];
+				return -this._BoxValues[int -1];
 		}
 
 		MarkedBoxes(): number {
 			let total = 0;
-			this.BoxMarks.forEach(bool => { if (bool) { total++ } });
+			this._BoxMarks.forEach(bool => { if (bool) { total++ } });
 			return total;
 		}
 	}
@@ -112,7 +132,7 @@ export function Invokable<TBase extends Constructor>(Base: TBase) {
 	return class extends Base {
 		BonusShifts: number = 2;
 		InvokeCost: number = 1;
-		FreeInvokes: string[] = []
+		FreeInvokes: string[] = [];
 		public TryFreeInvoke(UserId: string): boolean {
 			if (this.InvokeCost === 0)
 				return true;
@@ -128,12 +148,15 @@ export function Invokable<TBase extends Constructor>(Base: TBase) {
 	}
 }
 
-export function IsInvokable(element: InvokableObject | FateFractal): element is InvokableObject {
+export function IsInvokable(element: unknown): element is InvokableObject {
 	return (element as InvokableObject).InvokeCost !== undefined && (element as InvokableObject).Name !== undefined;
 }
-export function IsMarkable(element: MarkableObject | FateFractal): element is MarkableObject {
+export function IsMarkable(element: unknown): element is MarkableObject {
 	return (element as MarkableObject).BoxMarks !== undefined
 }
+export function IsCondition(element: unknown): element is Condition {
+	return (element as Condition).Severity !== undefined
+} 
 
 export class InvokableObject extends Invokable(Atom) { }
 export class MarkableObject extends Markable(Atom) { }

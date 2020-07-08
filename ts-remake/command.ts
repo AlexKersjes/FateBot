@@ -6,6 +6,7 @@ export interface ICommand {
 	helptext: string | undefined;
 	admin: boolean;
 	args: boolean;
+	requireSave: boolean,
 	aliases: string[] | undefined;
 	cooldown: number | undefined;
 	execute(message: Discord.Message, args: string[], client: Discord.Client, save?: SaveGame): Promise<any>

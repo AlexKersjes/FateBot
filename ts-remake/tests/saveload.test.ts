@@ -28,7 +28,7 @@ FractalBase.Conditions.push(new BoxCondition('Boxy', ConditionSeverity.Fleeting,
 
 
 test('Actual save/load functionality', async () => {
-	await SaveGame.save(s);
+	await s.save();
 	let s2 = await SaveGame.load(s.GameName);
 	expect(s2).toEqual(s);
 	unlinkSync(`${process.env.SAVEPATH}${s.GameName}game.json`);

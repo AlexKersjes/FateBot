@@ -3,7 +3,8 @@ import { Message, Client } from "discord.js";
 import { Commands } from '../app';
 
 @ICommands.register
-export class commandlist implements ICommand {
+export class commandlistCommand implements ICommand {
+	requireSave: boolean = false;
 	name: string = 'commandlist';
 	description: string = 'Shows a list of commands.';
 	helptext: string | undefined = 'Admin commands are only shown to members with GM permission or Administrator permissions.';

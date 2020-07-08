@@ -1,5 +1,5 @@
 import { SkillList } from './skills';
-import { Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
+import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
 import { Type } from 'class-transformer';
 import "reflect-metadata";
 import { FateOptions } from './options';
@@ -11,41 +11,50 @@ export class FateFractal {
 	HighConcept: Aspect | undefined;
 	@Type(() => Aspect)
 	Trouble: Aspect | undefined;
-	@Type(() => Object, { discriminator: {
-		property: "_type",
-		subTypes : [
-			{ value: Aspect, name: "Aspect" },
-			{ value: Boost, name: "Boost" },
-			{ value: FateFractal, name: "Fractal" }
-		]
-	} })
+	@Type(() => Object, {
+		discriminator: {
+			property: "_type",
+			subTypes: [
+				{ value: Aspect, name: "Aspect" },
+				{ value: Boost, name: "Boost" },
+				{ value: FateFractal, name: "Fractal" }
+			]
+		}
+	})
 	Aspects: (Aspect | Boost | FateFractal)[] = [];
 	@Type(() => Track)
 	Tracks: Track[] = [];
-	@Type(() => Object, { discriminator: {
-		property: "_type",
-		subTypes : [
-			{ value: Stunt, name: "Stunt" },
-			{ value: FateFractal, name: "Fractal" }
-		]
-	} })
+	@Type(() => Object, {
+		discriminator: {
+			property: "_type",
+			subTypes: [
+				{ value: Stunt, name: "Stunt" },
+				{ value: FateFractal, name: "Fractal" }
+			]
+		}
+	})
 	Stunts: (Stunt | FateFractal)[] = [];
-	@Type(() => Object, { discriminator: {
-		property: "_type",
-		subTypes : [
-			{ value: BoxCondition, name: "BoxC" },
-			{ value: Condition, name: "Condition" },
-			{ value: FateFractal, name: "Fractal" }
-		]
-	} })
+	Details: Atom[] | undefined;
+	@Type(() => Object, {
+		discriminator: {
+			property: "_type",
+			subTypes: [
+				{ value: BoxCondition, name: "BoxC" },
+				{ value: Condition, name: "Condition" },
+				{ value: FateFractal, name: "Fractal" }
+			]
+		}
+	})
 	Conditions: (BoxCondition | Condition | FateFractal)[] = [];
 	@Type(() => SkillList)
 	Skills: SkillList[] = [];
-	CurrentLocation : string | undefined;
+	CurrentLocation: string | undefined;
+	imgUrl: string | undefined;
+	NPC : boolean = false;
 
 	constructor(Name: string, Options?: FateOptions, Prototype?: FateFractal) {
 		this.FractalName = Name;
-		if(Options)
+		if (Options)
 			this.Skills.push(new SkillList(Options))
 		if (Prototype) {
 			const cp = deepCopy(Prototype)
@@ -54,12 +63,10 @@ export class FateFractal {
 			return cp;
 		}
 	}
-	
-	FindInvokable(input : string) : InvokableObject | undefined
-	{
-		input = input.toLowerCase();
+
+	FindInvokable(input: string): InvokableObject | undefined {
 		const Invokables = this.FindInvokables();
-		return Invokables.find(I => I.Name.toLowerCase() == input);
+		return FilterElement(Invokables, input);
 	}
 
 	private FindInvokables(): InvokableObject[] {
@@ -83,15 +90,12 @@ export class FateFractal {
 		return result;
 	}
 
-	FindMarkable (input : string) : MarkableObject | undefined
-	{
-		input = input.toLowerCase();
+	FindMarkable(input: string): MarkableObject | undefined {
 		const Markables = this.FindMarkables();
-		return Markables.find(I => I.Name.toLowerCase() === input);
+		return FilterElement(Markables, input);
 	}
 
-	private FindMarkables() : MarkableObject[]
-	{
+	private FindMarkables(): MarkableObject[] {
 		const result = new Array<MarkableObject>();
 
 		this.Tracks.forEach(a => {
@@ -104,7 +108,25 @@ export class FateFractal {
 
 		return result;
 	}
+
 }
+
+function FilterElement<T extends Atom>(elements: Array<T>, input: string): T | undefined {
+	const result = elements.filter(I => I.match(input));
+	switch (result.length) {
+		case 1:
+			return result[0];
+		case 0:
+			return undefined;
+		default:
+			{
+				let errstring = 'Provided input could not be resolved to a unique element, please provide a more complete match.\nMatches:\n'
+				result.forEach(e => errstring += `   ${e.Name}`)
+				throw Error(errstring);
+			}
+	}
+}
+
 
 export function IsFractal(element: FateFractal | any): element is FateFractal {
 	return (element as FateFractal).FractalName !== undefined;

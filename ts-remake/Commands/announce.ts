@@ -2,7 +2,8 @@ import { ICommands, ICommand } from "../command";
 import { TextChannel } from "discord.js";
 
 @ICommands.register
-export class announce implements ICommand {
+export class announceCommand implements ICommand {
+	requireSave: boolean = false;
 	helptext: string | undefined = '*syntax:* .announce <channel mention> <markup e.g. \\*\\* [optional] > /<your message> ';
 	name: string = 'announce';
 	description: string = 'The Raven speaks.';

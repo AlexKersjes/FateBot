@@ -1,15 +1,16 @@
 import { ICommands, ICommand } from "../command";
 
 @ICommands.register
-class setoption implements ICommand{
-	name: string = 'setoption';
+class setoptionCommand implements ICommand{
+	requireSave: boolean = true;
+	name: string = 'setoptions';
 	description: string = 'Change a game setting.';
 	helptext: string | undefined;
 	admin: boolean = true;
 	args: boolean =  true;
-	aliases: string[] | undefined = ['option', 'o'];
+	aliases: string[] | undefined = ['option', 'options', 'o'];
 	cooldown: number | undefined;
-	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save?: import("../savegame").SaveGame | undefined): Promise<void> {
+	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save: import("../savegame").SaveGame): Promise<void> {
 		const Options = save?.Options;
 		if(Options == undefined)
 			throw Error("No options could be found. Try starting or loading a game first.");

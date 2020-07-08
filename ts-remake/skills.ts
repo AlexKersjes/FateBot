@@ -93,6 +93,26 @@ export class SkillList {
 		return true;
 	}
 
+	toString(): string {
+		if(this.Skills.length ==0)
+			return 'No Skills.';
+		this.SortSkills();
+		let currentValue = this.Skills[0].Value;
+		let str = `${currentValue > 0 ? '+': '' + currentValue} : `;
+		this.Skills.forEach(s => {
+			if(s.Value == 0)
+				return;
+			if(s.Value < currentValue){
+				str = str.slice(0, -2);
+				currentValue = s.Value;
+				str += `\n${currentValue > 0 ? '+': '' + currentValue} : `; 
+			}
+			str += `${s.Name}, `
+		});
+		str.slice(0, -2);
+		return str;
+	}
+
 	constructor(Options: FateOptions, prefill: boolean = false){
 		this.ListName = (Options.FateVersion == FateVersion.Accelerated) ? 'Approaches' : 'Skills';
 		if (prefill) {
