@@ -11,7 +11,7 @@ export class rollCommand implements ICommand{
 	args: boolean = false;
 	aliases: string[] | undefined = ['r'];
 	cooldown: number | undefined;
-	execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame | undefined): Promise<any> {
+	execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame | undefined): Promise<void | string> {
 		throw new Error("Method not implemented.");
 	}
 

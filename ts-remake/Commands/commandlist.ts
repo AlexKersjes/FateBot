@@ -12,7 +12,7 @@ export class commandlistCommand implements ICommand {
 	args: boolean = false;
 	aliases: string[] | undefined = ['command', 'commands', 'c'];
 	cooldown: number | undefined;
-	async execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame | undefined): Promise<void> {
+	async execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame | undefined): Promise<void | string> {
 		let newstring = 'Bot commands:\n';
 		Commands.forEach(async c => {
 			if(c.admin && !(save?.Options.GMCheck(message.author.id)||message.member?.hasPermission("ADMINISTRATOR")))
@@ -24,7 +24,7 @@ export class commandlistCommand implements ICommand {
 			}
 			newstring += tempstring;
 		});
-		message.channel.send(newstring);
+		return newstring;
 	}
 	
 }

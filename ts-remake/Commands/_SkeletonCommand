@@ -12,7 +12,7 @@ export class CLASSNAME implements ICommand{
 	requireSave: boolean = ;
 	aliases: string[] | undefined;
 	cooldown: number | undefined;
-	async execute(message: Message, args: string[], client: Client, save: SaveGame | undefined): Promise<any> {
+	async execute(message: Message, args: string[], client: Client, save: SaveGame | undefined): Promise<void | string> {
 		throw new Error("Method not implemented.");
 	}
 	

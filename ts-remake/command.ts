@@ -9,7 +9,7 @@ export interface ICommand {
 	requireSave: boolean,
 	aliases: string[] | undefined;
 	cooldown: number | undefined;
-	execute(message: Discord.Message, args: string[], client: Discord.Client, save?: SaveGame): Promise<any>
+	execute(message: Discord.Message, args: string[], client: Discord.Client, save?: SaveGame): Promise<void | string>
 }
 
 export namespace ICommands {

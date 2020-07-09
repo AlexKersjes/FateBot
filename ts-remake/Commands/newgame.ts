@@ -4,6 +4,9 @@ import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
 import { DefaultServers } from '../app';
+import { resolve } from "path";
+import { FateVersion } from "../options";
+import { version } from "os";
 
 @ICommands.register
 export class newgameCommand implements ICommand {
@@ -22,6 +25,17 @@ export class newgameCommand implements ICommand {
 		if (guildId == undefined)
 			throw Error('Can only start games in discord servers.');
 		const currentlyLoaded = save;
+
+		// filter out gamemode arguments
+		let GameMode : string | undefined = undefined;
+		args = args.filter(s => {
+			if(s.startsWith('-')){
+				GameMode = s.slice(1);
+				return false;
+			}
+			return true;
+		})
+
 		// Check for valid syntax
 		if (args[1])
 			throw Error('Game names cannot contain spaces.');
@@ -32,29 +46,94 @@ export class newgameCommand implements ICommand {
 			if (fs.readdirSync(process.env.SAVEPATH, "utf-8").includes(`${args[0]}game.json`))
 				throw Error('That game name is already taken, please try something else.');
 		}
-		if (currentlyLoaded) {
-			let collector: Discord.MessageCollector;
-			const filter = (m: Discord.Message) => m.author.id == message.author.id;
-			await message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded. **Are you sure you wish to start a new game?**\n${currentlyLoaded.Password ? '' : `Game "${currentlyLoaded.GameName}" is not password protected.`}`)
+		// If there is a save loaded, confirm the user wants to unload the current save. 
+		// then, if there is no argument for the Fate version given, ask for a version string.
+		await ConfirmUnloadCurrentGame(currentlyLoaded, message)
+
+			.then( () => {
+				if(GameMode == undefined)
+					return getModeInput(message).catch(err => { throw err; });
+				return GameMode;
+			}, reason => {throw Error(reason as string)})
+		
+			.then(string => startGame(args[0], guildId, message, string))
+		
+			.catch(err =>{ throw err; });
+	}
+}
+
+
+function ConfirmUnloadCurrentGame(currentlyLoaded: SaveGame | undefined, message: Discord.Message) {
+	return new Promise<void>((resolve, reject) => {
+		if (currentlyLoaded == undefined)
+			return resolve();
+		let collector: Discord.MessageCollector;
+		const filter = (m: Discord.Message) => m.author.id == message.author.id;
+		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded. **Are you sure you wish to start a new game?**\n${currentlyLoaded.Password ? '' : `Game "${currentlyLoaded.GameName}" is not password protected.`}`);
+		// collector for confirmation
+		collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
+		collector.on('collect', m => {
+			if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
+				reject('Cancelled starting a new game.');
+			else {
+				currentlyLoaded.save();
+				resolve();
+			}
+		});
+		// timeout message
+		collector.on('end', (s, r) => {
+			if (r == 'time')
+				reject('Confirmation timed out.');
+		});
+	});
+}
+
+async function getModeInput(message : Discord.Message) : Promise<string>{
+	return new Promise(async (resolve, reject) => {
+		let collector: Discord.MessageCollector;
+		const filter = (m: Discord.Message) => m.author.id == message.author.id;
+		await message.channel.send('Please select a version of Fate as a base ruleset. You can further customize once the game is created.\ne.g. Core, Accelerated, Condensed')
 			// collector for confirmation
 			collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 			collector.on('collect', m => {
-				if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
-					m.channel.send('Cancelled starting a new game.');
-				else
-					startGame(args[0], guildId, message);
+				return resolve( (m as Discord.Message).content);
 			})
 			// timeout message
-			collector.on('end', (s, r) => { if (r == 'time') (collector.channel as Discord.TextChannel).send('Confirmation timed out.') });
-		}
-		else
-			startGame(args[0], guildId, message);
-	}
-
+			collector.on('end', (s, r) => { if (r == 'time') reject(Error('Version selection timed out.')) });
+	})
+	
 }
 
-function startGame(gameName: string, guildId: string, message: Discord.Message) {
-	const newGame = new SaveGame(gameName, message);
+function startGame(gameName: string, guildId: string, message: Discord.Message, mode : string) {
+	console.log('startGame called');
+	if(['stop','escape','cancel'].some(i => i == mode.toLowerCase()))
+		throw Error('Cancelled game creation.');
+	let version : FateVersion | undefined = undefined;
+	let regStr = '.*';
+	for (let i = 0; i < mode.length; i++) {
+		regStr +=  `${mode[i]}.*`;
+	}
+	const expression = new RegExp(regStr, 'gi');
+
+	
+	if('Core'.match(expression)){
+		version = FateVersion.Core;
+		message.channel.send(`Selected ${FateVersion[FateVersion.Core]}`);
+	}
+	else if('Accelerated'.match(expression)){
+		version = FateVersion.Accelerated;
+		message.channel.send(`Selected ${FateVersion[FateVersion.Accelerated]}`);
+	}
+	else if ('Condensed'.match(expression)){
+		version = FateVersion.Condensed;
+		message.channel.send(`Selected ${FateVersion[FateVersion.Condensed]}`);
+	}
+
+	if (version == undefined)
+		throw Error('Could not match version.');
+
+	const newGame = new SaveGame(gameName, guildId, version);
+	newGame.Options.GMToggle(message.author.id);
 	Games.set(guildId, newGame);
 	newGame.save();
 	DefaultServers.add(guildId, newGame.GameName);

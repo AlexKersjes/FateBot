@@ -10,7 +10,7 @@ class setoptionCommand implements ICommand{
 	args: boolean =  true;
 	aliases: string[] | undefined = ['option', 'options', 'o'];
 	cooldown: number | undefined;
-	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save: import("../savegame").SaveGame): Promise<void> {
+	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save: import("../savegame").SaveGame): Promise<void | string> {
 		const Options = save?.Options;
 		if(Options == undefined)
 			throw Error("No options could be found. Try starting or loading a game first.");
@@ -20,7 +20,7 @@ class setoptionCommand implements ICommand{
 				if (!args[1])
 					throw Error('Supply another argument. That argument will be set as a prefix for bot commands on this server.');
 				Options.CustomPrefix = args[1];
-				message.channel.send(`Bot prefix set to ${args[1]}`);
+				return `Bot prefix set to ${args[1]}`;
 		}
 	}
 

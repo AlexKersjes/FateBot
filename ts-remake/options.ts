@@ -4,11 +4,26 @@ export class FateOptions
 	Notifications : TurnNotifications = 0;
 	UseConditions : boolean = false;
 	DresdenStress : boolean = false;
-	FateVersion : FateVersion = 1;
+	FateVersion : FateVersion;
 	SkillColumns : boolean = false;
 	SkillMax : number | undefined = 5;
 	CustomPrefix : string | undefined;
 	DefaultSkills : string[] | undefined;
+
+	constructor(version : FateVersion)
+	{
+		this.FateVersion = version;
+		if(version == FateVersion.Core){
+			this.SkillColumns = true;
+			this.SkillMax = -1;
+		}
+		else if (version == FateVersion.Accelerated){
+			this.UseConditions = true;
+		}
+		else if (version == FateVersion.Condensed){
+			this.DresdenStress = true;
+		}
+	}
 
 	notificationType (arg : string) : string 
 	{

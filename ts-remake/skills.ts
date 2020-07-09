@@ -15,7 +15,7 @@ export class SkillList {
 		if(skill == undefined)
 			throw Error(`No ${Options?.FateVersion == FateVersion.Accelerated? 'Approach' : 'Skill'} found by that name.`)
 		if (Options?.SkillMax) {
-			if (Options?.SkillMax < skill?.Value + Amount) {
+			if (Options.SkillMax < skill?.Value + Amount && Options.SkillMax > 0) {
 				throw Error('Increase exceeds skill Maximum.')
 			}
 		}

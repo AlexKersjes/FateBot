@@ -14,7 +14,7 @@ export class loadgameCommand implements ICommand {
 	args: boolean = true;
 	aliases: string[] | undefined = ['gameload', 'gload'];
 	cooldown: number | undefined = 20;
-	async execute(message: Discord.Message, args: string[], client: Discord.Client, save?: import("../savegame").SaveGame | undefined): Promise<any> {
+	async execute(message: Discord.Message, args: string[], client: Discord.Client, save?: import("../savegame").SaveGame | undefined): Promise<void | string> {
 		const guildId = message.guild?.id;
 		// Guilds must be checked.
 		if (guildId == undefined)
@@ -28,37 +28,49 @@ export class loadgameCommand implements ICommand {
 			if (!fs.readdirSync(process.env.SAVEPATH, "utf-8").includes(`${args[0]}game.json`))
 				throw Error('That game does not exist, thus cannot be loaded.');
 		}
+
+		// Check if game is already running elsewhere
+		if(Games.some((g, k) => g.GameName == args[0]) && args[0] != save?.GameName)
+			throw Error('That game is already running on a different server.')
 		
 		// Password procedure for to be loaded game
 		const buffer = await SaveGame.load(args[0]);
 		if (await !buffer.passConfirm(message))
-			return message.channel.send('Load failed. Incorrect password.');
+			return 'Load failed. Incorrect password.';
 		currentlyLoaded?.save();
 
 		// Prevent unintentionally leaving a game open
-		if (currentlyLoaded?.Password == "") {
-			let collector: Discord.MessageCollector;
-			const filter = (m: Discord.Message) => m.author.id == message.author.id;
-			await message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`)
-			collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
-			collector.on('collect', m => {
-				console.log(m);
-				if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
-					m.channel.send('Loading cancelled.');
-				else {
-					Games.set(guildId, buffer);
-					message.channel.send(`Game "${buffer.GameName}" was loaded.`);
-				}
-			})
-			collector.on('end', (s, r) => { if (r == 'time') (collector.channel as Discord.TextChannel).send('Confirmation timed out.') });
-
-		}
+		await noPasswordGuard(currentlyLoaded, message, guildId, buffer).catch(err => {throw Error(err)});
+		
 		// Normal loading procedure.
-		else {
 			Games.set(guildId, buffer);
 			message.channel.send(`Game "${buffer.GameName}" was loaded.`);
-		}
 
 
 	}
+}
+
+function noPasswordGuard(currentlyLoaded: SaveGame | undefined, message: Discord.Message, guildId: string, buffer: SaveGame) {
+	return new Promise<string>((resolve, reject) => {
+		if (currentlyLoaded?.Password != "")
+			resolve();
+		else {
+			let collector: Discord.MessageCollector;
+			const filter = (m: Discord.Message) => m.author.id == message.author.id;
+			message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`);
+			collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
+			collector.on('collect', m => {
+				if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
+					reject('Loading cancelled.');
+				else {
+					resolve();
+					}
+			});
+			collector.on('end', (s, r) => {
+				if (r == 'time')
+					reject('Confirmation timed out.');
+			});
+
+		}
+	});
 }

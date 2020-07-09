@@ -17,7 +17,7 @@ export class sheetCommand implements ICommand
 	args: boolean = false;
 	aliases: string[] | undefined;
 	cooldown: number | undefined;
-	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<any> {
+	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		const player = save?.getPlayer(message);
 		args = args.filter(i => !i.startsWith('<@'));
 		let character = player.CurrentCharacter;

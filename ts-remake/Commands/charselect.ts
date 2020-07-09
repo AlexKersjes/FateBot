@@ -12,7 +12,7 @@ export class charselectCommand implements ICommand{
 	args: boolean = true;
 	aliases: string[] | undefined = ['select', 'cs'];
 	cooldown: number | undefined;
-	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<any> {
+	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		throw new Error("Method not implemented.");
 	}
 	

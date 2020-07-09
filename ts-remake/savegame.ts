@@ -2,7 +2,7 @@ import Discord = require('discord.js');
 import * as fs from 'fs';
 import { deepCopy } from './fatefractal';
 import { Type, classToClass } from 'class-transformer';
-import { FateOptions } from './options';
+import { FateOptions, FateVersion } from './options';
 import { ChannelDictionary } from './channelstructure';
 import { serialize , deserialize } from 'class-transformer';
 import { FateFractal } from './fatefractal';
@@ -16,15 +16,14 @@ export class SaveGame {
 	@Type(() => Folder)
 	Folders: Folder[];
 	@Type(() =>FateOptions)
-	Options: FateOptions = new FateOptions();
+	Options: FateOptions;
 	@Type(() => ChannelDictionary)
 	Channels: ChannelDictionary = new ChannelDictionary();
 
-	constructor(GameName: string, message? : Discord.Message) {
+	constructor(GameName: string, CurrentGuild : string, version : FateVersion) {
 		this.GameName = GameName;
-		this.CurrentGuild = message?.guild?.id;
-		if(message?.author.id)
-			this.Options.GMToggle(message?.author.id);
+		this.CurrentGuild = CurrentGuild;
+		this.Options = new FateOptions(version);
 		this.Folders = [new Folder('PCs'), new Folder('NPCs'), new Folder('Shortlist')]
 	}
 
