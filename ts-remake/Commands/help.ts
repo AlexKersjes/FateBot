@@ -8,6 +8,7 @@ export class helpCommand implements ICommand {
 	description: string = 'Shows description and shorthands/aliases for a specific public command.';
 	helptext: string | undefined = 'When using a command, you can use **--h** somewhere in the message. If you do, it will bring up the help text for that command.';
 	admin: boolean = false;
+	GM : boolean = false;
 	args: boolean = false;
 	aliases: string[] | undefined = ['h'];
 	cooldown: number | undefined;
@@ -36,7 +37,7 @@ export class helpCommand implements ICommand {
 
 		}
 
-		message.channel.send(`'${command.name}' ${aliases}: ${command.description}\n${command.helptext ? command.helptext : ''}`);
+		message.channel.send(`**'${command.name}' ${aliases}**: ${command.description}\n${command.helptext ? command.helptext : ''}`);
 	}
 
 }

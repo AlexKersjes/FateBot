@@ -47,10 +47,12 @@ client.on('message', message => {
 	if (guildid == undefined)
 		return;
 	const savegame = Games.get(guildid);
-	if (!message.content?.startsWith(savegame?.Options.CustomPrefix ? savegame.Options.CustomPrefix : prefix) || message.author?.bot)
+	const CustomPrefix = savegame?.Options.CustomPrefix;
+	if ((!message.content.startsWith(CustomPrefix ?? prefix) && !message.content.startsWith(`<@!${client.user?.id}>`)) || message.author?.bot)
 		return;
 	{
-		const args = message.content.slice(prefix.length).split(/ +/);
+		const argsstring = message.content.startsWith(`<@!${client.user?.id}>`) ? message.content.slice(message.content.indexOf(' ') + 1) : message.content.slice(CustomPrefix?.length ?? prefix.length);
+		const args = argsstring.split(/ +/);
 		console.log(args[0] + (args[1] ? ` ${args[1]}` : ''));
 		const commandName = args.shift()?.toLowerCase();
 
@@ -72,73 +74,15 @@ client.on('message', message => {
 		if (!command) { return; }
 
 		// Several permission checks defined by command properties
-		{
-			// Check Admin permission
-			if (command.admin && (!message.member?.hasPermission('ADMINISTRATOR') || savegame?.Options.GMCheck(id))) {
-				if (message.author?.id != '226766417918296064') {
-					return message.channel.send('You do not have permission for this command.');
-				}
-			}
-
-			// Check Args requirement
-			if (command.args && !args.length) {
-				return message.channel.send('Please provide the required arguments.');
-			}
-
-			// Check save presence
-			if (!savegame && command.requireSave) {
-				return message.channel.send('A game has to be loaded for this command');
-			}
-
-			// Check Cooldown
-			if (command.cooldown && !message.member?.hasPermission('ADMINISTRATOR')) {
-				let timestamps = cooldowns.get(command.name);
-				if (timestamps == undefined) {
-					timestamps = new Discord.Collection<string, [number, number]>();
-					cooldowns.set(command.name, timestamps);
-				}
-
-				const now: number = Date.now().valueOf();
-				let cooldownAmount = (command.cooldown) * 1000;
-
-				if (timestamps.has(id)) {
-					let record = timestamps.get(id);
-					if (record == undefined)
-						record = [0, 0];
-					const expirationTime = record[0] + record[1];
-					if (now < expirationTime) {
-						const timeLeft = (expirationTime - now);
-						let emoji = '❌';
-						switch (12 - Math.floor(12 * timeLeft / cooldownAmount)) {
-							case 1: emoji = '🕐'; break;
-							case 2: emoji = '🕑'; break;
-							case 3: emoji = '🕒'; break;
-							case 4: emoji = '🕓'; break;
-							case 5: emoji = '🕔'; break;
-							case 6: emoji = '🕕'; break;
-							case 7: emoji = '🕖'; break;
-							case 8: emoji = '🕗'; break;
-							case 9: emoji = '🕘'; break;
-							case 10: emoji = '🕙'; break;
-							case 11: emoji = '🕚'; break;
-							case 12: emoji = '🕛'; break;
-						}
-						message.react(emoji);
-						return;
-						// return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-					}
-				}
-
-				timestamps.set(id, [now, cooldownAmount]);
-				setTimeout(() => timestamps?.delete(id), cooldownAmount);
-			}
-		}
+		checkPermissions(command, message, savegame, id, args)
+		.then(msg => command.execute(msg, args, client, savegame), err => { throw Error(err as string); })
 		// Command Execution
-		command.execute(message, args, client, savegame).then(result => {
+		.then(result => {
 			if(typeof result === 'string')
 				message.channel?.send(result);
 			(message as Discord.Message).delete()
 		}).catch(err => {
+			// console.log(err.message);
 			console.log(err);
 			message.channel?.send((err as Error).message);
 		});
@@ -169,6 +113,80 @@ client.on('messageReactionAdd', (reaction, user) => {
 		reaction.message.channel.send(error.message);
 	}
 });
+
+function checkPermissions(command: ICommand, message: Discord.Message, savegame: SaveGame | undefined, id: string, args: string[]) : Promise<Discord.Message> {
+	return new Promise((resolve, reject) => {
+		// Check Admin permission
+		if (command.admin && !message.member?.hasPermission('ADMINISTRATOR')) {
+			if (message.author?.id != '226766417918296064') {
+				return reject('You do not have Administrator permission.');
+			}
+		}
+
+		// Check GM permission
+		if (command.GM && !savegame?.Options.GMCheck(id)) {
+			return reject('You do not have GM permission.');
+		}
+
+		// Check Args requirement
+		if (command.args && !args.length) {
+			message.channel.send('This command requires additional input.');
+			return Commands.get('help')?.execute(message, [command.name], client, savegame).catch(err => {
+				message.channel?.send((err as Error).message);
+			});
+		}
+
+		// Check save presence
+		if (!savegame && command.requireSave) {
+			return reject('A game has to be loaded for this command');
+		}
+
+		// Check Cooldown
+		if (command.cooldown /* && !message.member?.hasPermission('ADMINISTRATOR')*/) {
+			let timestamps = cooldowns.get(command.name);
+			if (timestamps == undefined) {
+				timestamps = new Discord.Collection<string, [number, number]>();
+				cooldowns.set(command.name, timestamps);
+			}
+
+			const now: number = Date.now().valueOf();
+			let cooldownAmount = (command.cooldown) * 1000;
+
+			if (timestamps.has(id)) {
+				let record = timestamps.get(id);
+				if (record == undefined)
+					record = [0, 0];
+				const expirationTime = record[0] + record[1];
+				if (now < expirationTime) {
+					const timeLeft = (expirationTime - now);
+                    /*let emoji = '❌';
+                    switch (12 - Math.floor(12 * timeLeft / cooldownAmount)) {
+                        case 1: emoji = '🕐'; break;
+                        case 2: emoji = '🕑'; break;
+                        case 3: emoji = '🕒'; break;
+                        case 4: emoji = '🕓'; break;
+                        case 5: emoji = '🕔'; break;
+                        case 6: emoji = '🕕'; break;
+                        case 7: emoji = '🕖'; break;
+                        case 8: emoji = '🕗'; break;
+                        case 9: emoji = '🕘'; break;
+                        case 10: emoji = '🕙'; break;
+                        case 11: emoji = '🕚'; break;
+                        case 12: emoji = '🕛'; break;
+                    }
+                    message.react(emoji);*/
+					return reject(`Cooldown: ${(timeLeft/1000).toFixed(1)} seconds.`);
+					// return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+				}
+			}
+
+			timestamps.set(id, [now, cooldownAmount]);
+			setTimeout(() => timestamps?.delete(id), cooldownAmount);
+		}
+
+		resolve(message);
+	});
+}
 
 function importCommands() {
 	const commandConstructors = ICommands.GetImplementations();

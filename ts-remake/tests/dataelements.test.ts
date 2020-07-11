@@ -1,6 +1,6 @@
 import { FateFractal}  from '../fatefractal';
 import { Aspect, Condition, Track } from '../dataelements';
-import { FateOptions } from '../options';
+import { FateOptions, FateVersion } from '../options';
 
 
 const TestSheet = new FateFractal("Testy");
@@ -20,7 +20,7 @@ test("Find an aspect and give it a free invoke", () => {
 	const FoundAspect = TestSheet.FindInvokable("A test aspect")
 	if (FoundAspect!= undefined)
 		FoundAspect.AddFreeInvoke(TestUserId);
-	expect(TestAspect.FreeInvokes).toStrictEqual([TestUserId]);
+	expect(TestAspect.TryFreeInvoke(TestUserId)).toBe(true);
 })
 
 test("Recursively finding an aspect", () => {
@@ -28,7 +28,7 @@ test("Recursively finding an aspect", () => {
 })
 
 test("Mark a stress box", () => {
-	const Options = new FateOptions()
+	const Options = new FateOptions(FateVersion.Accelerated)
 	Options.UseConditions = true;
 	Options.DresdenStress = false;
 	const markedvalue = TestSheet.FindMarkable("Stress")?.Mark(3, Options);

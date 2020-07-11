@@ -5,6 +5,7 @@ export interface ICommand {
 	description: string;
 	helptext: string | undefined;
 	admin: boolean;
+	GM : boolean;
 	args: boolean;
 	requireSave: boolean,
 	aliases: string[] | undefined;

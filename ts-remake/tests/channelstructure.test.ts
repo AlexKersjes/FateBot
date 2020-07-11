@@ -1,8 +1,8 @@
 import { ChannelDictionary } from '../channelstructure';
 import * as Discord from 'discord.js';
 const Channels = new ChannelDictionary();
-const TestChannelA = ({ id : '123456789', name : 'ChannelA' } as Discord.GuildChannel);
-const TestChannelB = ({ id : '987654321', name : 'ChannelB' } as Discord.GuildChannel);
+const TestChannelA = ({ id : '123456789', name : 'ChannelA' } as Discord.TextChannel);
+const TestChannelB = ({ id : '987654321', name : 'ChannelB' } as Discord.TextChannel);
 
 test('Creating a connection.', () =>{
 	Channels.ConnectChannels(TestChannelA, TestChannelB);

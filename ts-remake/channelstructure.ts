@@ -7,7 +7,7 @@ export class ChannelDictionary
 {
 	Channels = new Array<Channel>();
 
-	FindDiscordChannel(channel : Discord.GuildChannel) : Channel
+	FindDiscordChannel(channel : Discord.TextChannel) : Channel
 	{
 		let c = this.Channels.find(c => c.id === channel.id);
 		if (c == undefined){
@@ -23,7 +23,7 @@ export class ChannelDictionary
 	}
 
 
-	ConnectChannels(channel1 : Discord.GuildChannel, channel2 : Discord.GuildChannel, timeout? : number, oneway = false)
+	ConnectChannels(channel1 : Discord.TextChannel, channel2 : Discord.TextChannel, timeout? : number, oneway = false)
 	{
 		let c1 = this.FindDiscordChannel(channel1);
 		let c2 = this.FindDiscordChannel(channel2);
@@ -32,7 +32,7 @@ export class ChannelDictionary
 			c2.addConnection(c1, timeout);
 	}
 
-	DeleteConnection(channel1 : Discord.GuildChannel, channel2 : Discord.GuildChannel, oneway = false)
+	DeleteConnection(channel1 : Discord.TextChannel, channel2 : Discord.TextChannel, oneway = false)
 	{
 		let c1 = this.FindDiscordChannel(channel1);
 		let c2 = this.FindDiscordChannel(channel2);
@@ -41,7 +41,7 @@ export class ChannelDictionary
 			c2.deleteConnection(c1);
 	}
 
-	LockConnection(channel1 : Discord.GuildChannel, channel2 : Discord.GuildChannel, oneway = false)
+	LockConnection(channel1 : Discord.TextChannel, channel2 : Discord.TextChannel, oneway = false)
 	{
 		let c1 = this.FindDiscordChannel(channel1);
 		let c2 = this.FindDiscordChannel(channel2);
@@ -50,7 +50,7 @@ export class ChannelDictionary
 			c2.switchLock(c1);
 	}
 
-	AddChannel(channel : Discord.GuildChannel, defaulttimeout? : number) : Channel // also used to reset all timeouts on a connection to default.
+	AddChannel(channel : Discord.TextChannel, defaulttimeout? : number) : Channel // also used to reset all timeouts on a connection to default.
 	{
 		let c = this.FindDiscordChannel(channel);
 		c.defaulttimeout = defaulttimeout? defaulttimeout : 0;
@@ -58,7 +58,7 @@ export class ChannelDictionary
 		return c;
 	}
 
-	RenameChannel(channel : Discord.GuildChannel, name : string)
+	RenameChannel(channel : Discord.TextChannel, name : string)
 	{
 		let c = this.FindDiscordChannel(channel);
 		if (c == undefined)
@@ -66,7 +66,7 @@ export class ChannelDictionary
 		c.name = name;
 	}
 
-	CheckConnection(channel : Discord.GuildChannel, name : string) : [boolean, number]
+	CheckConnection(channel : Discord.TextChannel, name : string) : [boolean, number]
 	{
 		let c = this.FindDiscordChannel(channel);
 		if (c == undefined)
@@ -77,7 +77,7 @@ export class ChannelDictionary
 		return c.getConnection(c2);
 	}
 
-	DeleteChannel(channel : Discord.GuildChannel)
+	DeleteChannel(channel : Discord.TextChannel)
 	{
 		let c = this.Channels.find(a => a.id == channel.id)
 		if(c == undefined)
@@ -93,15 +93,24 @@ class Channel {
 	id : string;
 	name : string;
 	defaulttimeout : number = 0;
-	situation : FateFractal | undefined;
+	private _situation : FateFractal | undefined;
 	private connections : [string, number, boolean][] = [];
 	@Exclude()
 	contest : RollContest | undefined;
 
-	constructor(channel : Discord.GuildChannel)
+	constructor(channel : Discord.TextChannel)
 	{
 		this.id = channel.id;
 		this.name = channel.name;
+	}
+
+	get situation () : FateFractal{
+		if(this._situation == undefined){
+			this._situation = new FateFractal('Situation');
+			this._situation.NPC = true;
+			this._situation.Skills = [];
+		}
+		return this._situation;
 	}
 
 	setAllTimeouts(timeout? : number)

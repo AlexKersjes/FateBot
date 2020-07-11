@@ -8,6 +8,7 @@ export class rollCommand implements ICommand{
 	description: string = 'Roll the dice';
 	helptext: string | undefined;
 	admin: boolean = false;
+	GM : boolean = false;
 	args: boolean = false;
 	aliases: string[] | undefined = ['r'];
 	cooldown: number | undefined;

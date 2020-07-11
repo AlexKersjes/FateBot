@@ -41,38 +41,43 @@ export class SaveGame {
 
 	async passConfirm(message : Discord.Message) : Promise<boolean>
 	{
-		if(this.Password == "")
-			return true;
+		return new Promise(async(resolve, reject) => {
+			if(this.Password == "")
+			return resolve(true);
 		const filter = (m: Discord.Message) => !m.author.bot;
 		const channel = message.author.createDM();
 		const collector = (await channel).createMessageCollector(filter);
 		let stringPromise : Promise<string> = new Promise (function (resolve : (value: string) => any, reject) { 
 			collector.once('collect', m => resolve((m as Discord.Message).content));
 			setTimeout(() => reject(new Error('Password request timed out.')), 20000 ); 
-		}).catch(err => { throw err as Error });
+		});
 		(await channel).send('Please provide the game password:');
 		try {
-			const receivedString = await stringPromise;
+			const receivedString = await stringPromise.catch(err => reject(err));
 			if(receivedString == this.Password)
-				return true;
+				return resolve(true);
 			else
-				return false;
+				return resolve(false);
 		}
 		catch (err) {
-			(await channel).send(err.message);
-			return false;
+			return reject(err);
 		}
 		finally {
 			collector.stop();
 			message.author.deleteDM();
 		}
+		})
+		
 	}
 
 	getPlayer(message: Discord.Message) : Player
 	{
-		const mention = message.mentions.members?.first();
-		if(mention && this.Options.GMCheck(message.author.id)){
-			return this.getOrCreatePlayer(mention.user);
+		const mention = message.mentions.members?.last();
+		if(mention && !mention.user.bot){
+			if (this.Options.GMCheck(message.author.id))
+				return this.getOrCreatePlayer(mention.user);
+			else
+				throw Error('You do not have GM permission.');
 		}
 		return this.getOrCreatePlayer(message.author);
 	}
@@ -80,7 +85,7 @@ export class SaveGame {
 	private getOrCreatePlayer(user: Discord.User) {
 		let p = this.Players.find(i => user.id == i.id);
 		if (!p) {
-			p = new Player(user);
+			p = new Player(user.id);
 			this.Players.push(p);
 		}
 		return p;
@@ -152,8 +157,12 @@ export class Player
 	CurrentCharacter : FateFractal | undefined;
 	CurrentLocation : string | undefined;
 
-	constructor(id : Discord.User)
+	constructor(id : string)
 	{
-		this.id = id.id;
+		this.id = id;
+	}
+
+	toString(){
+		return `<@!${this.id}>`;
 	}
 }

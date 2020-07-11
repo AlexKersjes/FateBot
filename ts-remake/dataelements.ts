@@ -1,6 +1,7 @@
 type Constructor<T = {}> = new (...args: any[]) => T;
 import { FateFractal } from './fatefractal';
 import { FateOptions } from './options';
+import { basename } from 'path';
 
 export class Atom {
 	Name: string;
@@ -132,7 +133,7 @@ export function Invokable<TBase extends Constructor>(Base: TBase) {
 	return class extends Base {
 		BonusShifts: number = 2;
 		InvokeCost: number = 1;
-		FreeInvokes: string[] = [];
+		private FreeInvokes: string[] = [];
 		public TryFreeInvoke(UserId: string): boolean {
 			if (this.InvokeCost === 0)
 				return true;
@@ -194,6 +195,14 @@ export class Aspect extends Invokable(Atom)
 export class Boost extends Aspect
 {
 	Boost : boolean = true;
+	TryFreeInvoke(UserId : string) : boolean{
+		try{
+			return super.TryFreeInvoke(UserId);
+		}
+		finally{
+			throw this;
+		}
+	}
 	constructor(Name: string) { super(Name) }
 }
 export class Condition extends Conditionable(Invokable(Atom))

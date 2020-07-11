@@ -3,8 +3,9 @@ import { Message, Client, DiscordAPIError } from "discord.js";
 import { Player, SaveGame } from "../savegame";
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js';
-import { Atom, MarkableObject, IsInvokable, Stunt, IsMarkable, IsCondition, ConditionSeverity, Aspect } from "../dataelements";
+import { Atom, MarkableObject, IsInvokable, Stunt, IsMarkable, IsCondition, ConditionSeverity, Aspect, Boost } from "../dataelements";
 import { SkillList } from "../skills";
+import { getGenericResponse } from "../tools";
 
 @ICommands.register
 export class sheetCommand implements ICommand
@@ -14,17 +15,19 @@ export class sheetCommand implements ICommand
 	description: string = 'Create or display a character sheet.';
 	helptext: string | undefined;
 	admin: boolean = false;
+	GM : boolean = false;
 	args: boolean = false;
-	aliases: string[] | undefined;
+	aliases: string[] | undefined = ['s'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		const player = save?.getPlayer(message);
 		args = args.filter(i => !i.startsWith('<@'));
 		let character = player.CurrentCharacter;
+		if(args[0] == 'situation' || args[0] == '-s')
+			character = save.Channels.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
 		if(character == undefined){
 			if(!args[0])
-				throw Error('Please provide a character name to create a sheet.');
-			
+				args = await (await getGenericResponse(message, 'Please provide a character name')).split(' ');
 			player.CurrentCharacter = new FateFractal(args.join(' '), save.Options);
 			character = player.CurrentCharacter;
 			message.channel.send('Created a new character sheet.');	
@@ -58,10 +61,12 @@ function sheetembed(character : FateFractal, member : Discord.GuildMember)
 		embed.addField(boxaspect.Name, boxesmarked(boxaspect), true);
 	},
 	);
-	if(character.Skills[0])
+	if(character.Skills[0] != undefined)
 	{
+		const skills : SkillList = character.Skills[0];
+
 		embed.addBlankField()
-			.addField('Approaches', character.Skills[0].toString());
+			.addField(skills.ListName, skills.toString());
 	}
 	embed.setThumbnail(character.imgUrl ? character.imgUrl : member.user.avatarURL() || '');
 	return embed;
@@ -81,6 +86,10 @@ function detailembed<T extends Atom>(character : FateFractal, member : Discord.G
 			if (element instanceof FateFractal)
 			{
 				embed.addField(element.FractalName, 'Fractal');
+				return;
+			}
+			if(element instanceof Boost){
+				embed.addField(element.Name, 'Boost')
 				return;
 			}
 			let severity = '';

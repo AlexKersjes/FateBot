@@ -9,6 +9,7 @@ export class charselectCommand implements ICommand{
 	description: string = 'Load a character';
 	helptext: string | undefined;
 	admin: boolean = false;
+	GM: boolean = false;
 	args: boolean = true;
 	aliases: string[] | undefined = ['select', 'cs'];
 	cooldown: number | undefined;

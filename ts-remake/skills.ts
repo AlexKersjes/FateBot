@@ -4,7 +4,7 @@ export class SkillList {
 	SkillPoints: number = -1;
 	Skills: Skill[] = [];
 
-	AdjustSkillValue(Name: string, Amount: number, Options?: FateOptions, UserId?: string) {
+	AdjustSkillValue(Name: string, Amount: number, Options: FateOptions, UserId: string) {
 		if (this.SkillPoints != -1) {
 			if (Amount > this.SkillPoints) {
 				throw Error('Not enough skill points.')
@@ -93,23 +93,25 @@ export class SkillList {
 		return true;
 	}
 
-	toString(): string {
+	toString() : string {
 		if(this.Skills.length ==0)
 			return 'No Skills.';
 		this.SortSkills();
 		let currentValue = this.Skills[0].Value;
-		let str = `${currentValue > 0 ? '+': '' + currentValue} : `;
+		let str = `${currentValue > 0 ? '+'+ currentValue: '' } : `;
 		this.Skills.forEach(s => {
 			if(s.Value == 0)
 				return;
 			if(s.Value < currentValue){
 				str = str.slice(0, -2);
 				currentValue = s.Value;
-				str += `\n${currentValue > 0 ? '+': '' + currentValue} : `; 
+				str += `\n${currentValue > 0 ? '+'+ currentValue: '' } : `; 
 			}
 			str += `${s.Name}, `
 		});
 		str.slice(0, -2);
+		if (str.length == 0)
+			return 'All Skills have value 0';
 		return str;
 	}
 

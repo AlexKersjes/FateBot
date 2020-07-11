@@ -7,9 +7,10 @@ import * as Discord from 'discord.js';
 import { FateFractal } from "../fatefractal";
 import { Aspect, Track, Stunt, Condition, ConditionSeverity, BoxCondition } from "../dataelements";
 import { writeFileSync, readFileSync, fstat, unlinkSync, readdirSync } from "fs";
+import { FateVersion } from "../options";
 
 process.env.SAVEPATH = './';
-const s = new SaveGame('TestGame');
+const s = new SaveGame('TestGame', '1234', FateVersion.Accelerated);
 let FractalBase = new FateFractal('Testy');
 s.Folders[0].Contents.push(FractalBase);
 let TestAspect = new Aspect('TestosAspectost');

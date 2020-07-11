@@ -40,10 +40,8 @@ export class FateOptions
 		}
 		return `Initiative notification type set to '${TurnNotifications[this.Notifications]}'.`;
 	}
-	GMCheck(UserId:string | undefined) : boolean
+	GMCheck(UserId:string) : boolean
 	{
-		if(!UserId)
-		{return false;}
 		return this.GameMasters.some(id => id === UserId);
 	}
 	GMToggle(UserId: string)

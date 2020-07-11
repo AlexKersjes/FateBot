@@ -4,9 +4,9 @@ import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
 import { DefaultServers } from '../app';
-import { resolve } from "path";
 import { FateVersion } from "../options";
-import { version } from "os";
+import { resolve } from "path";
+import { getGenericResponse } from "../tools";
 
 @ICommands.register
 export class newgameCommand implements ICommand {
@@ -15,11 +15,13 @@ export class newgameCommand implements ICommand {
 	description: string = 'Start a new game.';
 	helptext: string | undefined = 'Game names cannot be shorter than 5 characters. Game names cannot contain spaces.';
 	admin: boolean = true;
-	args: boolean = true;
+	GM : boolean = false;
+	args: boolean = false;
 	aliases: string[] | undefined = ['start', 'startgame'];
 	cooldown: number | undefined = 30;
 	
 	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save?: import("../savegame").SaveGame | undefined): Promise<void> {
+				
 		const guildId = message.guild?.id;
 		// Guilds must be checked.
 		if (guildId == undefined)
@@ -36,6 +38,10 @@ export class newgameCommand implements ICommand {
 			return true;
 		})
 
+		// if there's no game name, get a game name.
+		if(args.length == 0){
+			args = await (await getGenericResponse(message, 'Please provide a game name.')).split(' ');
+  		}
 		// Check for valid syntax
 		if (args[1])
 			throw Error('Game names cannot contain spaces.');
@@ -105,6 +111,10 @@ async function getModeInput(message : Discord.Message) : Promise<string>{
 }
 
 function startGame(gameName: string, guildId: string, message: Discord.Message, mode : string) {
+	if(mode.startsWith(process.env.PREFIX || '.'))
+		throw Error('Responses do not need to be prefixed.');
+
+	
 	console.log('startGame called');
 	if(['stop','escape','cancel'].some(i => i == mode.toLowerCase()))
 		throw Error('Cancelled game creation.');

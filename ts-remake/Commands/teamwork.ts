@@ -4,6 +4,7 @@ import { SaveGame } from '../savegame';
 
 @ICommands.register
 export class teamworkCommand implements ICommand{
+	GM: boolean = false;
 	requireSave: boolean = true;
 	name: string = 'teamwork';
 	description: string = 'Assist a roll by using teamwork.';

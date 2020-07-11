@@ -11,6 +11,7 @@ export class loadgameCommand implements ICommand {
 	description: string = 'Load an existing game by name.';
 	helptext: string | undefined;
 	admin: boolean = true;
+	GM : boolean = false;
 	args: boolean = true;
 	aliases: string[] | undefined = ['gameload', 'gload'];
 	cooldown: number | undefined = 20;
@@ -33,18 +34,21 @@ export class loadgameCommand implements ICommand {
 		if(Games.some((g, k) => g.GameName == args[0]) && args[0] != save?.GameName)
 			throw Error('That game is already running on a different server.')
 		
-		// Password procedure for to be loaded game
+
 		const buffer = await SaveGame.load(args[0]);
-		if (await !buffer.passConfirm(message))
-			return 'Load failed. Incorrect password.';
-		currentlyLoaded?.save();
 
 		// Prevent unintentionally leaving a game open
 		await noPasswordGuard(currentlyLoaded, message, guildId, buffer).catch(err => {throw Error(err)});
+		// Password procedure for to be loaded game
+		await buffer.passConfirm(message).then(res => {if(!res) throw Error('Invalid Password.')}).catch(err => {throw err});
+		currentlyLoaded?.save();
+
+
 		
 		// Normal loading procedure.
-			Games.set(guildId, buffer);
-			message.channel.send(`Game "${buffer.GameName}" was loaded.`);
+		buffer.Options.CustomPrefix = save?.Options.CustomPrefix || undefined;
+		Games.set(guildId, buffer);
+		message.channel.send(`Game "${buffer.GameName}" was loaded.`);
 
 
 	}

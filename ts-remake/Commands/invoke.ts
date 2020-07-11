@@ -3,6 +3,7 @@ import { Message, Client } from "discord.js";
 
 @ICommands.register
 export class invokeCommand implements ICommand {
+	GM: boolean = false;
 	requireSave: boolean = true;
 	name: string = 'invoke';
 	description: string = 'Invoke an aspect or use a stunt.';
