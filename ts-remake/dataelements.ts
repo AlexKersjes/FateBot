@@ -58,12 +58,32 @@ function Markable<TBase extends Constructor>(Base: TBase) {
 		private _BoxMarks: boolean[] = [false];
 		get BoxMarks() { return this._BoxMarks };
 
+		BoxesString() : string {
+			let string = '';
+			for (let i = 0; i < this.BoxMarks.length; i++)
+			{
+				if (this.BoxMarks[i])
+				{
+					string += '[x] ';
+				}
+				else
+				{
+					string += `[${this.BoxValues[i] == 0 ? ' ' : this.BoxValues[i]}] `;
+				}
+			}
+			return string;
+		}
 
 		SetMaxBoxes(n: number) {
 			if(n === 0)
 				throw Error('Markable objects must have at least one box.');
 			this._BoxMarks = new Array<boolean>(n).fill(false);
+			let staircase = false
+			if(this._BoxValues[0] == this.BoxValues[1] - 1)
+				staircase = true;
 			this._BoxValues = new Array<number>(n).fill(this._BoxValues[0]);
+			if (staircase)
+				this.StaircaseValues();
 		}
 		SetBoxValue(boxNumber:number, value:number){
 			this._BoxValues[boxNumber -1] = value;
@@ -186,7 +206,7 @@ export class Track extends Markable(Atom)
 }
 export class Stunt extends Invokable(Atom)
 {
-	constructor(Name: string, Description : string, InvokeBonus:number) { super(Name, Description); this.InvokeCost = 0; this.BonusShifts = InvokeBonus; }
+	constructor(Name: string, Description : string) { super(Name, Description); this.InvokeCost = 0; this.BonusShifts = 2; }
 }
 export class Aspect extends Invokable(Atom)
 {

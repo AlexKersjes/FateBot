@@ -11,7 +11,7 @@ export class commandlistCommand implements ICommand {
 	admin: boolean = false;
 	GM : boolean = false;
 	args: boolean = false;
-	aliases: string[] | undefined = ['command', 'commands', 'c'];
+	aliases: string[] | undefined = ['command', 'commands', 'cd', 'cmd'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame | undefined): Promise<void | string> {
 		let newstring = '**Bot commands:**\n';

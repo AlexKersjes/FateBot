@@ -58,7 +58,7 @@ function sheetembed(character : FateFractal, member : Discord.GuildMember)
 	if(character.Tracks.length != 0) {embed.addBlankField();}
 	character.Tracks.forEach(boxaspect =>
 	{
-		embed.addField(boxaspect.Name, boxesmarked(boxaspect), true);
+		embed.addField(boxaspect.Name, boxaspect.BoxesString(), true);
 	},
 	);
 	if(character.Skills[0] != undefined)
@@ -105,7 +105,7 @@ function detailembed<T extends Atom>(character : FateFractal, member : Discord.G
 			}
 			let boxes = '';
 			if(IsMarkable(element)){
-				boxes = boxesmarked(element) + ': ';
+				boxes = element.BoxesString() + ': ';
 			}
 			embed.addField(`${boxes}${cost}${element.Name}:${severity}`, element.Description ? element.Description : 'No description');
 		});
@@ -200,43 +200,3 @@ function namesFromArray<T extends Atom>(array: Array<T | FateFractal>)
 	});
 	return string;
 }
-
-function boxesmarked(markable : MarkableObject)
-{
-	let string = '';
-	for (let i = 0; i < markable.BoxMarks.length; i++)
-	{
-		if (markable.BoxMarks[i])
-		{
-			string += '[x] ';
-		}
-		else
-		{
-			string += `[${markable.BoxValues[i] == 0 ? ' ' : markable.BoxValues[i]}] `;
-		}
-	}
-	return string;
-}
-
-/*function sortSkills(skill : SkillList)
-{
-	let str = '';
-	for (let i = -2; i < 9; i++)
-	{
-		if(i == 0)
-		{ continue; }
-		const filtered = tools.findbyvalue(skills, i);
-		if(filtered.length == 0)
-		{ continue; }
-		const plus = i > 0 ? '+' : '';
-		let tempstr = `${plus}${i}: `;
-		filtered.forEach(approach => { tempstr += `${approach}, `; });
-		tempstr = tempstr.slice(0, -2);
-		tempstr += '\n';
-		str = tempstr + str;
-	}
-	str = str.slice(0, -1);
-	if(!str)
-	{ str = 'No Approaches'; }
-	return str;
-}*/

@@ -8,4 +8,6 @@ export * from './announce';
 export * from './sheet';
 export * from './fate';
 export * from './aspect';
+export * from './stunt';
+export * from './condition';
 export * from './invoke';

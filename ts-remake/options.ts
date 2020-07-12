@@ -4,6 +4,7 @@ export class FateOptions
 	Notifications : TurnNotifications = 0;
 	UseConditions : boolean = false;
 	DresdenStress : boolean = false;
+	RequireGMforSituationAccess : boolean = true;
 	FateVersion : FateVersion;
 	SkillColumns : boolean = false;
 	SkillMax : number | undefined = 5;
