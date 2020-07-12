@@ -22,7 +22,7 @@ FractalBase.HighConcept = TestAspect;
 FractalBase.Trouble = TestAspect;
 FractalBase.Aspects.push(TestAspect);
 FractalBase.Tracks.push(new Track('Stress', 3));
-FractalBase.Stunts.push(new Stunt('Parkour', 'Running like Mad', 2));
+FractalBase.Stunts.push(new Stunt('Parkour', 'Running like Mad'));
 FractalBase.Conditions.push(new Condition('Mouthful of tests', ConditionSeverity.Fleeting));
 FractalBase.Conditions.push(new BoxCondition('Boxy', ConditionSeverity.Fleeting, 2));
 

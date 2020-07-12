@@ -1,10 +1,11 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
-import { SaveGame, Player } from '../savegame';
+import { SaveGame, Player, Folder } from '../savegame';
 import { getGenericResponse } from "../tools";
+import { FateFractal } from "../fatefractal";
 
 @ICommands.register
-export class charselectCommand implements ICommand{
+export class charselectCommand implements ICommand {
 	requireSave: boolean = true;
 	name: string = 'charselect';
 	description: string = 'Load a character';
@@ -16,65 +17,101 @@ export class charselectCommand implements ICommand{
 	cooldown: number | undefined;
 
 	gmdefault = 'NPCs';
-	playerdefault = 'PCs'
+	playerdefault = 'PCs';
+
+
 
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		let player = save.getPlayerAuto(message);
 		const loadedCharacter = player.CurrentCharacter;
-		let folder = undefined;
 
 		args = args.filter(a => !a.startsWith('<@'));
-		switch (args[0].toLowerCase()) {
-			case 'i' :
-			case 'ice' :
-			case 'icebox' :
-				return this.IceBoxProcedure(save, player, args[1]);
+		let commandOptions: string = '';
+		args = args.filter(a => {
+			if (a.startsWith('-')) {
+				commandOptions = a.substr(1).toLowerCase();
+				return false;
+			}
+			return true;
+		});
 
-			case 'l' :
-			case 'load' :
-			case 'charload' :
-				folder = save.Folders.find(f => f.FolderName == args[1]);
-				if(folder){
-					if (!save.Options.GMCheck(message.author.id) && !save.Options.PlayerPermittedFolders.includes(folder.FolderName))
-						throw Error ('You do not have permission to load from that folder.');
-					args = args.slice(2);
+		switch (args[0].toLowerCase()) {
+			case 'i':
+			case 'ice':
+			case 'icebox':
+			case 'store':
+			case 'stash':
+				args = args.slice(1);
+				if (commandOptions.length != 0) {
+					let folder = save.Folders.find(f => f.FolderName == args[0]);
+					if (folder) {
+						args = args.slice(1);
+					}
+					else {
+						let foldname = save.Options.GMCheck(player.id) ? this.gmdefault : this.playerdefault;
+						folder = save.Folders.find(f => f.FolderName == foldname)
+						if (!folder)
+							throw Error(`Could not find folder ${foldname}`);
+					}
+					return iceboxFractalFromSheet(commandOptions, player, args, folder);
+				}
+				return this.IceBoxProcedure(save, player, args[0]);
+
+			case 'l':
+			case 'load':
+			case 'charload':
+			case 'get':
+				args = args.slice(1);
+			default:
+				let folder = save.Folders.find(f => f.FolderName == args[0]);
+				if (folder) {
+					if (!save.Options.GMCheck(player.id) && !save.Options.PlayerPermittedFolders.includes(folder.FolderName))
+						throw Error('You do not have permission to load from that folder.');
+					args = args.slice(1);
 				}
 				else {
-					args = args.slice(1);
-					let foldname = save.Options.GMCheck(message.author.id) ? this.gmdefault : this.playerdefault;
-					folder = save.Folders.find(f =>  f.FolderName == foldname )
-					if(!folder)
+					let foldname = save.Options.GMCheck(player.id) ? this.gmdefault : this.playerdefault;
+					folder = save.Folders.find(f => f.FolderName == foldname)
+					if (!folder)
 						throw Error(`Could not find folder ${foldname}`);
 				}
 
+
 				const matchString = args.join(' ');
 				const charToLoad = folder.findCharacter(matchString);
-				if(charToLoad == undefined)
+				if (charToLoad == undefined)
 					throw Error(`Could not find match for "${matchString}" in ${folder.FolderName}.`)
 
-				if(loadedCharacter != undefined){
+				if (loadedCharacter != undefined) {
 					const response = (await getGenericResponse(message, `Do you wish to icebox ${loadedCharacter.FractalName}?\n'Cancel' will cancel the procedure.\n'Yes' or 'y' will store in the default folder.\n'No' will have your current character overwritten and lost.\nOther responses will try to match an existing folder to store the character:`)).toLowerCase();
-					if(response == 'cancel')
+					if (response == 'cancel')
 						throw Error('Aborted loading procedure.');
-					else if(response == 'yes' || response == 'y')
+					else if (response == 'yes' || response == 'y')
 						message.channel.send(this.IceBoxProcedure(save, player, undefined));
-					else if(response != 'no')
+					else if (response != 'no')
 						message.channel.send(this.IceBoxProcedure(save, player, response.split(' ')[0]));
 				}
 
-				player.CurrentCharacter = charToLoad;
-				return(`${player} loaded ${player.CurrentCharacter.FractalName}.`)
+				if(!commandOptions.includes('cp'))
+					folder.Contents.splice(folder.Contents.indexOf(charToLoad), 1);
 
+				player.CurrentCharacter = charToLoad;
+				return (`${player} loaded ${player.CurrentCharacter.FractalName}.`);
+
+			case 'swap':
+			case 'switch':
+				args = args.slice(1);
+				return swapProcedure(player, args);
 		}
 
 	}
 
-	IceBoxProcedure(save: SaveGame, player : Player, folderstring : string | undefined) : string {
+	IceBoxProcedure(save: SaveGame, player: Player, folderstring: string | undefined): string {
 		let character = player.CurrentCharacter;
-		if(character == undefined)
-			throw Error ('Nothing to icebox.');
+		if (character == undefined)
+			throw Error('Nothing to icebox.');
 		let FolderName = save.Options.GMCheck(player.id) ? this.gmdefault : this.playerdefault;
-		if(folderstring != undefined)
+		if (folderstring != undefined)
 			FolderName = folderstring;
 		let folder = save.Folders.find(f => f.FolderName.toLowerCase() === FolderName.toLowerCase());
 		if (!folder)
@@ -83,5 +120,67 @@ export class charselectCommand implements ICommand{
 		player.CurrentCharacter = undefined;
 		return `Iceboxed ${character.FractalName} in ${folder.FolderName}`;
 	}
-	
+
+}
+
+function swapProcedure(player: Player, args: string[]) {
+	if (!player.CurrentCharacter)
+		throw Error('Could not find character.');
+	const fractal = player.CurrentCharacter.FindFractal(args.join(' '));
+	if (!fractal)
+		throw Error('No matching fractal found.');
+	switch (fractal[1]) {
+		case 'a':
+			player.CurrentCharacter.Aspects.splice(player.CurrentCharacter.Aspects.indexOf(fractal[0]));
+			fractal[0].Aspects.unshift(player.CurrentCharacter);
+			player.CurrentCharacter = fractal[0];
+		case 's':
+			player.CurrentCharacter.Stunts.splice(player.CurrentCharacter.Stunts.indexOf(fractal[0]));
+			fractal[0].Stunts.unshift(player.CurrentCharacter);
+			player.CurrentCharacter = fractal[0];
+		case 'c':
+			player.CurrentCharacter.Conditions.splice(player.CurrentCharacter.Conditions.indexOf(fractal[0]));
+			fractal[0].Conditions.unshift(player.CurrentCharacter);
+			player.CurrentCharacter = fractal[0];
+	}
+	return `"${player.CurrentCharacter.FractalName}" is now ${player}'s current character.`;
+}
+
+function iceboxFractalFromSheet(commandOptions: string, player: Player, args: string[], folder: Folder) {
+	if (!player.CurrentCharacter)
+		throw Error('Nothing to Icebox.');
+	const matchstring = args.join(' ') ?? '';
+	if (commandOptions.includes('a')) {
+		let match = player.CurrentCharacter.Aspects.find(f => {
+			if (f instanceof FateFractal)
+				return f.match(matchstring);
+			return false;
+		});
+		if (!(match instanceof FateFractal))
+			throw Error('Could not find matching Aspect/Fractal to icebox.');
+		player.CurrentCharacter.Aspects.splice(player.CurrentCharacter.Aspects.indexOf(match), 1);
+		return folder.add(match);
+	}
+	if (commandOptions.includes('c')) {
+		let match = player.CurrentCharacter.Conditions.find(f => {
+			if (f instanceof FateFractal)
+				return f.match(matchstring);
+			return false;
+		});
+		if (!(match instanceof FateFractal))
+			throw Error('Could not find matching Condition/Fractal to icebox.');
+		player.CurrentCharacter.Conditions.splice(player.CurrentCharacter.Conditions.indexOf(match), 1);
+		return folder.add(match);
+	}
+	if (commandOptions.includes('s')) {
+		let match = player.CurrentCharacter.Stunts.find(f => {
+			if (f instanceof FateFractal)
+				return f.match(matchstring);
+			return false;
+		});
+		if (!(match instanceof FateFractal))
+			throw Error('Could not find matching Aspect/Fractal to icebox.');
+		player.CurrentCharacter.Stunts.splice(player.CurrentCharacter.Stunts.indexOf(match), 1);
+		return folder.add(match);
+	}
 }

@@ -1,5 +1,5 @@
 import { SkillList } from './skills';
-import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
+import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost, Invokable } from './dataelements'
 import { Type } from 'class-transformer';
 import "reflect-metadata";
 import { FateOptions } from './options';
@@ -65,11 +65,18 @@ export class FateFractal {
 	}
 
 	FindInvokable(input: string): InvokableObject | undefined {
-		const Invokables = this.FindInvokables();
-		return FilterElement(Invokables, input);
+		try {
+			const Invokables = this.FindInvokables(true);
+			return FilterElement(Invokables, input);
+		}
+		catch{
+			const Invokables = this.FindInvokables(false);
+			return FilterElement(Invokables, input);
+		}
+
 	}
 
-	private FindInvokables(): InvokableObject[] {
+	private FindInvokables(recursive : boolean): InvokableObject[] {
 		let result = new Array<InvokableObject>(0);
 		if (this.HighConcept)
 			result.push(this.HighConcept);
@@ -77,25 +84,32 @@ export class FateFractal {
 			result.push(this.Trouble);
 		this.Aspects.forEach(a => {
 			if (IsInvokable(a)) { result.push(a); }
-			else { result = result.concat(a.FindInvokables()); }
+			else if (recursive) { result = result.concat(a.FindInvokables(true)); }
 		});
 		this.Conditions.forEach(a => {
 			if (IsInvokable(a)) { result.push(a); }
-			else { result = result.concat(a.FindInvokables()); }
+			else if (recursive) { result = result.concat(a.FindInvokables(true)); }
 		});
 		this.Stunts.forEach(a => {
 			if (IsInvokable(a)) { result.push(a); }
-			else { result = result.concat(a.FindInvokables()); }
+			else if (recursive) { result = result.concat(a.FindInvokables(true)); }
 		})
 		return result;
 	}
 
 	FindMarkable(input: string): MarkableObject | undefined {
-		const Markables = this.FindMarkables();
-		return FilterElement(Markables, input);
+		try{
+			const Markables = this.FindMarkables(true);
+			return FilterElement(Markables, input);
+		}
+		catch{
+			const Markables = this.FindMarkables(false);
+			return FilterElement(Markables, input);
+		}
+
 	}
 
-	private FindMarkables(): MarkableObject[] {
+	private FindMarkables(recursive : boolean): MarkableObject[] {
 		const result = new Array<MarkableObject>();
 
 		this.Tracks.forEach(a => {
@@ -103,11 +117,28 @@ export class FateFractal {
 		});
 		this.Conditions.forEach(a => {
 			if (a instanceof BoxCondition) { result.push(a); }
-			else if (a instanceof FateFractal) { result.concat(a.FindMarkables()); }
+			else if (a instanceof FateFractal && recursive) { result.concat(a.FindMarkables(true)); }
 		});
 
 		return result;
 	}
+
+	FindFractal(input : string) : [FateFractal, string] | undefined {
+		let Fractals : [FateFractal, string][] = [];
+		
+		this.Aspects.forEach(a => {if(a instanceof FateFractal) Fractals.push([a, 'a'])});
+		this.Stunts.forEach(a => {if(a instanceof FateFractal) Fractals.push([a, 's'])});
+		this.Conditions.forEach(a => {if(a instanceof FateFractal) Fractals.push([a, 'c'])});
+
+		Fractals = Fractals.filter(f => f[0].match(input));
+		if(Fractals.length == 1) return Fractals[0];
+		if(Fractals.length == 0) return undefined;
+		let errstring = 'Too many Fractals matched. Matches:';
+		Fractals.forEach(a => errstring += `\n   ${a[0].FractalName}`);
+		throw Error(errstring);
+	}
+
+
 
 	match(input: string) : boolean
 	{

@@ -73,7 +73,7 @@ export class SaveGame {
 	getPlayerAuto(message: Discord.Message) : Player
 	{
 		const mentions = message.mentions.users.array();
-		const mention : Discord.User | undefined = mentions[0].bot ? mentions[1] :  mentions[0];
+		const mention : Discord.User | undefined = (mentions[0]?.bot ? mentions[1] :  mentions[0]) ?? undefined;
 		if(mention && !mention.bot){
 			if (this.Options.GMCheck(message.author.id))
 				return this.getOrCreatePlayerById(mention.id);
@@ -103,11 +103,11 @@ export class Folder {
 	@Type (() => FateFractal)
 	Contents: FateFractal[] = [];
 	constructor(Name: string) {
-		if(Name.includes(' '))
-			throw Error ('Folder Names may not contain spaces.');
 		this.FolderName = Name;
 	}
-	public add(object: FateFractal) {
+	public add(object: FateFractal | undefined) {
+		if(object == undefined)
+			return;
 		if(this.Contents.find(o => o.FractalName == object.FractalName))
 			throw Error(`A fractal named ${object.FractalName} already exists in ${this.FolderName}.`)
 		this.Contents.push(object)
@@ -126,7 +126,7 @@ export class Folder {
 			return undefined;
 		if(matched.length == 1)
 			return matched[0];
-		let errstring = 'Too many Aspects matched. Matches:';
+		let errstring = 'Too many objects matched. Matches:';
 		matched.forEach(a => errstring += `\n   ${a.FractalName}`);
 		throw Error(errstring);
 	}
