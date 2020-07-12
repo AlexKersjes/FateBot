@@ -13,7 +13,7 @@ export class fateCommand implements ICommand {
 	aliases: string[] | undefined = ['f'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: import("../savegame").SaveGame): Promise<void | string> {
-		const player = save.getPlayer(message);
+		const player = save.getPlayerAuto(message);
 		args = args.filter(a => !a.startsWith('<@'));
 		const character = player.CurrentCharacter;
 		let AdjustRefresh = false;

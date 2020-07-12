@@ -40,7 +40,7 @@ export class newgameCommand implements ICommand {
 
 		// if there's no game name, get a game name.
 		if(args.length == 0){
-			args = await (await getGenericResponse(message, 'Please provide a game name.')).split(' ');
+			args = await (await getGenericResponse(message, 'Please provide a game name:')).split(' ');
   		}
 		// Check for valid syntax
 		if (args[1])

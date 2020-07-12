@@ -20,14 +20,14 @@ export class sheetCommand implements ICommand
 	aliases: string[] | undefined = ['s'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
-		const player = save?.getPlayer(message);
+		const player = save?.getPlayerAuto(message);
 		args = args.filter(i => !i.startsWith('<@'));
 		let character = player.CurrentCharacter;
 		if(args[0] == 'situation' || args[0] == '-s')
 			character = save.Channels.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
 		if(character == undefined){
 			if(!args[0])
-				args = await (await getGenericResponse(message, 'Please provide a character name')).split(' ');
+				args = await (await getGenericResponse(message, 'Please provide a character name:')).split(' ');
 			player.CurrentCharacter = new FateFractal(args.join(' '), save.Options);
 			character = player.CurrentCharacter;
 			message.channel.send('Created a new character sheet.');	
@@ -94,7 +94,7 @@ function detailembed<T extends Atom>(character : FateFractal, member : Discord.G
 			}
 			let severity = '';
 			if(IsCondition(element)){
-				severity =` [${ConditionSeverity[element.Severity]}]`;
+				severity =` <${ConditionSeverity[element.Severity]}>`;
 			}
 			let cost = '';
 			if(IsInvokable(element)){

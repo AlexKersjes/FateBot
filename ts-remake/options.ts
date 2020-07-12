@@ -10,6 +10,7 @@ export class FateOptions
 	SkillMax : number | undefined = 5;
 	CustomPrefix : string | undefined;
 	DefaultSkills : string[] | undefined;
+	PlayerPermittedFolders: string[] = ['PCs']
 
 	constructor(version : FateVersion)
 	{

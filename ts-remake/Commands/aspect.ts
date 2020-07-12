@@ -18,7 +18,10 @@ export class aspectCommand implements ICommand {
 	aliases: string[] | undefined = ['a'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
-		let player = save.getPlayer(message);
+		let player = save.getPlayerAuto(message);
+		let invokeMention : Player | undefined = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
+		if (invokeMention == player)
+			invokeMention = undefined;
 		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
@@ -46,7 +49,7 @@ export class aspectCommand implements ICommand {
 		if (commandOptions.includes('r')) {
 			let number;
 			if (!args[0])
-				args = await (await getGenericResponse(message, 'Which Aspect do you wish to delete? Specify a number or name.')).split(' ');
+				args = await (await getGenericResponse(message, 'Which Aspect do you wish to delete? Specify a number or name:')).split(' ');
 
 			number = parseInt(args[0]);
 			if (!isNaN(number) && args.length == 1) {
@@ -88,6 +91,8 @@ export class aspectCommand implements ICommand {
 
 		if (commandOptions.includes('fo')) {
 			player = await new Promise<Player>((resolve, reject) => {
+				if(invokeMention)
+					resolve(invokeMention);
 				const filter = (m: Discord.Message) => m.author.id == message.author.id;
 				message.channel.send('Mention the player you wish to grant the free invoke:');
 				// collector for confirmation
@@ -124,7 +129,7 @@ export class aspectCommand implements ICommand {
 			// Prompt a description is the D flag is set;
 			let description;
 			if (commandOptions.includes('d') && !commandOptions.includes('b'))
-				description = await getGenericResponse(message, 'Give the Aspect a description.');
+				description = await getGenericResponse(message, 'Give the Aspect a description:');
 			const newAspect = new Aspect(AspectName, description);
 
 

@@ -70,22 +70,27 @@ export class SaveGame {
 		
 	}
 
-	getPlayer(message: Discord.Message) : Player
+	getPlayerAuto(message: Discord.Message) : Player
 	{
-		const mention = message.mentions.members?.last();
-		if(mention && !mention.user.bot){
+		const mentions = message.mentions.users.array();
+		const mention : Discord.User | undefined = mentions[0].bot ? mentions[1] :  mentions[0];
+		if(mention && !mention.bot){
 			if (this.Options.GMCheck(message.author.id))
-				return this.getOrCreatePlayer(mention.user);
+				return this.getOrCreatePlayerById(mention.id);
 			else
 				throw Error('You do not have GM permission.');
 		}
-		return this.getOrCreatePlayer(message.author);
+
+
+		return this.getOrCreatePlayerById(message.author.id);
 	}
 
-	private getOrCreatePlayer(user: Discord.User) {
-		let p = this.Players.find(i => user.id == i.id);
+	getOrCreatePlayerById(UserId: string | undefined) {
+		if(UserId == undefined)
+			throw Error('A player Id is required.')
+		let p = this.Players.find(i => UserId == i.id);
 		if (!p) {
-			p = new Player(user.id);
+			p = new Player(UserId);
 			this.Players.push(p);
 		}
 		return p;
@@ -93,13 +98,18 @@ export class SaveGame {
 }
 
 export class Folder {
+
 	FolderName: string;
 	@Type (() => FateFractal)
 	Contents: FateFractal[] = [];
 	constructor(Name: string) {
+		if(Name.includes(' '))
+			throw Error ('Folder Names may not contain spaces.');
 		this.FolderName = Name;
 	}
 	public add(object: FateFractal) {
+		if(this.Contents.find(o => o.FractalName == object.FractalName))
+			throw Error(`A fractal named ${object.FractalName} already exists in ${this.FolderName}.`)
 		this.Contents.push(object)
 	}
 	public remove(object: FateFractal) {
@@ -107,6 +117,18 @@ export class Folder {
 	}
 	public removebyindex(index: number) {
 		this.Contents.splice(index, 1);
+	}
+
+	findCharacter(FractalName: string) : FateFractal | undefined{
+		const matched : FateFractal[] = [];
+		this.Contents.forEach(f => {if(f.match(FractalName)) matched.push(f)})
+		if(matched.length == 0)
+			return undefined;
+		if(matched.length == 1)
+			return matched[0];
+		let errstring = 'Too many Aspects matched. Matches:';
+		matched.forEach(a => errstring += `\n   ${a.FractalName}`);
+		throw Error(errstring);
 	}
 }
 

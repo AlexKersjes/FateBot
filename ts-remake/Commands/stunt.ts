@@ -15,10 +15,10 @@ export class stuntCommand implements ICommand {
 	GM = false;
 	args: boolean = true;
 	requireSave: boolean = true;
-	aliases: string[] | undefined = ['s'];
+	aliases: string[] | undefined = ['st'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
-		const player = save.getPlayer(message);
+		const player = save.getPlayerAuto(message);
 		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions : string = '';
 		args = args.filter(a => {
@@ -46,7 +46,7 @@ export class stuntCommand implements ICommand {
 		if (commandOptions.includes('r')) {
 			let number;
 			if (!args[0])
-				args = await (await getGenericResponse(message, 'Which stunt do you wish to delete? Specify a number or name.')).split(' ');
+				args = await (await getGenericResponse(message, 'Which stunt do you wish to delete? Specify a number or name:')).split(' ');
 	
 			number = parseInt(args[0]);
 			if (!isNaN(number) && args.length == 1) {
@@ -124,7 +124,7 @@ export class stuntCommand implements ICommand {
 				throw Error('No matches found.');
 
 
-			const description = await getGenericResponse(message, 'Give the Stunt a description.');
+			const description = await getGenericResponse(message, 'Give the Stunt a description:');
 			const stunt = new Stunt(StuntName, description);
 			if(commandOptions.includes('c'))
 				stunt.InvokeCost = Numbers.shift() ?? 0;

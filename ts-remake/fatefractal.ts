@@ -109,6 +109,19 @@ export class FateFractal {
 		return result;
 	}
 
+	match(input: string) : boolean
+	{
+		let regStr = '.*';
+		for (let i = 0; i < input.length; i++) {
+			regStr +=  `${input[i]}.*`;
+		}
+		const expression = new RegExp(regStr, 'gi');
+		if(this.FractalName.match(expression) == null)
+		{
+			return false;
+		}
+		return true;
+	}
 }
 
 function FilterElement<T extends Atom>(elements: Array<T>, input: string): T | undefined {

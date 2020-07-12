@@ -10,7 +10,7 @@ import { getGenericResponse } from "../tools";
 export class conditionCommand implements ICommand {
 	name: string = 'condition';
 	description: string = 'Create or modify Conditions. Use options, prefixed by `-` for manipulation.';
-	helptext: string | undefined = 'Options:\n`s`              Adjust the current **S**ituation.\n`d`              Add or edit a Condition **D**escription.\n`r`              **R**emove a Condition.\n`b`              Add **B**oxes to the Condition.\n`m`              Set the condition severity (**M**agnitude). Default is <Fleeting>. `se` for **SE***verity also works, but beware conflict with `s`.\n`f`              for adding a **F**ree invoke. `f` can be included multiple times. Include `fo` to grant the invoke to an **O**ther.\n`i`              to **I**nvoke.';
+	helptext: string | undefined = 'Options:\n`s`              Adjust the current **S**ituation.\n`d`              Add or edit a Condition **D**escription.\n`r`              **R**emove a Condition.\n`b`              Add **B**oxes to the Condition.\n`m`              Set the condition severity (**M**agnitude). Default is <Fleeting>. `se` for **SE**verity also works, but beware conflict with `s`.\n`f`              for adding a **F**ree invoke. `f` can be included multiple times. Include `fo` to grant the invoke to an **O**ther. E.g. `ffo` wil give two free invokes to `o`. \n`i`              to **I**nvoke.';
 	admin: boolean = false;
 	GM = false;
 	args: boolean = true;
@@ -18,7 +18,10 @@ export class conditionCommand implements ICommand {
 	aliases: string[] | undefined = ['c', 'con'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
-		let player = save.getPlayer(message);
+		let player = save.getPlayerAuto(message);
+		let invokeMention : Player | undefined = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
+		if (invokeMention == player)
+			invokeMention = undefined;
 		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions : string = '';
 		args = args.filter(a => {
@@ -109,12 +112,14 @@ export class conditionCommand implements ICommand {
 
 		if (commandOptions.includes('fo')) {
 			player = await new Promise<Player>((resolve, reject) => {
+				if(invokeMention)
+					resolve(invokeMention);
 				const filter = (m: Discord.Message) => m.author.id == message.author.id;
 				message.channel.send('Mention the player you wish to grant the free invoke:');
 				// collector for confirmation
 				let collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 				collector.on('collect', m => {
-					let p = save.Players.find(p => p.id == ((m as Discord.Message).mentions.members?.first()?.id) );
+					let p = save.getPlayerAuto(m);
 					if (p == undefined)
 						reject('Could not find player mention, or that player has no sheet.');
 					resolve(p);
@@ -155,7 +160,7 @@ export class conditionCommand implements ICommand {
 			if(newCondition instanceof BoxCondition)
 				boxesString = newCondition.BoxesString();
 			fractal.Conditions.push(newCondition);
-			return `Added Condition ${boxesString}"${newCondition.Name}" <${newCondition.Severity}>${newCondition.Description ? `, "${newCondition.Description}"` : ''}.${extraInvokeString}`;
+			return `Added Condition ${boxesString}"${newCondition.Name}" <${ConditionSeverity[newCondition.Severity]}>${newCondition.Description ? `, "${newCondition.Description}"` : ''}.${extraInvokeString}`;
 		}
 		else if (matched.length == 1) {
 			let MatchedCondition : Condition | BoxCondition = matched[0];
@@ -172,7 +177,7 @@ export class conditionCommand implements ICommand {
 
 			if(commandOptions.includes('m') || commandOptions.includes('se')){
 				MatchedCondition.Severity = Severity;
-				message.channel.send(`"${MatchedCondition.Name}"'s Severity was set to ${ConditionSeverity[MatchedCondition.Severity]}.`);
+				message.channel.send(`The Severity of "${MatchedCondition.Name}" was set to ${ConditionSeverity[MatchedCondition.Severity]}.`);
 				if(commandOptions.includes('se'))
 					++extraInvokes;
 				if(commandOptions.length == ++extraInvokes)
