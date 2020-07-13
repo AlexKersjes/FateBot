@@ -36,8 +36,20 @@ export class helpCommand implements ICommand {
 			});
 
 		}
+		let string = `**'${command.name}' ${aliases}**: ${command.description}\n${command.helptext ? command.helptext : ''}`;
 
-		message.channel.send(`**'${command.name}' ${aliases}**: ${command.description}\n${command.helptext ? command.helptext : ''}`);
+		if(string.length > 2000){
+			let lines = string.split('\n');
+			lines.forEach(line => {
+				if (line.length + string.length > 2000){
+					message.channel.send(string);
+					string = '';
+				}
+				string += line;
+			})
+		}
+
+		message.channel.send(string);
 	}
 
 }

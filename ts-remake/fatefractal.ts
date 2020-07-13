@@ -146,7 +146,7 @@ export class FateFractal {
 		for (let i = 0; i < input.length; i++) {
 			regStr +=  `${input[i]}.*`;
 		}
-		const expression = new RegExp(regStr, 'gi');
+		const expression = new RegExp(regStr, 'g');
 		if(this.FractalName.match(expression) == null)
 		{
 			return false;

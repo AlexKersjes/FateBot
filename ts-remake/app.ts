@@ -82,7 +82,6 @@ client.on('message', message => {
 				message.channel?.send(result);
 			(message as Discord.Message).delete()
 		}).catch(err => {
-			// console.log(err.message);
 			console.log(err);
 			message.channel?.send((err as Error).message);
 		});

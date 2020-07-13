@@ -42,19 +42,18 @@ export class loadgameCommand implements ICommand {
 		// Password procedure for to be loaded game
 		await buffer.passConfirm(message).then(res => {if(!res) throw Error('Invalid Password.')}).catch(err => {throw err});
 		currentlyLoaded?.save();
-
-
 		
 		// Normal loading procedure.
 		buffer.Options.CustomPrefix = save?.Options.CustomPrefix || undefined;
 		Games.set(guildId, buffer);
 		message.channel.send(`Game "${buffer.GameName}" was loaded.`);
 
-
 	}
 }
 
 function noPasswordGuard(currentlyLoaded: SaveGame | undefined, message: Discord.Message, guildId: string, buffer: SaveGame) {
+	// Prevent going further if the game has no password set unless explicit confirmation is given.
+	
 	return new Promise<string>((resolve, reject) => {
 		if (currentlyLoaded?.Password != "")
 			resolve();

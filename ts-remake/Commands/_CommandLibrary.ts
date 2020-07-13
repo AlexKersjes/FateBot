@@ -6,6 +6,7 @@ export * from './save';
 export * from './setoption';
 export * from './announce';
 export * from './sheet';
+export * from './charselect';
 export * from './fate';
 export * from './aspect';
 export * from './stunt';

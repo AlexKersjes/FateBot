@@ -114,8 +114,6 @@ function startGame(gameName: string, guildId: string, message: Discord.Message, 
 	if(mode.startsWith(process.env.PREFIX || '.'))
 		throw Error('Responses do not need to be prefixed.');
 
-	
-	console.log('startGame called');
 	if(['stop','escape','cancel'].some(i => i == mode.toLowerCase()))
 		throw Error('Cancelled game creation.');
 	let version : FateVersion | undefined = undefined;

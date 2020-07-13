@@ -1,10 +1,11 @@
 import * as Discord from 'discord.js';
-import { Exclude } from 'class-transformer';
+import { Exclude, Type } from 'class-transformer';
 import { RollContest } from './rollcontest';
 import { FateFractal } from './fatefractal';
 
 export class ChannelDictionary
 {
+	@Type(() => Channel)
 	Channels = new Array<Channel>();
 
 	FindDiscordChannel(channel : Discord.TextChannel) : Channel

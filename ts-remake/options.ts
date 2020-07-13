@@ -8,7 +8,7 @@ export class FateOptions
 	FateVersion : FateVersion;
 	SkillColumns : boolean = false;
 	SkillMax : number | undefined = 5;
-	CustomPrefix : string | undefined;
+	CustomPrefix : string | undefined = undefined;
 	DefaultSkills : string[] | undefined;
 	PlayerPermittedFolders: string[] = ['PCs']
 

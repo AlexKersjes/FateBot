@@ -1,7 +1,9 @@
 import { FateOptions, FateVersion } from './options';
+import { Type } from 'class-transformer';
 export class SkillList {
 	ListName : string;
 	SkillPoints: number = -1;
+	@Type(() => Skill)
 	Skills: Skill[] = [];
 
 	AdjustSkillValue(Name: string, Amount: number, Options: FateOptions, UserId: string) {
@@ -115,7 +117,7 @@ export class SkillList {
 		return str;
 	}
 
-	constructor(Options: FateOptions, prefill: boolean = false){
+	constructor(Options: FateOptions = new FateOptions(FateVersion.Core), prefill: boolean = false){
 		this.ListName = (Options.FateVersion == FateVersion.Accelerated) ? 'Approaches' : 'Skills';
 		if (prefill) {
 			if(Options.DefaultSkills)

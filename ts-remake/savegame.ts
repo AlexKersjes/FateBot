@@ -66,7 +66,7 @@ export class SaveGame {
 			collector.stop();
 			message.author.deleteDM();
 		}
-		})
+		});
 		
 	}
 
@@ -121,7 +121,10 @@ export class Folder {
 
 	findCharacter(FractalName: string) : FateFractal | undefined{
 		const matched : FateFractal[] = [];
-		this.Contents.forEach(f => {if(f.match(FractalName)) matched.push(f)})
+		this.Contents.forEach(f => {
+			if(f.match(FractalName)) 
+				matched.push(f)
+		})
 		if(matched.length == 0)
 			return undefined;
 		if(matched.length == 1)
@@ -176,6 +179,7 @@ export class defaultServerObject {
 export class Player
 {
 	id : string;
+	@Type(() => FateFractal)
 	CurrentCharacter : FateFractal | undefined;
 	CurrentLocation : string | undefined;
 

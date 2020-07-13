@@ -2,22 +2,23 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame, Player, Folder } from '../savegame';
 import { getGenericResponse } from "../tools";
-import { FateFractal } from "../fatefractal";
+import { FateFractal, deepCopy } from "../fatefractal";
+import { HelpText } from "./_CommandHelp";
 
 @ICommands.register
 export class charselectCommand implements ICommand {
 	requireSave: boolean = true;
 	name: string = 'charselect';
-	description: string = 'Load a character';
-	helptext: string | undefined;
+	description: string = 'Store or Load a character, or manage other characters.';
+	helptext: string | undefined = HelpText.charselect;
 	admin: boolean = false;
 	GM: boolean = false;
 	args: boolean = true;
-	aliases: string[] | undefined = ['select', 'cs'];
+	aliases: string[] | undefined = ['select', 'cs', 'chars', 'fractal'];
 	cooldown: number | undefined;
 
-	gmdefault = 'NPCs';
-	playerdefault = 'PCs';
+	static gmdefault = 'NPCs';
+	static playerdefault = 'PCs';
 
 
 
@@ -48,14 +49,14 @@ export class charselectCommand implements ICommand {
 						args = args.slice(1);
 					}
 					else {
-						let foldname = save.Options.GMCheck(player.id) ? this.gmdefault : this.playerdefault;
+						let foldname = save.Options.GMCheck(player.id) ? charselectCommand.gmdefault : charselectCommand.playerdefault;
 						folder = save.Folders.find(f => f.FolderName == foldname)
 						if (!folder)
 							throw Error(`Could not find folder ${foldname}`);
 					}
 					return iceboxFractalFromSheet(commandOptions, player, args, folder);
 				}
-				return this.IceBoxProcedure(save, player, args[0]);
+				return IceBoxProcedure(save, player, args[0]);
 
 			case 'l':
 			case 'load':
@@ -70,7 +71,7 @@ export class charselectCommand implements ICommand {
 					args = args.slice(1);
 				}
 				else {
-					let foldname = save.Options.GMCheck(player.id) ? this.gmdefault : this.playerdefault;
+					let foldname = save.Options.GMCheck(player.id) ? charselectCommand.gmdefault : charselectCommand.playerdefault;
 					folder = save.Folders.find(f => f.FolderName == foldname)
 					if (!folder)
 						throw Error(`Could not find folder ${foldname}`);
@@ -78,7 +79,7 @@ export class charselectCommand implements ICommand {
 
 
 				const matchString = args.join(' ');
-				const charToLoad = folder.findCharacter(matchString);
+				let charToLoad = folder.findCharacter(matchString);
 				if (charToLoad == undefined)
 					throw Error(`Could not find match for "${matchString}" in ${folder.FolderName}.`)
 
@@ -87,14 +88,17 @@ export class charselectCommand implements ICommand {
 					if (response == 'cancel')
 						throw Error('Aborted loading procedure.');
 					else if (response == 'yes' || response == 'y')
-						message.channel.send(this.IceBoxProcedure(save, player, undefined));
+						message.channel.send(IceBoxProcedure(save, player, undefined));
 					else if (response != 'no')
-						message.channel.send(this.IceBoxProcedure(save, player, response.split(' ')[0]));
+						message.channel.send(IceBoxProcedure(save, player, response.split(' ')[0]));
 				}
 
 				if (!commandOptions.includes('cp')) {
 					folder.Contents.splice(folder.Contents.indexOf(charToLoad), 1);
+				}
+				else{
 					commandOptions = commandOptions.replace('cp', '');
+					charToLoad = deepCopy(charToLoad);
 				}
 
 				if (commandOptions.includes('a') || commandOptions.includes('s') || commandOptions.includes('c')) {
@@ -120,25 +124,45 @@ export class charselectCommand implements ICommand {
 			case 'switch':
 				args = args.slice(1);
 				return swapProcedure(player, args);
+			case 'ls' :
+			case 'list' :
+				let str = '';
+				const GM = save.Options.GMCheck(message.author.id);
+				save.Folders.forEach(f =>{
+					if(GM || save.Options.PlayerPermittedFolders.includes(f.FolderName)){
+						str += `${f.FolderName}:\n`
+						f.Contents.forEach(a => str += `   ${a.FractalName}\n`)
+						if(str.length > 2000){
+							message.channel.send(str);
+							str = '';
+						}
+					}
+				});
+				return str;
+			case 'mv' :
+			case 'move' :
+				throw Error('Move is not implemented yet.');
 		}
 
 	}
 
-	IceBoxProcedure(save: SaveGame, player: Player, folderstring: string | undefined): string {
-		let character = player.CurrentCharacter;
-		if (character == undefined)
-			throw Error('Nothing to icebox.');
-		let FolderName = save.Options.GMCheck(player.id) ? this.gmdefault : this.playerdefault;
-		if (folderstring != undefined)
-			FolderName = folderstring;
-		let folder = save.Folders.find(f => f.FolderName.toLowerCase() === FolderName.toLowerCase());
-		if (!folder)
-			throw Error(`Could not find folder ${FolderName}`)
-		folder.add(character);
-		player.CurrentCharacter = undefined;
-		return `Iceboxed ${character.FractalName} in ${folder.FolderName}`;
-	}
 
+
+}
+
+function 	IceBoxProcedure(save: SaveGame, player: Player, folderstring: string | undefined): string {
+	let character = player.CurrentCharacter;
+	if (character == undefined)
+		throw Error('Nothing to icebox.');
+	let FolderName = save.Options.GMCheck(player.id) ? charselectCommand.gmdefault : charselectCommand.playerdefault;
+	if (folderstring != undefined)
+		FolderName = folderstring;
+	let folder = save.Folders.find(f => f.FolderName.toLowerCase() === FolderName.toLowerCase());
+	if (!folder)
+		throw Error(`Could not find folder ${FolderName}`)
+	folder.add(character);
+	player.CurrentCharacter = undefined;
+	return `Iceboxed ${character.FractalName} in ${folder.FolderName}`;
 }
 
 function swapProcedure(player: Player, args: string[]) {
@@ -168,8 +192,9 @@ function iceboxFractalFromSheet(commandOptions: string, player: Player, args: st
 	if (!player.CurrentCharacter)
 		throw Error('Nothing to Icebox.');
 	const matchstring = args.join(' ') ?? '';
+	let match;
 	if (commandOptions.includes('a')) {
-		let match = player.CurrentCharacter.Aspects.find(f => {
+		match = player.CurrentCharacter.Aspects.find(f => {
 			if (f instanceof FateFractal)
 				return f.match(matchstring);
 			return false;
@@ -177,10 +202,9 @@ function iceboxFractalFromSheet(commandOptions: string, player: Player, args: st
 		if (!(match instanceof FateFractal))
 			throw Error('Could not find matching Aspect/Fractal to icebox.');
 		player.CurrentCharacter.Aspects.splice(player.CurrentCharacter.Aspects.indexOf(match), 1);
-		return folder.add(match);
 	}
-	if (commandOptions.includes('c')) {
-		let match = player.CurrentCharacter.Conditions.find(f => {
+	else if (commandOptions.includes('c')) {
+		match = player.CurrentCharacter.Conditions.find(f => {
 			if (f instanceof FateFractal)
 				return f.match(matchstring);
 			return false;
@@ -188,10 +212,9 @@ function iceboxFractalFromSheet(commandOptions: string, player: Player, args: st
 		if (!(match instanceof FateFractal))
 			throw Error('Could not find matching Condition/Fractal to icebox.');
 		player.CurrentCharacter.Conditions.splice(player.CurrentCharacter.Conditions.indexOf(match), 1);
-		return folder.add(match);
 	}
-	if (commandOptions.includes('s')) {
-		let match = player.CurrentCharacter.Stunts.find(f => {
+	else if (commandOptions.includes('s')) {
+		match = player.CurrentCharacter.Stunts.find(f => {
 			if (f instanceof FateFractal)
 				return f.match(matchstring);
 			return false;
@@ -199,6 +222,10 @@ function iceboxFractalFromSheet(commandOptions: string, player: Player, args: st
 		if (!(match instanceof FateFractal))
 			throw Error('Could not find matching Aspect/Fractal to icebox.');
 		player.CurrentCharacter.Stunts.splice(player.CurrentCharacter.Stunts.indexOf(match), 1);
-		return folder.add(match);
 	}
+	if(!commandOptions.includes('r') || !(match instanceof FateFractal)){
+		folder.add(match);
+		return(`Iceboxed ${match?.FractalName} in ${folder.FolderName}.`)
+	}
+	return(`Removed fractal ${match.FractalName} from ${player.CurrentCharacter}'s sheet.`)
 }

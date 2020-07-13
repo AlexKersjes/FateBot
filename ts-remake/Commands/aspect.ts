@@ -5,12 +5,13 @@ import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Aspect, Boost, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
+import { HelpText } from "./_CommandHelp";
 
 @ICommands.register
 export class aspectCommand implements ICommand {
 	name: string = 'aspect';
 	description: string = 'Create or modify Aspects. Use options, prefixed by `-` for manipulation.';
-	helptext: string | undefined = 'Options:\n`s`              Adjust the current **S**ituation.\n`d`              Add or edit an Aspect **D**escription.\n`c or t`   to edit High **C**oncept or **T**rouble. `a` can be used to downgrade to a regular Aspect.\n`r`              **R**emove an Aspect.\n`b`              Create a **B**oost.\n`f`              for adding a **F**ree invoke. `f` can be included multiple times. Include `fo` to grant the invoke to an **O**ther.\n`i`              to **I**nvoke.';
+	helptext: string | undefined = HelpText.aspect;
 	admin: boolean = false;
 	GM = false;
 	args: boolean = true;
@@ -54,7 +55,9 @@ export class aspectCommand implements ICommand {
 			number = parseInt(args[0]);
 			if (!isNaN(number) && args.length == 1) {
 				const toBeDeleted = fractal.Aspects[number - 1];
-				const response = await (await getGenericResponse(message, `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`)).toLowerCase();
+				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
+					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
+				const response = await (await getGenericResponse(message, prompt)).toLowerCase();
 				if (response == 'yes' || response == 'y') {
 					fractal.Aspects.splice(fractal.Aspects.indexOf(toBeDeleted), 1);
 					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;

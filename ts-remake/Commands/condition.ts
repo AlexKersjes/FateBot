@@ -5,12 +5,13 @@ import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Condition, ConditionSeverity, BoxCondition, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
+import { HelpText } from "./_CommandHelp";
 
 @ICommands.register
 export class conditionCommand implements ICommand {
 	name: string = 'condition';
 	description: string = 'Create or modify Conditions. Use options, prefixed by `-` for manipulation.';
-	helptext: string | undefined = 'Options:\n`s`              Adjust the current **S**ituation.\n`d`              Add or edit a Condition **D**escription.\n`r`              **R**emove a Condition.\n`b`              Add **B**oxes to the Condition.\n`m`              Set the condition severity (**M**agnitude). Default is <Fleeting>. `se` for **SE**verity also works, but beware conflict with `s`.\n`f`              for adding a **F**ree invoke. `f` can be included multiple times. Include `fo` to grant the invoke to an **O**ther. E.g. `ffo` wil give two free invokes to `o`. \n`i`              to **I**nvoke.';
+	helptext: string | undefined = HelpText.condition;
 	admin: boolean = false;
 	GM = false;
 	args: boolean = true;
@@ -56,7 +57,9 @@ export class conditionCommand implements ICommand {
 			number = parseInt(args[0]);
 			if (!isNaN(number) && args.length == 1) {
 				const toBeDeleted = fractal.Conditions[number - 1];
-				const response = await (await getGenericResponse(message, `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`)).toLowerCase();
+				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
+					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
+				const response = await (await getGenericResponse(message, prompt)).toLowerCase();
 				if (response == 'yes' || response == 'y') {
 					fractal.Conditions.splice(fractal.Conditions.indexOf(toBeDeleted), 1);
 					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;

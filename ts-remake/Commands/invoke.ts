@@ -12,13 +12,14 @@ export class invokeCommand implements ICommand {
 	args: boolean = true;
 	aliases: string[] | undefined = ['i'];
 	cooldown: number | undefined;
-	async execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame | undefined): Promise<void> {
+	async execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame ): Promise<void> {
 		const argsfiltered = args.filter(s => s.startsWith('-') == false);
 		const Player = save?.Players.find(i => i.id == message.author.id);
 		let invokable = Player?.CurrentCharacter?.FindInvokable(argsfiltered.join(' '));
 		if(invokable == undefined)
 		{
 			// find an invokable situation aspect
+			save
 
 			throw Error('No matching invokable found.');
 		}

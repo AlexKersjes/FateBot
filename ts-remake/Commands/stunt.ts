@@ -5,12 +5,13 @@ import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Stunt, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
+import { HelpText } from "./_CommandHelp";
 
 @ICommands.register
 export class stuntCommand implements ICommand {
 	name: string = 'stunt';
 	description: string = 'Create or modify stunts. Use options, prefixed by `-` for manipulation.';
-	helptext: string | undefined = 'Options:\n`s`              Adjust the current **S**ituation.\n`d`              Edit a Stunt **D**escription. You will be required a description when creating a Stunt.\n`c`              Set or adjust the amount of Fate points this Stunt **C**osts when used. Default is 0.\n`b`              Set or adjust the amount of **B**onus shifts this Stunt provides when used. Default is 2.\n                   (When setting both bonus and cost specify cost first.)\n`r`              **R**emove a Stunt.\n`f`              for adding a **F**ree use to a costed Stunt.\n`i`              to use (**I**nvoke) a Stunt.';
+	helptext: string | undefined = HelpText.stunt;
 	admin: boolean = false;
 	GM = false;
 	args: boolean = true;
@@ -51,7 +52,9 @@ export class stuntCommand implements ICommand {
 			number = parseInt(args[0]);
 			if (!isNaN(number) && args.length == 1) {
 				const toBeDeleted = fractal.Stunts[number - 1];
-				const response = await (await getGenericResponse(message, `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`)).toLowerCase();
+				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
+					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
+				const response = await (await getGenericResponse(message, prompt)).toLowerCase();
 				if (response == 'yes' || response == 'y') {
 					fractal.Stunts.splice(fractal.Stunts.indexOf(toBeDeleted), 1);
 					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
