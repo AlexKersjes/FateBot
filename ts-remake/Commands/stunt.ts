@@ -3,7 +3,7 @@ import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
-import { Stunt } from "../dataelements";
+import { Stunt, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
 
 @ICommands.register
@@ -20,7 +20,7 @@ export class stuntCommand implements ICommand {
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		const player = save.getPlayerAuto(message);
 		args = args.filter(a => !a.startsWith('<@'));
-		let commandOptions : string = '';
+		let commandOptions: string = '';
 		args = args.filter(a => {
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
@@ -47,49 +47,42 @@ export class stuntCommand implements ICommand {
 			let number;
 			if (!args[0])
 				args = await (await getGenericResponse(message, 'Which stunt do you wish to delete? Specify a number or name:')).split(' ');
-	
+
 			number = parseInt(args[0]);
 			if (!isNaN(number) && args.length == 1) {
 				const toBeDeleted = fractal.Stunts[number - 1];
-				if (!(toBeDeleted instanceof FateFractal)) {
-					const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${toBeDeleted.Name}?`)).toLowerCase();
-					if (response == 'yes' || response == 'y') {
-						fractal.Stunts.splice(fractal.Stunts.indexOf(toBeDeleted), 1);
-						return `${toBeDeleted.Name} was deleted.`;
-					}
-					else
-						throw Error('Stunt deletion cancelled');
+				const response = await (await getGenericResponse(message, `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`)).toLowerCase();
+				if (response == 'yes' || response == 'y') {
+					fractal.Stunts.splice(fractal.Stunts.indexOf(toBeDeleted), 1);
+					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
 				}
 				else
-					throw Error('Fractal deletion is not implemented yet.'); // TODO
+					throw Error('Aspect deletion cancelled');
 			}
 		}
 
 		let expectedNumbers = 0;
-		if(commandOptions.includes('c'))
+		if (commandOptions.includes('c'))
 			expectedNumbers++;
-		if(commandOptions.includes('b'))
+		if (commandOptions.includes('b'))
 			expectedNumbers++;
-		let Numbers : number[] = []
-		
+		let Numbers: number[] = []
+
 		// Filter out numbers unless none are expected
-		if(expectedNumbers > 0)
-		{
-			const argsCopy :string[] = [];
-			args.forEach(a => 
-			{
+		if (expectedNumbers > 0) {
+			const argsCopy: string[] = [];
+			args.forEach(a => {
 				const parsed = parseInt(a);
-				if(!isNaN(parsed))
+				if (!isNaN(parsed))
 					Numbers.push(parsed);
 				else
 					argsCopy.push(a);
 			});
 			args = argsCopy;
 		}
-		
-		
-		if(Numbers.length != expectedNumbers)
-		{
+
+
+		if (Numbers.length != expectedNumbers) {
 			Numbers = [];
 			if (commandOptions.includes('c') && !commandOptions.includes('r')) {
 				const number = parseInt(await getGenericResponse(message, 'Provide a cost amount:'));
@@ -105,14 +98,14 @@ export class stuntCommand implements ICommand {
 			}
 		}
 
-		
+
 		// Put the string back together without prefixes.
-		if(args.length == 0)
+		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide a Stunt name:')).split(' ');
 		const StuntName = args.join(' ');
 
 		// See if there are existing stunts that match
-		const matched : Stunt[] = [];
+		const matched: Stunt[] = [];
 		fractal.Stunts.forEach(a => {
 			if (a instanceof Stunt && a.match(StuntName))
 				matched.push(a);
@@ -120,19 +113,19 @@ export class stuntCommand implements ICommand {
 
 		// If there are no matches, create a new Stunt.
 		if (matched.length == 0) {
-			if(commandOptions.includes('r'))
+			if (commandOptions.includes('r'))
 				throw Error('No matches found.');
 
 
 			const description = await getGenericResponse(message, 'Give the Stunt a description:');
 			const stunt = new Stunt(StuntName, description);
-			if(commandOptions.includes('c'))
+			if (commandOptions.includes('c'))
 				stunt.InvokeCost = Numbers.shift() ?? 0;
-			if(commandOptions.includes('b'))
+			if (commandOptions.includes('b'))
 				stunt.BonusShifts = Numbers.shift() ?? 2;
 
-			const extraInvokes : number = commandOptions.match(/f/ig)?.length ?? 0;
-			if(extraInvokes > 0){
+			const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
+			if (extraInvokes > 0) {
 				for (let i = 0; i < extraInvokes; i++) {
 					stunt.AddFreeInvoke(player.id);
 				}
@@ -144,27 +137,27 @@ export class stuntCommand implements ICommand {
 		}
 		else if (matched.length == 1) {
 			const MatchedStunt = matched[0];
-			
-			const extraInvokes : number = commandOptions.match(/f/ig)?.length ?? 0;
-			if(extraInvokes > 0){
+
+			const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
+			if (extraInvokes > 0) {
 				for (let i = 0; i < extraInvokes; i++) {
 					MatchedStunt.AddFreeInvoke(player.id);
 				}
 				message.channel.send(`Added ${extraInvokes} free use${extraInvokes > 1 ? 's' : ''} to ${MatchedStunt.Name}.`);
-				if(commandOptions.length == extraInvokes)
+				if (commandOptions.length == extraInvokes)
 					return;
 			}
 
-			if(commandOptions.includes('c')&& !commandOptions.includes('r'))
+			if (commandOptions.includes('c') && !commandOptions.includes('r'))
 				MatchedStunt.InvokeCost = Numbers.shift() ?? 0;
-			if(commandOptions.includes('b')&& !commandOptions.includes('r'))
+			if (commandOptions.includes('b') && !commandOptions.includes('r'))
 				MatchedStunt.BonusShifts = Numbers.shift() ?? 2;
-			
+
 			if (commandOptions.includes('d')) {
 				MatchedStunt.Description = await getGenericResponse(message, `Edit the description of ${MatchedStunt.Name}:`);
 				return `The description of "${MatchedStunt.Name}" is now "${MatchedStunt.Description}".`;
 			}
-			else if (commandOptions.includes('i')){
+			else if (commandOptions.includes('i')) {
 				throw Error('Stunt use via this command is not supported yet.'); // TODO
 			}
 			else if (commandOptions.includes('r')) {
@@ -177,7 +170,7 @@ export class stuntCommand implements ICommand {
 					return 'Cancelled Stunt deletion.';
 			}
 			else throw Error(`Found "${MatchedStunt.Name}"${MatchedStunt.Description ? `, "${MatchedStunt.Description}"` : ''}.\nUse options to interact.`)
-			
+
 		}
 		else {
 			let errstring = 'Too many Stunts matched. Matches:';

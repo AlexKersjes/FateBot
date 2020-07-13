@@ -92,9 +92,27 @@ export class charselectCommand implements ICommand {
 						message.channel.send(this.IceBoxProcedure(save, player, response.split(' ')[0]));
 				}
 
-				if(!commandOptions.includes('cp'))
+				if (!commandOptions.includes('cp')) {
 					folder.Contents.splice(folder.Contents.indexOf(charToLoad), 1);
+					commandOptions = commandOptions.replace('cp', '');
+				}
 
+				if (commandOptions.includes('a') || commandOptions.includes('s') || commandOptions.includes('c')) {
+					if (loadedCharacter == undefined)
+						throw Error('No character to attach fractal to.')
+					if (commandOptions.includes('a')) {
+						loadedCharacter.Aspects.unshift(charToLoad);
+						return `"${charToLoad.FractalName}" was attached as an Aspect to "${loadedCharacter.FractalName}".`
+					}
+					else if (commandOptions.includes('s')) {
+						loadedCharacter.Stunts.unshift(charToLoad);
+						return `"${charToLoad.FractalName}" was attached as an Stunt to "${loadedCharacter.FractalName}".`
+					}
+					else if (commandOptions.includes('c')) {
+						loadedCharacter.Conditions.unshift(charToLoad);
+						return `"${charToLoad.FractalName}" was attached as an Condition to "${loadedCharacter.FractalName}".`
+					}
+				}
 				player.CurrentCharacter = charToLoad;
 				return (`${player} loaded ${player.CurrentCharacter.FractalName}.`);
 

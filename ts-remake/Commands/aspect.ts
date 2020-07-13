@@ -3,7 +3,7 @@ import { Message, Client } from "discord.js";
 import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
-import { Aspect, Boost } from "../dataelements";
+import { Aspect, Boost, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
 
 @ICommands.register
@@ -19,7 +19,7 @@ export class aspectCommand implements ICommand {
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		let player = save.getPlayerAuto(message);
-		let invokeMention : Player | undefined = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
+		let invokeMention: Player | undefined = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
 		if (invokeMention == player)
 			invokeMention = undefined;
 		args = args.filter(a => !a.startsWith('<@'));
@@ -54,19 +54,16 @@ export class aspectCommand implements ICommand {
 			number = parseInt(args[0]);
 			if (!isNaN(number) && args.length == 1) {
 				const toBeDeleted = fractal.Aspects[number - 1];
-				if (!(toBeDeleted instanceof FateFractal)) {
-					const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${toBeDeleted.Name}?`)).toLowerCase();
-					if (response == 'yes' || response == 'y') {
-						fractal.Aspects.splice(fractal.Aspects.indexOf(toBeDeleted), 1);
-						return `${toBeDeleted.Name} was deleted.`;
-					}
-					else
-						throw Error('Aspect deletion cancelled');
+				const response = await (await getGenericResponse(message, `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`)).toLowerCase();
+				if (response == 'yes' || response == 'y') {
+					fractal.Aspects.splice(fractal.Aspects.indexOf(toBeDeleted), 1);
+					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
 				}
 				else
-					throw Error('Fractal deletion is not implemented yet.'); // TODO
+					throw Error('Aspect deletion cancelled');
 			}
 		}
+
 
 		// Put the string back together without prefixes.
 		if (args.length == 0)
@@ -91,14 +88,14 @@ export class aspectCommand implements ICommand {
 
 		if (commandOptions.includes('fo')) {
 			player = await new Promise<Player>((resolve, reject) => {
-				if(invokeMention)
+				if (invokeMention)
 					resolve(invokeMention);
 				const filter = (m: Discord.Message) => m.author.id == message.author.id;
 				message.channel.send('Mention the player you wish to grant the free invoke:');
 				// collector for confirmation
 				let collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 				collector.on('collect', m => {
-					let p = save.Players.find(p => p.id == ((m as Discord.Message).mentions.members?.first()?.id) );
+					let p = save.Players.find(p => p.id == ((m as Discord.Message).mentions.members?.first()?.id));
 					if (p == undefined)
 						reject('Could not find player mention, or that player has no sheet.');
 					resolve(p);
