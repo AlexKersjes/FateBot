@@ -1,5 +1,5 @@
 import { ICommands, ICommand } from "../command";
-import { Games } from '../app';
+import { Games, executing } from '../app';
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
@@ -75,10 +75,11 @@ function ConfirmUnloadCurrentGame(currentlyLoaded: SaveGame | undefined, message
 			return resolve();
 		let collector: Discord.MessageCollector;
 		const filter = (m: Discord.Message) => m.author.id == message.author.id;
-		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded. **Are you sure you wish to start a new game?**\n${currentlyLoaded.Password ? '' : `Game "${currentlyLoaded.GameName}" is not password protected.`}`);
+		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded. **Are you sure you wish to start a new game?**\n${currentlyLoaded.Password ? '' : `Game "${currentlyLoaded.GameName}" is not password protected:`}`).then(m => executing.get(message.author.id)?.push(m));
 		// collector for confirmation
 		collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 		collector.on('collect', m => {
+			executing.get(message.author.id)?.push(m);
 			if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
 				reject('Cancelled starting a new game.');
 			else {
@@ -98,10 +99,11 @@ async function getModeInput(message : Discord.Message) : Promise<string>{
 	return new Promise(async (resolve, reject) => {
 		let collector: Discord.MessageCollector;
 		const filter = (m: Discord.Message) => m.author.id == message.author.id;
-		await message.channel.send('Please select a version of Fate as a base ruleset. You can further customize once the game is created.\ne.g. Core, Accelerated, Condensed')
+		await message.channel.send('Please select a version of Fate as a base ruleset. You can further customize once the game is created.\ne.g. Core, Accelerated, Condensed:').then(m => executing.get(message.author.id)?.push(m));
 			// collector for confirmation
 			collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 			collector.on('collect', m => {
+				executing.get(message.author.id)?.push(m);
 				return resolve( (m as Discord.Message).content);
 			})
 			// timeout message

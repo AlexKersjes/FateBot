@@ -83,20 +83,23 @@ export class charselectCommand implements ICommand {
 				if (charToLoad == undefined)
 					throw Error(`Could not find match for "${matchString}" in ${folder.FolderName}.`)
 
-				if (loadedCharacter != undefined) {
-					const response = (await getGenericResponse(message, `Do you wish to icebox ${loadedCharacter.FractalName}?\n'Cancel' will cancel the procedure.\n'Yes' or 'y' will store in the default folder.\n'No' will have your current character overwritten and lost.\nOther responses will try to match an existing folder to store the character:`)).toLowerCase();
-					if (response == 'cancel')
-						throw Error('Aborted loading procedure.');
-					else if (response == 'yes' || response == 'y')
-						message.channel.send(IceBoxProcedure(save, player, undefined));
-					else if (response != 'no')
-						message.channel.send(IceBoxProcedure(save, player, response.split(' ')[0]));
+				if (!(commandOptions.includes('a')||commandOptions.includes('c')||commandOptions.includes('s'))) {
+					if (loadedCharacter != undefined) {
+						const response = (await getGenericResponse(message, `Do you wish to icebox ${loadedCharacter.FractalName}?\n'Cancel' will cancel the procedure.\n'Yes' or 'y' will store in the default folder.\n'No' will have your current character overwritten and lost.\nOther responses will try to match an existing folder to store the character:`)).toLowerCase();
+						if (response == 'cancel')
+							throw Error('Aborted loading procedure.');
+						else if (response == 'yes' || response == 'y')
+							message.channel.send(IceBoxProcedure(save, player, undefined));
+						else if (response != 'no')
+							message.channel.send(IceBoxProcedure(save, player, response.split(' ')[0]));
+					}
 				}
+
 
 				if (!commandOptions.includes('cp')) {
 					folder.Contents.splice(folder.Contents.indexOf(charToLoad), 1);
 				}
-				else{
+				else {
 					commandOptions = commandOptions.replace('cp', '');
 					charToLoad = deepCopy(charToLoad);
 				}
@@ -124,23 +127,23 @@ export class charselectCommand implements ICommand {
 			case 'switch':
 				args = args.slice(1);
 				return swapProcedure(player, args);
-			case 'ls' :
-			case 'list' :
+			case 'ls':
+			case 'list':
 				let str = '';
 				const GM = save.Options.GMCheck(message.author.id);
-				save.Folders.forEach(f =>{
-					if(GM || save.Options.PlayerPermittedFolders.includes(f.FolderName)){
+				save.Folders.forEach(f => {
+					if (GM || save.Options.PlayerPermittedFolders.includes(f.FolderName)) {
 						str += `${f.FolderName}:\n`
 						f.Contents.forEach(a => str += `   ${a.FractalName}\n`)
-						if(str.length > 2000){
+						if (str.length > 2000) {
 							message.channel.send(str);
 							str = '';
 						}
 					}
 				});
 				return str;
-			case 'mv' :
-			case 'move' :
+			case 'mv':
+			case 'move':
 				throw Error('Move is not implemented yet.');
 		}
 
@@ -150,7 +153,7 @@ export class charselectCommand implements ICommand {
 
 }
 
-function 	IceBoxProcedure(save: SaveGame, player: Player, folderstring: string | undefined): string {
+function IceBoxProcedure(save: SaveGame, player: Player, folderstring: string | undefined): string {
 	let character = player.CurrentCharacter;
 	if (character == undefined)
 		throw Error('Nothing to icebox.');
@@ -176,14 +179,17 @@ function swapProcedure(player: Player, args: string[]) {
 			player.CurrentCharacter.Aspects.splice(player.CurrentCharacter.Aspects.indexOf(fractal[0]));
 			fractal[0].Aspects.unshift(player.CurrentCharacter);
 			player.CurrentCharacter = fractal[0];
+			break;
 		case 's':
 			player.CurrentCharacter.Stunts.splice(player.CurrentCharacter.Stunts.indexOf(fractal[0]));
 			fractal[0].Stunts.unshift(player.CurrentCharacter);
 			player.CurrentCharacter = fractal[0];
+			break;
 		case 'c':
 			player.CurrentCharacter.Conditions.splice(player.CurrentCharacter.Conditions.indexOf(fractal[0]));
 			fractal[0].Conditions.unshift(player.CurrentCharacter);
 			player.CurrentCharacter = fractal[0];
+			break;
 	}
 	return `"${player.CurrentCharacter.FractalName}" is now ${player}'s current character.`;
 }
@@ -223,9 +229,9 @@ function iceboxFractalFromSheet(commandOptions: string, player: Player, args: st
 			throw Error('Could not find matching Aspect/Fractal to icebox.');
 		player.CurrentCharacter.Stunts.splice(player.CurrentCharacter.Stunts.indexOf(match), 1);
 	}
-	if(!commandOptions.includes('r') || !(match instanceof FateFractal)){
+	if (!commandOptions.includes('r') || !(match instanceof FateFractal)) {
 		folder.add(match);
-		return(`Iceboxed ${match?.FractalName} in ${folder.FolderName}.`)
+		return (`Iceboxed ${match?.FractalName} in ${folder.FolderName}.`)
 	}
-	return(`Removed fractal ${match.FractalName} from ${player.CurrentCharacter}'s sheet.`)
+	return (`Removed fractal ${match.FractalName} from ${player.CurrentCharacter}'s sheet.`)
 }

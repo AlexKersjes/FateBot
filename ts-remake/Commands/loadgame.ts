@@ -2,7 +2,7 @@ import { ICommands, ICommand } from "../command";
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
-import { Games } from '../app';
+import { Games, executing } from '../app';
 
 @ICommands.register
 export class loadgameCommand implements ICommand {
@@ -11,7 +11,7 @@ export class loadgameCommand implements ICommand {
 	description: string = 'Load an existing game by name.';
 	helptext: string | undefined;
 	admin: boolean = true;
-	GM : boolean = false;
+	GM: boolean = false;
 	args: boolean = true;
 	aliases: string[] | undefined = ['gameload', 'gload'];
 	cooldown: number | undefined = 20;
@@ -31,18 +31,18 @@ export class loadgameCommand implements ICommand {
 		}
 
 		// Check if game is already running elsewhere
-		if(Games.some((g, k) => g.GameName == args[0]) && args[0] != save?.GameName)
+		if (Games.some((g, k) => g.GameName == args[0]) && args[0] != save?.GameName)
 			throw Error('That game is already running on a different server.')
-		
+
 
 		const buffer = await SaveGame.load(args[0]);
 
 		// Prevent unintentionally leaving a game open
-		await noPasswordGuard(currentlyLoaded, message, guildId, buffer).catch(err => {throw Error(err)});
+		await noPasswordGuard(currentlyLoaded, message, guildId, buffer).catch(err => { throw Error(err) });
 		// Password procedure for to be loaded game
-		await buffer.passConfirm(message).then(res => {if(!res) throw Error('Invalid Password.')}).catch(err => {throw err});
+		await buffer.passConfirm(message).then(res => { if (!res) throw Error('Invalid Password.') }).catch(err => { throw err });
 		currentlyLoaded?.save();
-		
+
 		// Normal loading procedure.
 		buffer.Options.CustomPrefix = save?.Options.CustomPrefix || undefined;
 		Games.set(guildId, buffer);
@@ -53,27 +53,27 @@ export class loadgameCommand implements ICommand {
 
 function noPasswordGuard(currentlyLoaded: SaveGame | undefined, message: Discord.Message, guildId: string, buffer: SaveGame) {
 	// Prevent going further if the game has no password set unless explicit confirmation is given.
-	
+
 	return new Promise<string>((resolve, reject) => {
 		if (currentlyLoaded?.Password != "")
-			resolve();
-		else {
-			let collector: Discord.MessageCollector;
-			const filter = (m: Discord.Message) => m.author.id == message.author.id;
-			message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`);
-			collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
-			collector.on('collect', m => {
-				if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
-					reject('Loading cancelled.');
-				else {
-					resolve();
-					}
-			});
-			collector.on('end', (s, r) => {
-				if (r == 'time')
-					reject('Confirmation timed out.');
-			});
+			return resolve();
+		let collector: Discord.MessageCollector;
+		const filter = (m: Discord.Message) => m.author.id == message.author.id;
+		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`).then(m => executing.get(message.author.id)?.push(m));
+		collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
+		collector.on('collect', m => {
+			executing.get(message.author.id)?.push(m);
+			if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
+				reject('Loading cancelled.');
+			else {
+				resolve();
+			}
+		});
+		collector.on('end', (s, r) => {
+			if (r == 'time')
+				reject('Confirmation timed out.');
+		});
 
-		}
+
 	});
 }

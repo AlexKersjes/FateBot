@@ -1,5 +1,6 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
+import { Stunt } from '../dataelements'
 
 @ICommands.register
 export class invokeCommand implements ICommand {
@@ -12,23 +13,53 @@ export class invokeCommand implements ICommand {
 	args: boolean = true;
 	aliases: string[] | undefined = ['i'];
 	cooldown: number | undefined;
-	async execute(message: Message, args: string[], client: Client, save?: import("../savegame").SaveGame ): Promise<void> {
-		const argsfiltered = args.filter(s => s.startsWith('-') == false);
-		const Player = save?.Players.find(i => i.id == message.author.id);
-		let invokable = Player?.CurrentCharacter?.FindInvokable(argsfiltered.join(' '));
-		if(invokable == undefined)
-		{
+	async execute(message: Message, args: string[], client: Client, save: import("../savegame").SaveGame): Promise<string> {
+		let argsfiltered = args.filter(s => s.startsWith('-') == false);
+		let User = message.mentions.users.last();
+		if (User?.bot)
+			User = undefined;
+		if (User == undefined)
+			User = message.author;
+		const TargetPlayer = save.getOrCreatePlayerById(User.id);
+		const TargetCharacter = TargetPlayer.CurrentCharacter;
+		const OperatingPlayer = save.getOrCreatePlayerById(User.id);
+		const OperatingCharacter = OperatingPlayer.CurrentCharacter;
+		argsfiltered = argsfiltered.filter(a => !a.startsWith('<@'));
+		const matchstring = argsfiltered.join(' ');
+		let invokable = TargetCharacter?.FindInvokable(matchstring);
+		if (invokable == undefined) {
 			// find an invokable situation aspect
-			save
-
-			throw Error('No matching invokable found.');
+			invokable = save.Channels.FindDiscordChannel(message.channel).situation.FindInvokable(matchstring);
+			if (invokable == undefined)
+				throw Error('No matching invokable found.');
 		}
 		let returnmessage = '';
-		if(!invokable.TryFreeInvoke(message.author.id))
-		{
-			// TODO take fate points
+		if (!invokable.TryFreeInvoke(OperatingPlayer.id)) {
+			if (!TargetCharacter)
+				throw Error(`${TargetPlayer} requires a character sheet.`)
+			if (OperatingCharacter && !save.Options.GMCheck(OperatingPlayer.id))
+				if (OperatingCharacter.FatePoints < invokable.InvokeCost) {
+					if (!save.Options.GMCheck(OperatingPlayer.id))
+						throw Error(`${OperatingPlayer} could not spend ${invokable.InvokeCost} Fate points.`)
+				}
+				else {
+					if (invokable.InvokeCost != 0) {
+						returnmessage += `Spending ${invokable.InvokeCost} Fate points, `;
+						OperatingCharacter.FatePoints -= invokable.InvokeCost;
+					}
+				}
 		}
-		// TODO send a return message;
+		else {
+			if(invokable.InvokeCost != 0)
+				returnmessage += `Spending a free Invoke, `;
+		}
+		returnmessage += `${OperatingPlayer} ${invokable instanceof Stunt ? 'used' : 'invoked'} **${invokable.Name}**`;
+		if(invokable.BonusShifts > 0){
+			returnmessage += `, for a **[ +${invokable.BonusShifts} ]** bonus`;
+			// TODO actually hook up the bonus to the roll system.
+		}
+		returnmessage += '.';
+		return returnmessage;
 	}
 
 }

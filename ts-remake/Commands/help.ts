@@ -14,7 +14,7 @@ export class helpCommand implements ICommand {
 	cooldown: number | undefined;
 	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save?: import("../savegame").SaveGame | undefined): Promise<void> {
 		if (!args[0]) {
-			message.channel.send('Use this command with a command name or alias (or use the optional argument --h in a command) to view a detailed description of the command.\nUse the command "commandlist" to view commands available to you.\nCreate a new game with "start"\nSetting a custom prefix with "options" is recommended.');
+			message.channel.send('Use this command with a command name or alias (or use the optional argument --h in a command) to view a detailed description of the command.\nUse the command "commandlist" to view commands available to you.\nCreate a new game with "start"\nSetting a custom prefix with "options" is recommended.\nGM\'s may mention players in a command to execute commands on their behalf.');
 			return;
 		}
 

@@ -5,8 +5,8 @@ import "reflect-metadata";
 import { FateOptions } from './options';
 export class FateFractal {
 	FractalName: string;
-	FatePoints: number | undefined;
-	Refresh: number | undefined
+	FatePoints: number;
+	Refresh: number;
 	@Type(() => Aspect)
 	HighConcept: Aspect | undefined;
 	@Type(() => Aspect)
@@ -50,18 +50,29 @@ export class FateFractal {
 	Skills: SkillList[] = [];
 	CurrentLocation: string | undefined;
 	imgUrl: string | undefined;
-	NPC : boolean = false;
+	NPC: boolean;
 
-	constructor(Name: string, Options?: FateOptions, Prototype?: FateFractal) {
+	constructor(Name: string, Options?: FateOptions, NPC: boolean = false, Prototype?: FateFractal) {
 		this.FractalName = Name;
+		this.NPC = NPC;
 		if (Options)
 			this.Skills.push(new SkillList(Options))
+		if (NPC) {
+			this.FatePoints = 0;
+			this.Refresh = 0;
+		}
+		else {
+			this.FatePoints = 3;
+			this.Refresh = 3;
+		}
+
 		if (Prototype) {
 			const cp = deepCopy(Prototype)
 			cp.FractalName = Name;
 			this
 			return cp;
 		}
+
 	}
 
 	FindInvokable(input: string): InvokableObject | undefined {
@@ -76,7 +87,7 @@ export class FateFractal {
 
 	}
 
-	private FindInvokables(recursive : boolean): InvokableObject[] {
+	private FindInvokables(recursive: boolean): InvokableObject[] {
 		let result = new Array<InvokableObject>(0);
 		if (this.HighConcept)
 			result.push(this.HighConcept);
@@ -98,7 +109,7 @@ export class FateFractal {
 	}
 
 	FindMarkable(input: string): MarkableObject | undefined {
-		try{
+		try {
 			const Markables = this.FindMarkables(true);
 			return FilterElement(Markables, input);
 		}
@@ -109,7 +120,7 @@ export class FateFractal {
 
 	}
 
-	private FindMarkables(recursive : boolean): MarkableObject[] {
+	private FindMarkables(recursive: boolean): MarkableObject[] {
 		const result = new Array<MarkableObject>();
 
 		this.Tracks.forEach(a => {
@@ -123,16 +134,16 @@ export class FateFractal {
 		return result;
 	}
 
-	FindFractal(input : string) : [FateFractal, string] | undefined {
-		let Fractals : [FateFractal, string][] = [];
-		
-		this.Aspects.forEach(a => {if(a instanceof FateFractal) Fractals.push([a, 'a'])});
-		this.Stunts.forEach(a => {if(a instanceof FateFractal) Fractals.push([a, 's'])});
-		this.Conditions.forEach(a => {if(a instanceof FateFractal) Fractals.push([a, 'c'])});
+	FindFractal(input: string): [FateFractal, string] | undefined {
+		let Fractals: [FateFractal, string][] = [];
+
+		this.Aspects.forEach(a => { if (a instanceof FateFractal) Fractals.push([a, 'a']) });
+		this.Stunts.forEach(a => { if (a instanceof FateFractal) Fractals.push([a, 's']) });
+		this.Conditions.forEach(a => { if (a instanceof FateFractal) Fractals.push([a, 'c']) });
 
 		Fractals = Fractals.filter(f => f[0].match(input));
-		if(Fractals.length == 1) return Fractals[0];
-		if(Fractals.length == 0) return undefined;
+		if (Fractals.length == 1) return Fractals[0];
+		if (Fractals.length == 0) return undefined;
 		let errstring = 'Too many Fractals matched. Matches:';
 		Fractals.forEach(a => errstring += `\n   ${a[0].FractalName}`);
 		throw Error(errstring);
@@ -140,15 +151,13 @@ export class FateFractal {
 
 
 
-	match(input: string) : boolean
-	{
+	match(input: string): boolean {
 		let regStr = '.*';
 		for (let i = 0; i < input.length; i++) {
-			regStr +=  `${input[i]}.*`;
+			regStr += `${input[i]}.*`;
 		}
 		const expression = new RegExp(regStr, 'g');
-		if(this.FractalName.match(expression) == null)
-		{
+		if (this.FractalName.match(expression) == null) {
 			return false;
 		}
 		return true;

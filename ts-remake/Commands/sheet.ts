@@ -98,10 +98,12 @@ function detailembed<T extends Atom>(character : FateFractal, member : Discord.G
 			}
 			let cost = '';
 			if(IsInvokable(element)){
-				if(element instanceof Stunt)
+				if(element instanceof Stunt){
 					cost = element.InvokeCost == 0 ? '' : `Cost: ${element.InvokeCost},`;
+					// TODO make this bit of the sheet more clear.
+				}
 				else
-					cost = element.InvokeCost == 1 ? '' : `Cost: ${element.InvokeCost},`
+					cost = element.InvokeCost == 1 ? '' : `Cost: ${element.InvokeCost},`;
 			}
 			let boxes = '';
 			if(IsMarkable(element)){

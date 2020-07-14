@@ -35,6 +35,7 @@ catch (error) {
 
 
 const cooldowns = new Discord.Collection<string, Discord.Collection<string, [number, number]>>();
+export const executing = new Discord.Collection<string, Discord.Message[]>();
 
 client.once('ready', () => {
 	console.log('Ready');
@@ -53,7 +54,7 @@ client.on('message', message => {
 	{
 		const argsstring = message.content.startsWith(`<@!${client.user?.id}>`) ? message.content.slice(message.content.indexOf(' ') + 1) : message.content.slice(CustomPrefix?.length ?? prefix.length);
 		const args = argsstring.split(/ +/);
-		console.log(args[0] + (args[1] ? ` ${args[1]}` : ''));
+		console.log(args.join(' '));
 		const commandName = args.shift()?.toLowerCase();
 
 		if (!commandName)
@@ -74,17 +75,21 @@ client.on('message', message => {
 		if (!command) { return; }
 
 		// Several permission checks defined by command properties
+		if(executing.has(id))
+			return;
+		executing.set(id, []);
 		checkPermissions(command, message, savegame, id, args)
 		.then(msg => command.execute(msg, args, client, savegame), err => { throw Error(err as string); })
 		// Command Execution
 		.then(result => {
 			if(typeof result === 'string')
 				message.channel?.send(result);
-			(message as Discord.Message).delete()
+			executing.get(id)?.push((message as Discord.Message));
+			message.channel?.bulkDelete(executing.get(id) ?? []);
 		}).catch(err => {
 			console.log(err);
 			message.channel?.send((err as Error).message);
-		});
+		}).finally(() => executing.delete(id));
 
 
 	}
@@ -129,10 +134,9 @@ function checkPermissions(command: ICommand, message: Discord.Message, savegame:
 
 		// Check Args requirement
 		if (command.args && !args.length) {
-			message.channel.send('This command requires additional input.');
-			return Commands.get('help')?.execute(message, [command.name], client, savegame).catch(err => {
-				message.channel?.send((err as Error).message);
-			});
+			reject('This command requires additional input.');
+			Commands.get('help')?.execute(message, [command.name], client, savegame);
+			return;
 		}
 
 		// Check save presence

@@ -8,8 +8,10 @@ export class ChannelDictionary
 	@Type(() => Channel)
 	Channels = new Array<Channel>();
 
-	FindDiscordChannel(channel : Discord.TextChannel) : Channel
+	FindDiscordChannel(channel : Discord.TextChannel | Discord.DMChannel) : Channel
 	{
+		if(channel instanceof Discord.DMChannel)
+			throw Error('Channel structure does not extend to DM channels.')
 		let c = this.Channels.find(c => c.id === channel.id);
 		if (c == undefined){
 			c = new Channel(channel);

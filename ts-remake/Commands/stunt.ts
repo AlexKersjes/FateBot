@@ -10,7 +10,7 @@ import { HelpText } from "./_CommandHelp";
 @ICommands.register
 export class stuntCommand implements ICommand {
 	name: string = 'stunt';
-	description: string = 'Create or modify stunts. Use options, prefixed by `-` for manipulation.';
+	description: string = 'Create or modify Stunts. Use options, prefixed by `-` for manipulation.';
 	helptext: string | undefined = HelpText.stunt;
 	admin: boolean = false;
 	GM = false;
@@ -89,13 +89,13 @@ export class stuntCommand implements ICommand {
 			Numbers = [];
 			if (commandOptions.includes('c') && !commandOptions.includes('r')) {
 				const number = parseInt(await getGenericResponse(message, 'Provide a cost amount:'));
-				if (!isNaN(number))
+				if (isNaN(number))
 					throw Error('Expected a number.');
 				Numbers.push(number);
 			}
 			if (commandOptions.includes('b') && !commandOptions.includes('r')) {
 				const number = parseInt(await getGenericResponse(message, 'Provide a bonus amount:'));
-				if (!isNaN(number))
+				if (isNaN(number))
 					throw Error('Expected a number.');
 				Numbers.push(number);
 			}
@@ -106,6 +106,9 @@ export class stuntCommand implements ICommand {
 		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide a Stunt name:')).split(' ');
 		const StuntName = args.join(' ');
+		if(StuntName.toLowerCase() == 'cancel' || StuntName.toLowerCase() == 'stop')
+			throw Error('Cancelled Stunt creation.');
+
 
 		// See if there are existing stunts that match
 		const matched: Stunt[] = [];
@@ -136,7 +139,7 @@ export class stuntCommand implements ICommand {
 
 			const extraInvokeString = `${extraInvokes == 0 ? '' : ` ${extraInvokes} free use${extraInvokes > 1 ? 's' : ''}.`}`;
 			fractal.Stunts.push(stunt);
-			return `Added Stunt "${stunt.Name}"${stunt.Description ? `, "${stunt.Description}"` : ''}.${extraInvokeString}`;
+			return `Added Stunt "${stunt.Name}"${stunt.Description ? `, "*${stunt.Description}*"` : ''}.${extraInvokeString}`;
 		}
 		else if (matched.length == 1) {
 			const MatchedStunt = matched[0];

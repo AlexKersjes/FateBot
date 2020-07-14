@@ -6,6 +6,7 @@ import * as Discord from 'discord.js'
 import { Condition, ConditionSeverity, BoxCondition, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
 import { HelpText } from "./_CommandHelp";
+import { executing } from "../app";
 
 @ICommands.register
 export class conditionCommand implements ICommand {
@@ -19,10 +20,6 @@ export class conditionCommand implements ICommand {
 	aliases: string[] | undefined = ['c', 'con'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
-		let player = save.getPlayerAuto(message);
-		let invokeMention: Player | undefined = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
-		if (invokeMention == player)
-			invokeMention = undefined;
 		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
@@ -32,6 +29,26 @@ export class conditionCommand implements ICommand {
 			}
 			return true;
 		});
+
+		let player;
+		let invokeMention: Player | undefined
+		try{
+			player = save.getPlayerAuto(message);
+		}
+		catch(err){
+			if(!commandOptions.includes('f'))
+				throw err;
+			player = save.getOrCreatePlayerById(message.author.id);
+		}
+		try{
+			invokeMention = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
+		}
+		catch{
+			invokeMention = undefined;
+		}
+		
+		if (invokeMention == player)
+			invokeMention = undefined;
 
 
 
@@ -65,14 +82,17 @@ export class conditionCommand implements ICommand {
 					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
 				}
 				else
-					throw Error('Aspect deletion cancelled');
+					throw Error('Condition deletion cancelled');
 			}
 		}
 
 		// Put the string back together without prefixes.
 		if (args.length == 0)
-			args = await (await getGenericResponse(message, 'Please provide an Condition name:')).split(' ');
+			args = await (await getGenericResponse(message, 'Please provide a Condition name:')).split(' ');
 		const ConditionName = args.join(' ');
+		if(ConditionName.toLowerCase() == 'cancel' || ConditionName.toLowerCase() == 'stop')
+			throw Error('Cancelled Aspect creation.')
+
 
 		// See if there are existing conditions that match
 		const matched: (Condition | BoxCondition)[] = [];
@@ -111,12 +131,13 @@ export class conditionCommand implements ICommand {
 		if (commandOptions.includes('fo')) {
 			player = await new Promise<Player>((resolve, reject) => {
 				if (invokeMention)
-					resolve(invokeMention);
+					return resolve(invokeMention);
 				const filter = (m: Discord.Message) => m.author.id == message.author.id;
-				message.channel.send('Mention the player you wish to grant the free invoke:');
+				message.channel.send('Mention the player you wish to grant the free invoke:').then(m => executing.get(message.author.id)?.push(m));
 				// collector for confirmation
 				let collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 				collector.on('collect', m => {
+					executing.get(message.author.id)?.push(m);
 					let p = save.getPlayerAuto(m);
 					if (p == undefined)
 						reject('Could not find player mention, or that player has no sheet.');

@@ -6,6 +6,7 @@ import * as Discord from 'discord.js'
 import { Aspect, Boost, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
 import { HelpText } from "./_CommandHelp";
+import { executing } from "../app";
 
 @ICommands.register
 export class aspectCommand implements ICommand {
@@ -19,11 +20,6 @@ export class aspectCommand implements ICommand {
 	aliases: string[] | undefined = ['a'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
-		let player = save.getPlayerAuto(message);
-		let invokeMention: Player | undefined = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
-		if (invokeMention == player)
-			invokeMention = undefined;
-		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
 			if (a.startsWith('-')) {
@@ -32,6 +28,27 @@ export class aspectCommand implements ICommand {
 			}
 			return true;
 		});
+		
+		let player;
+		let invokeMention: Player | undefined;
+		try{
+			player = save.getPlayerAuto(message);
+		}
+		catch(err){
+			if(!commandOptions.includes('f'))
+				throw err;
+			player = save.getOrCreatePlayerById(message.author.id);
+		}
+		try{
+			invokeMention = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
+		}
+		catch{
+			invokeMention = undefined;
+		}
+
+		if (invokeMention == player)
+			invokeMention = undefined;
+		args = args.filter(a => !a.startsWith('<@'));
 
 		let fractal: FateFractal;
 
@@ -72,6 +89,8 @@ export class aspectCommand implements ICommand {
 		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide an Aspect name:')).split(' ');
 		const AspectName = args.join(' ');
+		if(AspectName.toLowerCase() == 'cancel' || AspectName.toLowerCase() == 'stop')
+			throw Error('Cancelled Aspect creation.')
 
 		// See if there are existing Aspects that match
 		let matchCategory = 'a';
@@ -92,12 +111,13 @@ export class aspectCommand implements ICommand {
 		if (commandOptions.includes('fo')) {
 			player = await new Promise<Player>((resolve, reject) => {
 				if (invokeMention)
-					resolve(invokeMention);
+					return resolve(invokeMention);
 				const filter = (m: Discord.Message) => m.author.id == message.author.id;
-				message.channel.send('Mention the player you wish to grant the free invoke:');
+				message.channel.send('Mention the player you wish to grant the free invoke:').then(m => executing.get(message.author.id)?.push(m));
 				// collector for confirmation
 				let collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 				collector.on('collect', m => {
+					executing.get(message.author.id)?.push(m);
 					let p = save.Players.find(p => p.id == ((m as Discord.Message).mentions.members?.first()?.id));
 					if (p == undefined)
 						reject('Could not find player mention, or that player has no sheet.');
@@ -200,13 +220,13 @@ export class aspectCommand implements ICommand {
 					case 'a':
 						fractal.HighConcept = MatchedAspect;
 						fractal.Aspects.splice(fractal.Aspects.indexOf(MatchedAspect), 1);
-						return `${MatchedAspect.Name} was set as High Concept.`;
+						return `"${MatchedAspect.Name}" was set as High Concept.`;
 					case 'c':
-						return `${MatchedAspect.Name} is already your High Concept.`;
+						return `"${MatchedAspect.Name}" is already your High Concept.`;
 					case 't':
 						fractal.HighConcept = MatchedAspect;
 						fractal.Trouble = undefined;
-						return `${MatchedAspect.Name} was set as High Concept.`;
+						return `"${MatchedAspect.Name}" was set as High Concept.`;
 				}
 			}
 			else if (commandOptions.includes('t')) {
@@ -214,19 +234,19 @@ export class aspectCommand implements ICommand {
 					case 'a':
 						fractal.Trouble = MatchedAspect;
 						fractal.Aspects.splice(fractal.Aspects.indexOf(MatchedAspect), 1);
-						return `${MatchedAspect.Name} was set as Trouble.`;
+						return `"${MatchedAspect.Name}" was set as Trouble.`;
 					case 't':
-						return `${MatchedAspect.Name} is already your Trouble.`;
+						return `"${MatchedAspect.Name}" is already your Trouble.`;
 					case 'c':
 						fractal.Trouble = MatchedAspect;
 						fractal.HighConcept = undefined;
-						return `${MatchedAspect.Name} was set as Trouble.`;
+						return `"${MatchedAspect.Name}" was set as Trouble.`;
 				}
 			}
 			else if (commandOptions.includes('a')) {
 				switch (matchCategory) {
 					case 'a':
-						return `${MatchedAspect.Name} is already an Aspect.`;
+						return `"${MatchedAspect.Name}" is already an Aspect.`;
 					case 't':
 						fractal.Trouble = undefined;
 						break;
@@ -235,7 +255,7 @@ export class aspectCommand implements ICommand {
 						break;
 				}
 				fractal.Aspects.push(MatchedAspect);
-				return `${MatchedAspect.Name} was downgraded to regular Aspect.`;
+				return `"${MatchedAspect.Name}" was downgraded to regular Aspect.`;
 
 			}
 			else throw Error(`Found "${MatchedAspect.Name}"${MatchedAspect.Description ? `, "${MatchedAspect.Description}"` : ''}.\nUse options to interact.`)
