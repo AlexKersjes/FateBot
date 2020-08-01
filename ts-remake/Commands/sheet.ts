@@ -1,127 +1,67 @@
 import { ICommands, ICommand } from "../command";
-import { Message, Client, DiscordAPIError } from "discord.js";
-import { Player, SaveGame } from "../savegame";
+import { Message, Client } from "discord.js";
+import { SaveGame } from "../savegame";
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js';
-import { Atom, MarkableObject, IsInvokable, Stunt, IsMarkable, IsCondition, ConditionSeverity, Aspect, Boost } from "../dataelements";
-import { SkillList } from "../skills";
+import { Aspect } from "../dataelements";
 import { getGenericResponse } from "../tools";
+import { sheetembed, detailembed } from "../embeds";
 
 @ICommands.register
 export class sheetCommand implements ICommand
 {
 	requireSave: boolean = true;
 	name: string = 'sheet';
-	description: string = 'Create or display a character sheet.';
+	description: string = 'Create or display a character sheet. `sheet -s` to display the current situation.';
 	helptext: string | undefined;
 	admin: boolean = false;
 	GM : boolean = false;
 	args: boolean = false;
-	aliases: string[] | undefined = ['s'];
+	aliases: string[] | undefined = ['sh'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		const player = save?.getPlayerAuto(message);
 		args = args.filter(i => !i.startsWith('<@'));
 		let character = player.CurrentCharacter;
-		if(args[0] == 'situation' || args[0] == '-s')
-			character = save.Channels.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
+		if(args.includes('situation') || args.includes('-s'))
+			character = save.ChannelDictionary.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
+		
+		let permanent = false;
+		args = args.filter(a => {
+			if(!['-p', 'perm', 'permanent'].includes(a))
+				return true;
+			permanent = true;
+			return false
+		});
+
+
 		if(character == undefined){
 			if(!args[0])
 				args = await (await getGenericResponse(message, 'Please provide a character name:')).split(' ');
-			player.CurrentCharacter = new FateFractal(args.join(' '), save.Options);
+			player.CurrentCharacter = new FateFractal(args.join(' '), save.Options, save.Options.GMCheck(player.id));
 			character = player.CurrentCharacter;
 			message.channel.send('Created a new character sheet.');	
+			save.dirty();
 		}
 		let member : Discord.GuildMember | undefined | null = message.guild?.member(player.id);
 		if(!member)
 			throw Error('Could not find GuildMember');
 		const mss = await message.channel.send(sheetembed(character, member))
-		createlistener(mss, client, character, member);
+		character.subscribeSheet(mss, member);
+		createlistener(mss, client, character, member, permanent);
 	}
 }
 
-// default character sheet layout
-function sheetembed(character : FateFractal, member : Discord.GuildMember)
-{
-	const embed = new Discord.MessageEmbed()
-		.setColor(member.displayColor)
-		.setTitle(`**${character.FractalName}**`);
-	if(character.HighConcept) { embed.setDescription(`the ***${character.HighConcept.Name}***`); }
-	if(character.Trouble) { embed.addField('Trouble', `${character.Trouble.Name}`); }
-	if(character.Aspects.length != 0 || !character.NPC)
-	{
-		embed.addField('Aspects', namesFromArray(character.Aspects))
-			.addBlankField();
-	}
-	if(character.Stunts.length != 0 || !character.NPC) {embed.addField('Stunts', namesFromArray(character.Stunts), true);}
-	if(character.Conditions.length != 0) { embed.addField('Conditions', namesFromArray(character.Conditions), true); }
-	if(character.Tracks.length != 0) {embed.addBlankField();}
-	character.Tracks.forEach(boxaspect =>
-	{
-		embed.addField(boxaspect.Name, boxaspect.BoxesString(), true);
-	},
-	);
-	if(character.Skills[0] != undefined)
-	{
-		const skills : SkillList = character.Skills[0];
 
-		embed.addBlankField()
-			.addField(skills.ListName, skills.toString());
-	}
-	embed.setThumbnail(character.imgUrl ? character.imgUrl : member.user.avatarURL() || '');
-	return embed;
-}
 
-function detailembed<T extends Atom>(character : FateFractal, member : Discord.GuildMember, pageName : string, contents : Array<T | Array<T | FateFractal>>)
-{
-	const embed = new Discord.MessageEmbed()
-		.setColor(member.displayColor)
-		.setThumbnail(character.imgUrl ? character.imgUrl : member.user.avatarURL() || '')
-		.setTitle(character.FractalName)
-		.setDescription(`${pageName}:`);
-	
-	const flatcontents =  contents.flat();
-	flatcontents.forEach(element =>
-		{
-			if (element instanceof FateFractal)
-			{
-				embed.addField(element.FractalName, 'Fractal');
-				return;
-			}
-			if(element instanceof Boost){
-				embed.addField(element.Name, 'Boost')
-				return;
-			}
-			let severity = '';
-			if(IsCondition(element)){
-				severity =` <${ConditionSeverity[element.Severity]}>`;
-			}
-			let cost = '';
-			if(IsInvokable(element)){
-				if(element instanceof Stunt){
-					cost = element.InvokeCost == 0 ? '' : `Cost: ${element.InvokeCost},`;
-					// TODO make this bit of the sheet more clear.
-				}
-				else
-					cost = element.InvokeCost == 1 ? '' : `Cost: ${element.InvokeCost},`;
-			}
-			let boxes = '';
-			if(IsMarkable(element)){
-				boxes = element.BoxesString() + ': ';
-			}
-			embed.addField(`${boxes}${cost}${element.Name}:${severity}`, element.Description ? element.Description : 'No description');
-		});
-	return embed;
-}
-
-async function createlistener(message : Discord.Message, client : Discord.Client, character : FateFractal, member : Discord.GuildMember)
+async function createlistener(message : Discord.Message, client : Discord.Client, character : FateFractal, member : Discord.GuildMember, permanent : boolean)
 {
 	const filter = (reaction : Discord.MessageReaction, user : Discord.User) =>
 	{
 		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨' || reaction.emoji.name == '⏹️') && user.id != client.user?.id;
 	};
 
-	const collector = message.createReactionCollector(filter, { time: 180000 });
+	const collector = message.createReactionCollector(filter, permanent ? {} : { time: 180000 } );
 
 	collector.on('collect', (reaction, user) =>
 	{
@@ -149,8 +89,10 @@ async function createlistener(message : Discord.Message, client : Discord.Client
 				message.edit(detailembed(character, member, 'Details', [character.Details]));
 			break;
 		case '⏹️' :
-			message.reactions.removeAll();
-			collector.stop();
+			if(!permanent){
+				message.reactions.removeAll();
+				collector.stop();
+			}
 		}
 
 		reaction.users.remove(user);
@@ -159,6 +101,7 @@ async function createlistener(message : Discord.Message, client : Discord.Client
 
 	collector.on('end', collected =>
 	{
+		character.unsubscribeSheet(message);
 		message.reactions.removeAll();
 	});
 
@@ -167,10 +110,11 @@ async function createlistener(message : Discord.Message, client : Discord.Client
 		await message.react('🏠');
 		if(character.Details)
 			await message.react('🇩');
-		if(character.Aspects.length > 0 || character.HighConcept ||character.Trouble) {await message.react('🇦');}
-		if(character.Stunts.length > 0) {await message.react('🇸');}
+		await message.react('🇦');
+		await message.react('🇸');
 		if(character.Conditions.length > 0) {await message.react('🇨');}
-		await message.react('⏹️');
+		if (!permanent)
+			await message.react('⏹️');
 	}
 	catch
 	{
@@ -178,27 +122,3 @@ async function createlistener(message : Discord.Message, client : Discord.Client
 	}
 }
 
-// utility functions below
-function namesFromArray<T extends Atom>(array: Array<T | FateFractal>)
-{
-	if (array.length == 0)
-	{ return 'None'; }
-	
-	let string = '';
-	array.forEach(i =>
-	{
-		if (i instanceof FateFractal)
-		{
-			string += i.FractalName;
-		}
-		else
-		{
-			if(i.Hidden)
-				string += '[HIDDEN]'
-			else
-				string += i.Name;
-		}
-		string += '\n';
-	});
-	return string;
-}

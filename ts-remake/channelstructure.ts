@@ -1,5 +1,5 @@
 import * as Discord from 'discord.js';
-import { Exclude, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { RollContest } from './rollcontest';
 import { FateFractal } from './fatefractal';
 
@@ -92,16 +92,17 @@ export class ChannelDictionary
 	}
 }
 
-class Channel {
+export class Channel {
 	id : string;
 	name : string;
 	defaulttimeout : number = 0;
+	@Type(() => FateFractal)
 	private _situation : FateFractal | undefined;
 	private connections : [string, number, boolean][] = [];
-	@Exclude()
+	@Type(() => RollContest)
 	contest : RollContest | undefined;
 
-	constructor(channel : Discord.TextChannel)
+	constructor(channel : Discord.TextChannel = ({id: '0', name: 'broken'} as Discord.TextChannel))
 	{
 		this.id = channel.id;
 		this.name = channel.name;
@@ -109,7 +110,7 @@ class Channel {
 
 	get situation () : FateFractal{
 		if(this._situation == undefined){
-			this._situation = new FateFractal('Situation');
+			this._situation = new FateFractal(`Situation ${this.name}`);
 			this._situation.NPC = true;
 			this._situation.Skills = [];
 		}

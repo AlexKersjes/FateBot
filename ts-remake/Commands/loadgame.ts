@@ -2,8 +2,7 @@ import { ICommands, ICommand } from "../command";
 import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
-import { Games, executing } from '../app';
-
+import { Games, ClientResources } from "../singletons";
 @ICommands.register
 export class loadgameCommand implements ICommand {
 	requireSave: boolean = false;
@@ -31,7 +30,7 @@ export class loadgameCommand implements ICommand {
 		}
 
 		// Check if game is already running elsewhere
-		if (Games.some((g, k) => g.GameName == args[0]) && args[0] != save?.GameName)
+		if (Games.getAll().some((g, k) => g.GameName == args[0]) && args[0] != save?.GameName)
 			throw Error('That game is already running on a different server.')
 
 
@@ -59,10 +58,10 @@ function noPasswordGuard(currentlyLoaded: SaveGame | undefined, message: Discord
 			return resolve();
 		let collector: Discord.MessageCollector;
 		const filter = (m: Discord.Message) => m.author.id == message.author.id;
-		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`).then(m => executing.get(message.author.id)?.push(m));
+		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`).then(m => ClientResources.Executing.get(message.author.id)?.push(m));
 		collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 		collector.on('collect', m => {
-			executing.get(message.author.id)?.push(m);
+			ClientResources.Executing.get(message.author.id)?.push(m);
 			if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
 				reject('Loading cancelled.');
 			else {

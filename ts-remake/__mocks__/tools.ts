@@ -6,12 +6,12 @@ export class responseQueue {
 	static FromQueue() : string | undefined {return responseQueue.queue.shift()};
 }
 
-export async function getGenericResponse(message: Discord.Message, prompt: string): Promise<string> {
+export function getGenericResponse(message: Discord.Message, prompt: string): Promise<string> {
 	return new Promise<string>((resolve, reject) => {
 		let response = responseQueue.FromQueue();
-		if(response)
-			return resolve(response);
-		reject('empty queue')
+		if(!response)
+			return reject('empty queue')
+	 	return resolve(response);
 
 	}).catch(err => { throw err });
 }

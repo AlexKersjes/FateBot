@@ -1,12 +1,15 @@
 import Discord = require('discord.js');
 import * as fs from 'fs';
 import { deepCopy } from './fatefractal';
-import { Type, classToClass } from 'class-transformer';
+import { Type, Exclude } from 'class-transformer';
 import { FateOptions, FateVersion } from './options';
 import { ChannelDictionary } from './channelstructure';
 import { serialize , deserialize } from 'class-transformer';
 import { FateFractal } from './fatefractal';
 export class SaveGame {
+	@Exclude()
+	private _dirty : boolean = false;
+
 	GameName: string;
 	Password: string = '';
 	CurrentGuild: string | undefined;
@@ -18,7 +21,7 @@ export class SaveGame {
 	@Type(() =>FateOptions)
 	Options: FateOptions;
 	@Type(() => ChannelDictionary)
-	Channels: ChannelDictionary = new ChannelDictionary();
+	ChannelDictionary: ChannelDictionary = new ChannelDictionary();
 
 	constructor(GameName: string, CurrentGuild : string, version : FateVersion) {
 		this.GameName = GameName;
@@ -28,6 +31,9 @@ export class SaveGame {
 	}
 
 	async save() : Promise<void> {
+		if(!this._dirty)
+			return;
+		this._dirty = false;
 		let copySave : SaveGame = deepCopy(this);
 		let copyString = serialize(copySave);
 		fs.writeFileSync(`${process.env.SAVEPATH}${this.GameName}game.json`, copyString, 'utf-8');
@@ -85,6 +91,16 @@ export class SaveGame {
 		return this.getOrCreatePlayerById(message.author.id);
 	}
 
+	getChannelAuto(message: Discord.Message)
+	{
+		return this.ChannelDictionary.FindDiscordChannel(message.channel);
+	}
+
+	getContestAuto(message: Discord.Message)
+	{
+		this.getChannelAuto(message).contest
+	}
+
 	getOrCreatePlayerById(UserId: string | undefined) {
 		if(UserId == undefined)
 			throw Error('A player Id is required.')
@@ -94,6 +110,10 @@ export class SaveGame {
 			this.Players.push(p);
 		}
 		return p;
+	}
+
+	dirty() {
+		this._dirty = true;
 	}
 }
 
@@ -172,7 +192,6 @@ export class defaultServerObject {
 		}
 	}
 
-	constructor() {}
 }
 
 

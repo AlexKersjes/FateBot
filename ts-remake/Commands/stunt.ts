@@ -16,9 +16,10 @@ export class stuntCommand implements ICommand {
 	GM = false;
 	args: boolean = true;
 	requireSave: boolean = true;
-	aliases: string[] | undefined = ['st'];
+	aliases: string[] | undefined = ['s', 'x'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
+		let skipFinally = false;
 		const player = save.getPlayerAuto(message);
 		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
@@ -30,18 +31,21 @@ export class stuntCommand implements ICommand {
 			return true;
 		});
 
+		let situationCommand = false;
 		let fractal: FateFractal;
 
 		// Get situation instead
 		if (commandOptions.includes('s')) {
 			if (!save.Options.GMCheck(message.author.id) && save.Options.RequireGMforSituationAccess)
 				throw Error('GM permission is needed to directly change situation stunts. (Can be disabled in settings.)');
-			fractal = save.Channels.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
+			fractal = save.ChannelDictionary.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
 		}
 		else {
 			if (!player.CurrentCharacter)
 				throw Error(`${player} has no character selected.`);
 			fractal = player.CurrentCharacter;
+			commandOptions.replace('s', '');
+			situationCommand = true;
 		}
 
 		if (commandOptions.includes('r')) {
@@ -57,6 +61,8 @@ export class stuntCommand implements ICommand {
 				const response = await (await getGenericResponse(message, prompt)).toLowerCase();
 				if (response == 'yes' || response == 'y') {
 					fractal.Stunts.splice(fractal.Stunts.indexOf(toBeDeleted), 1);
+					save.dirty();
+					fractal.updateActiveSheets();
 					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
 				}
 				else
@@ -68,6 +74,8 @@ export class stuntCommand implements ICommand {
 		if (commandOptions.includes('c'))
 			expectedNumbers++;
 		if (commandOptions.includes('b'))
+			expectedNumbers++;
+		if (commandOptions.includes('u'))
 			expectedNumbers++;
 		let Numbers: number[] = []
 
@@ -99,6 +107,12 @@ export class stuntCommand implements ICommand {
 					throw Error('Expected a number.');
 				Numbers.push(number);
 			}
+			if (commandOptions.includes('u') && !commandOptions.includes('r')) {
+				const number = parseInt(await getGenericResponse(message, 'Provide the number of free uses after refresh:'))
+				if (isNaN(number))
+					throw Error('Expected a number.')
+				Numbers.push(number);
+			}
 		}
 
 
@@ -106,7 +120,7 @@ export class stuntCommand implements ICommand {
 		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide a Stunt name:')).split(' ');
 		const StuntName = args.join(' ');
-		if(StuntName.toLowerCase() == 'cancel' || StuntName.toLowerCase() == 'stop')
+		if (StuntName.toLowerCase() == 'cancel' || StuntName.toLowerCase() == 'stop')
 			throw Error('Cancelled Stunt creation.');
 
 
@@ -118,72 +132,92 @@ export class stuntCommand implements ICommand {
 		});
 
 		// If there are no matches, create a new Stunt.
-		if (matched.length == 0) {
-			if (commandOptions.includes('r'))
-				throw Error('No matches found.');
+		try {
+			if (matched.length == 0) {
+				if (commandOptions.includes('r'))
+					throw Error('No matches found.');
 
 
-			const description = await getGenericResponse(message, 'Give the Stunt a description:');
-			const stunt = new Stunt(StuntName, description);
-			if (commandOptions.includes('c'))
-				stunt.InvokeCost = Numbers.shift() ?? 0;
-			if (commandOptions.includes('b'))
-				stunt.BonusShifts = Numbers.shift() ?? 2;
-
-			const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
-			if (extraInvokes > 0) {
-				for (let i = 0; i < extraInvokes; i++) {
-					stunt.AddFreeInvoke(player.id);
+				const description = await getGenericResponse(message, 'Give the Stunt a description:');
+				const stunt = new Stunt(StuntName, description);
+				if (commandOptions.includes('c'))
+					stunt.InvokeCost = Numbers.shift() ?? 0;
+				if (commandOptions.includes('b'))
+					stunt.BonusShifts = Numbers.shift() ?? 2;
+				if (commandOptions.includes('u')) {
+					const num = Numbers.shift() ?? 0;
+					stunt.Refresh = num < 0 ? 0 : num;
 				}
-			}
 
-			const extraInvokeString = `${extraInvokes == 0 ? '' : ` ${extraInvokes} free use${extraInvokes > 1 ? 's' : ''}.`}`;
-			fractal.Stunts.push(stunt);
-			return `Added Stunt "${stunt.Name}"${stunt.Description ? `, "*${stunt.Description}*"` : ''}.${extraInvokeString}`;
-		}
-		else if (matched.length == 1) {
-			const MatchedStunt = matched[0];
-
-			const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
-			if (extraInvokes > 0) {
-				for (let i = 0; i < extraInvokes; i++) {
-					MatchedStunt.AddFreeInvoke(player.id);
+				const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
+				if (extraInvokes > 0) {
+					for (let i = 0; i < extraInvokes; i++) {
+						stunt.AddFreeInvoke(player.id);
+					}
 				}
-				message.channel.send(`Added ${extraInvokes} free use${extraInvokes > 1 ? 's' : ''} to ${MatchedStunt.Name}.`);
-				if (commandOptions.length == extraInvokes)
-					return;
-			}
 
-			if (commandOptions.includes('c') && !commandOptions.includes('r'))
-				MatchedStunt.InvokeCost = Numbers.shift() ?? 0;
-			if (commandOptions.includes('b') && !commandOptions.includes('r'))
-				MatchedStunt.BonusShifts = Numbers.shift() ?? 2;
+				const extraInvokeString = `${extraInvokes == 0 ? '' : ` ${extraInvokes} free use${extraInvokes > 1 ? 's' : ''}.`}`;
+				fractal.Stunts.push(stunt);
+				return `Added Stunt "${stunt.Name}"${stunt.Description ? `, "*${stunt.Description}*"` : ''}${situationCommand ? ' to the situation' : ''}.${extraInvokeString}`;
+			}
+			else if (matched.length == 1) {
+				const MatchedStunt = matched[0];
 
-			if (commandOptions.includes('d')) {
-				MatchedStunt.Description = await getGenericResponse(message, `Edit the description of ${MatchedStunt.Name}:`);
-				return `The description of "${MatchedStunt.Name}" is now "${MatchedStunt.Description}".`;
-			}
-			else if (commandOptions.includes('i')) {
-				throw Error('Stunt use via this command is not supported yet.'); // TODO
-			}
-			else if (commandOptions.includes('r')) {
-				const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${MatchedStunt.Name}?`)).toLowerCase();
-				if (response == 'yes' || response == 'y') {
-					fractal.Stunts.splice(fractal.Stunts.indexOf(MatchedStunt), 1);
-					return `${MatchedStunt.Name} was deleted.`;
+				const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
+				if (extraInvokes > 0) {
+					for (let i = 0; i < extraInvokes; i++) {
+						MatchedStunt.AddFreeInvoke(player.id);
+					}
+					commandOptions.replace('f', '');
+					message.channel.send(`Added ${extraInvokes} free use${extraInvokes > 1 ? 's' : ''} to ${MatchedStunt.Name}.`);
+					if (commandOptions.length == 0)
+						return;
 				}
-				else
-					return 'Cancelled Stunt deletion.';
+
+				if (commandOptions.includes('c') && !commandOptions.includes('r'))
+					MatchedStunt.InvokeCost = Numbers.shift() ?? 0;
+				if (commandOptions.includes('b') && !commandOptions.includes('r'))
+					MatchedStunt.BonusShifts = Numbers.shift() ?? 2;
+				if (commandOptions.includes('u') && !commandOptions.includes('r')) {
+					const num = Numbers.shift() ?? 0;
+					MatchedStunt.Refresh = num < 0 ? 0 : num;
+				}
+
+				if (commandOptions.includes('d')) {
+					MatchedStunt.Description = await getGenericResponse(message, `Edit the description of ${MatchedStunt.Name}:`);
+					return `The description of "${MatchedStunt.Name}" is now "${MatchedStunt.Description}".`;
+				}
+				else if (commandOptions.includes('i')) {
+					throw Error('Stunt use via this command is not supported yet.'); // TODO
+				}
+				else if (commandOptions.includes('r')) {
+					const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${MatchedStunt.Name}?`)).toLowerCase();
+					if (response == 'yes' || response == 'y') {
+						fractal.Stunts.splice(fractal.Stunts.indexOf(MatchedStunt), 1);
+						return `${MatchedStunt.Name} was deleted.`;
+					}
+					else
+						return 'Cancelled Stunt deletion.';
+				}
+				else throw Error(`Found "${MatchedStunt.Name}"${MatchedStunt.Description ? `, "${MatchedStunt.Description}"` : ''}.\nUse options to interact.`)
+
 			}
-			else throw Error(`Found "${MatchedStunt.Name}"${MatchedStunt.Description ? `, "${MatchedStunt.Description}"` : ''}.\nUse options to interact.`)
-
+			else {
+				let errstring = 'Too many Stunts matched. Matches:';
+				matched.forEach(a => errstring += `\n   ${a.Name}`);
+				throw Error(errstring);
+			}
 		}
-		else {
-			let errstring = 'Too many Stunts matched. Matches:';
-			matched.forEach(a => errstring += `\n   ${a.Name}`);
-			throw Error(errstring);
+		catch (err) {
+			skipFinally = true;
+			throw err;
 		}
-
+		finally {
+			if (!skipFinally) {
+				fractal.updateActiveSheets();
+				save.dirty();
+			}
+		}
 	}
 
 }

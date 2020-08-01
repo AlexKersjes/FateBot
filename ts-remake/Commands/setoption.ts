@@ -1,4 +1,7 @@
 import { ICommands, ICommand } from "../command";
+import { getGenericResponse } from "../tools";
+import { Aspect } from "../dataelements";
+import { FateFractal } from "../fatefractal";
 
 @ICommands.register
 class setoptionCommand implements ICommand{
@@ -12,6 +15,7 @@ class setoptionCommand implements ICommand{
 	aliases: string[] | undefined = ['option', 'options', 'o'];
 	cooldown: number | undefined;
 	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save: import("../savegame").SaveGame): Promise<void | string> {
+		save.dirty();
 		switch (args[0].toLowerCase())
 		{
 			case 'customprefix' :
@@ -32,6 +36,34 @@ class setoptionCommand implements ICommand{
 					return `${user} now has GM permission.`
 				else
 					return `${user} no longer has GM permission.`
+			case 'conditions' :
+			case 'useconditions' :
+				if(save.Options.UseConditions){
+					const response = await getGenericResponse(message, 'Are you sure you wish to disable Conditions? All Conditions currently applied to characters will be transformed in to regular Aspects:')
+					if(response.toLowerCase() == 'yes' || response.toLowerCase() == 'y'){
+						save.Players.forEach(p => {
+							p.CurrentCharacter?.convertConditionsToAspects();
+						});
+						save.ChannelDictionary.Channels.forEach(p => {
+							p.situation.convertConditionsToAspects();
+						});
+					}
+
+					else{throw Error('Cancelled disabling and removing Conditions.')}
+
+				}
+				
+				save.Options.UseConditions = !save.Options.UseConditions;
+				return (`Conditions are now ${save.Options.UseConditions ? 'enabled' : 'disabled'}.`);
+			case 'notifications' :
+			case 'turn' :
+			case 'turns' :
+			case 'turnnotifications' :
+				const input = args[1] ?? await getGenericResponse(message, 'Specify a notification type. Choose DM or Channel. Other inputs will default to None.');
+				return save.Options.notificationType(input);
+			case 'prefill' :
+			case 'prefillskills':
+				return save.Options.prefillToggle();
 					
 		}
 		throw Error('Could not resolve operation.');

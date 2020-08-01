@@ -5,37 +5,18 @@ import './Commands/_CommandLibrary';
 import { ICommand, ICommands } from './command';
 import { SaveGame, defaultServerObject } from "./savegame";
 import { deserialize } from "class-transformer";
+import { ClientResources, Games } from "./singletons";
 const dotenv = require('dotenv');
 dotenv.config();
 const prefix = process.env.PREFIX || '.';
-const client = new Discord.Client({ 'messageCacheMaxSize': 2000 });
-
+const client = ClientResources.Client;
+Games.initialize();
 export const Commands = new Discord.Collection<string, ICommand>();
-export const Games = new Discord.Collection<string, SaveGame>();
-
 importCommands();
-
-export let DefaultServers: defaultServerObject = new defaultServerObject();
-
-try {
-	DefaultServers = deserialize(defaultServerObject, fs.readFileSync(`${process.env.SAVEPATH}defaultservers.json`, 'utf-8'));
-}
-catch (error) {
-	console.log(error);
-}
-
-try {
-	console.log('Loading default games');
-	DefaultServers.loadAll(Games);
-}
-catch (error) {
-	console.log('error during loading default games');
-	console.log(error);
-}
 
 
 const cooldowns = new Discord.Collection<string, Discord.Collection<string, [number, number]>>();
-export const executing = new Discord.Collection<string, Discord.Message[]>();
+const executing = ClientResources.Executing; 
 
 client.once('ready', () => {
 	console.log('Ready');

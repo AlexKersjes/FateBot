@@ -6,7 +6,7 @@ import * as Discord from 'discord.js'
 import { Condition, ConditionSeverity, BoxCondition, Atom } from "../dataelements";
 import { getGenericResponse } from "../tools";
 import { HelpText } from "./_CommandHelp";
-import { executing } from "../app";
+import { ClientResources } from "../singletons";
 
 @ICommands.register
 export class conditionCommand implements ICommand {
@@ -20,6 +20,9 @@ export class conditionCommand implements ICommand {
 	aliases: string[] | undefined = ['c', 'con'];
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
+		let skipFinally = false;
+		if (!save.Options.UseConditions)
+			throw Error('Conditions are disabled. To use conditions, enable them.');
 		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
@@ -32,33 +35,35 @@ export class conditionCommand implements ICommand {
 
 		let player;
 		let invokeMention: Player | undefined
-		try{
+		try {
 			player = save.getPlayerAuto(message);
 		}
-		catch(err){
-			if(!commandOptions.includes('f'))
+		catch (err) {
+			if (!commandOptions.includes('f'))
 				throw err;
 			player = save.getOrCreatePlayerById(message.author.id);
 		}
-		try{
+		try {
 			invokeMention = save.getOrCreatePlayerById(message.mentions.users.last()?.id);
 		}
 		catch{
 			invokeMention = undefined;
 		}
-		
+
 		if (invokeMention == player)
 			invokeMention = undefined;
 
 
-
+		let situationCommand = false;
 		let fractal: FateFractal;
 
 		// Get situation instead
 		if (commandOptions.includes('s') && !commandOptions.includes('se')) {
 			if (!save.Options.GMCheck(message.author.id) && save.Options.RequireGMforSituationAccess)
 				throw Error('GM permission is needed to directly change situation Conditions. (Can be disabled in settings.)');
-			fractal = save.Channels.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
+			fractal = save.ChannelDictionary.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
+			commandOptions.replace('s', '');
+			situationCommand = true;
 		}
 		else {
 			if (!player.CurrentCharacter)
@@ -79,6 +84,7 @@ export class conditionCommand implements ICommand {
 				const response = await (await getGenericResponse(message, prompt)).toLowerCase();
 				if (response == 'yes' || response == 'y') {
 					fractal.Conditions.splice(fractal.Conditions.indexOf(toBeDeleted), 1);
+					fractal.updateActiveSheets();
 					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
 				}
 				else
@@ -86,11 +92,50 @@ export class conditionCommand implements ICommand {
 			}
 		}
 
+
+		let expectedNumbers = 0;
+		if (commandOptions.includes('c'))
+			expectedNumbers++;
+		if (commandOptions.includes('b'))
+			expectedNumbers++;
+		let Numbers: number[] = []
+
+		// Filter out numbers unless none are expected
+		if (expectedNumbers > 0) {
+			const argsCopy: string[] = [];
+			args.forEach(a => {
+				const parsed = parseInt(a);
+				if (!isNaN(parsed))
+					Numbers.push(parsed);
+				else
+					argsCopy.push(a);
+			});
+			args = argsCopy;
+		}
+
+
+		if (Numbers.length != expectedNumbers) {
+			Numbers = [];
+			if (commandOptions.includes('c') && !commandOptions.includes('r')) {
+				const number = parseInt(await getGenericResponse(message, 'Provide a cost amount:'));
+				if (isNaN(number))
+					throw Error('Expected a number.');
+				Numbers.push(number);
+			}
+			if (commandOptions.includes('b') && !commandOptions.includes('r')) {
+				const number = parseInt(await getGenericResponse(message, 'Provide a bonus amount:'));
+				if (isNaN(number))
+					throw Error('Expected a number.');
+				Numbers.push(number);
+			}
+		}
+
+
 		// Put the string back together without prefixes.
 		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide a Condition name:')).split(' ');
 		const ConditionName = args.join(' ');
-		if(ConditionName.toLowerCase() == 'cancel' || ConditionName.toLowerCase() == 'stop')
+		if (ConditionName.toLowerCase() == 'cancel' || ConditionName.toLowerCase() == 'stop')
 			throw Error('Cancelled Aspect creation.')
 
 
@@ -103,7 +148,7 @@ export class conditionCommand implements ICommand {
 
 		let Severity: ConditionSeverity = ConditionSeverity.Fleeting;
 		if (commandOptions.includes('m') || commandOptions.includes('se')) {
-			const response = await getGenericResponse(message, 'Provide the Condition Severity:');
+			const response = await getGenericResponse(message, 'Provide the Condition Severity (None, Fleeting, Sticky, Lasting):');
 			let regStr = '.*';
 			for (let i = 0; i < response.length; i++) {
 				regStr += `${response[i]}.*`;
@@ -133,11 +178,11 @@ export class conditionCommand implements ICommand {
 				if (invokeMention)
 					return resolve(invokeMention);
 				const filter = (m: Discord.Message) => m.author.id == message.author.id;
-				message.channel.send('Mention the player you wish to grant the free invoke:').then(m => executing.get(message.author.id)?.push(m));
+				message.channel.send('Mention the player you wish to grant the free invoke:').then(m => ClientResources.Executing.get(message.author.id)?.push(m));
 				// collector for confirmation
 				let collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
 				collector.on('collect', m => {
-					executing.get(message.author.id)?.push(m);
+					ClientResources.Executing.get(message.author.id)?.push(m);
 					let p = save.getPlayerAuto(m);
 					if (p == undefined)
 						reject('Could not find player mention, or that player has no sheet.');
@@ -153,94 +198,107 @@ export class conditionCommand implements ICommand {
 		}
 
 		// If there are no matches, create a new Condition.
-		if (matched.length == 0) {
-			if (commandOptions.includes('r'))
-				throw Error('No matches found.');
+		try {
+			if (matched.length == 0) {
+				if (commandOptions.includes('r'))
+					throw Error('No matches found.');
 
-			// Prompt a description is the D flag is set;
-			let description;
-			if (commandOptions.includes('d') && !commandOptions.includes('b'))
-				description = await getGenericResponse(message, 'Give the Condition a description:');
-			let newCondition: Condition | BoxCondition = new Condition(ConditionName, Severity, description);
-			if (commandOptions.includes('b'))
-				newCondition = new BoxCondition(ConditionName, Severity, boxes, description);
+				// Prompt a description is the D flag is set;
+				let description;
+				if (commandOptions.includes('d') && !commandOptions.includes('b'))
+					description = await getGenericResponse(message, 'Give the Condition a description:');
+				let newCondition: Condition | BoxCondition = new Condition(ConditionName, Severity, description);
+				if (commandOptions.includes('b'))
+					newCondition = new BoxCondition(ConditionName, Severity, boxes, description);
 
 
-			const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
-			if (extraInvokes > 0) {
-				for (let i = 0; i < extraInvokes; i++) {
-					newCondition.AddFreeInvoke(player.id);
+				const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
+				if (extraInvokes > 0) {
+					for (let i = 0; i < extraInvokes; i++) {
+						newCondition.AddFreeInvoke(player.id);
+					}
 				}
+
+
+				const extraInvokeString = `${extraInvokes == 0 ? '' : ` ${extraInvokes} free invoke${extraInvokes > 1 ? 's' : ''}.`}`;
+				let boxesString = '';
+				if (newCondition instanceof BoxCondition)
+					boxesString = newCondition.BoxesString();
+				fractal.Conditions.push(newCondition);
+				return `Added Condition ${boxesString}"${newCondition.Name}" <${ConditionSeverity[newCondition.Severity]}>${newCondition.Description ? `, "${newCondition.Description}"${situationCommand ? ' to the situation' : ''}` : ''}.${extraInvokeString}`;
 			}
+			else if (matched.length == 1) {
+				let MatchedCondition: Condition | BoxCondition = matched[0];
 
+				let extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
+				if (extraInvokes > 0) {
+					for (let i = 0; i < extraInvokes; i++) {
+						MatchedCondition.AddFreeInvoke(player.id);
+					}
+					message.channel.send(`Added ${extraInvokes} free invoke${extraInvokes > 1 ? 's' : ''} to ${MatchedCondition.Name}.`);
+					commandOptions.replace(/fo?/ig, '');
+					if (commandOptions.length == 0)
+						return;
+				}
 
-			const extraInvokeString = `${extraInvokes == 0 ? '' : ` ${extraInvokes} free invoke${extraInvokes > 1 ? 's' : ''}.`}`;
-			let boxesString = '';
-			if (newCondition instanceof BoxCondition)
-				boxesString = newCondition.BoxesString();
-			fractal.Conditions.push(newCondition);
-			return `Added Condition ${boxesString}"${newCondition.Name}" <${ConditionSeverity[newCondition.Severity]}>${newCondition.Description ? `, "${newCondition.Description}"` : ''}.${extraInvokeString}`;
+				if (commandOptions.includes('m') || commandOptions.includes('se')) {
+					MatchedCondition.Severity = Severity;
+					message.channel.send(`The Severity of "${MatchedCondition.Name}" was set to ${ConditionSeverity[MatchedCondition.Severity]}.`);
+					commandOptions.replace('m', '');
+					commandOptions.replace('se', '');
+					if (commandOptions.length == 0)
+						return;
+				}
+
+				if (commandOptions.includes('b')) {
+					if (!(MatchedCondition instanceof BoxCondition)) {
+						const newBoxC = new BoxCondition(MatchedCondition.Name, MatchedCondition.Severity, boxes, MatchedCondition.Description);
+						fractal.Conditions[fractal.Conditions.indexOf(MatchedCondition)] = newBoxC;
+						MatchedCondition = newBoxC;
+					}
+					else {
+						MatchedCondition.SetMaxBoxes(boxes);
+					}
+					commandOptions.replace('b', '');
+					if (commandOptions.length == 0)
+						return;
+				}
+
+				if (commandOptions.includes('d')) {
+					MatchedCondition.Description = await getGenericResponse(message, `Edit the description of ${MatchedCondition.Name}:`);
+					return `The description of "${MatchedCondition.Name}" is now "${MatchedCondition.Description}".`;
+				}
+				else if (commandOptions.includes('i')) {
+					throw Error('Condition Aspect invocation via this command is not supported yet.'); // TODO
+				}
+				else if (commandOptions.includes('r')) {
+					const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${MatchedCondition.Name}?`)).toLowerCase();
+					if (response == 'yes' || response == 'y') {
+						fractal.Conditions.splice(fractal.Conditions.indexOf(MatchedCondition), 1);
+						save.dirty();
+						return `${MatchedCondition.Name} was deleted.`;
+					}
+					else
+						return 'Cancelled Condition deletion.';
+				}
+				else throw Error(`Found "${MatchedCondition.Name}"${MatchedCondition.Description ? `, "${MatchedCondition.Description}"` : ''}.\nUse options to interact.`)
+
+			}
+			else {
+				let errstring = 'Too many Conditions matched. Matches:';
+				matched.forEach(a => errstring += `\n   ${a.Name}`);
+				throw Error(errstring);
+			}
 		}
-		else if (matched.length == 1) {
-			let MatchedCondition: Condition | BoxCondition = matched[0];
-
-			let extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
-			if (extraInvokes > 0) {
-				for (let i = 0; i < extraInvokes; i++) {
-					MatchedCondition.AddFreeInvoke(player.id);
-				}
-				message.channel.send(`Added ${extraInvokes} free invoke${extraInvokes > 1 ? 's' : ''} to ${MatchedCondition.Name}.`);
-				if (commandOptions.length == extraInvokes)
-					return;
-			}
-
-			if (commandOptions.includes('m') || commandOptions.includes('se')) {
-				MatchedCondition.Severity = Severity;
-				message.channel.send(`The Severity of "${MatchedCondition.Name}" was set to ${ConditionSeverity[MatchedCondition.Severity]}.`);
-				if (commandOptions.includes('se'))
-					++extraInvokes;
-				if (commandOptions.length == ++extraInvokes)
-					return;
-			}
-
-			if (commandOptions.includes('b')) {
-				if (!(MatchedCondition instanceof BoxCondition)) {
-					const newBoxC = new BoxCondition(MatchedCondition.Name, MatchedCondition.Severity, boxes, MatchedCondition.Description);
-					fractal.Conditions[fractal.Conditions.indexOf(MatchedCondition)] = newBoxC;
-					MatchedCondition = newBoxC;
-				}
-				else {
-					MatchedCondition.SetMaxBoxes(boxes);
-				}
-				if (commandOptions.length == ++extraInvokes)
-					return;
-			}
-
-			if (commandOptions.includes('d')) {
-				MatchedCondition.Description = await getGenericResponse(message, `Edit the description of ${MatchedCondition.Name}:`);
-				return `The description of "${MatchedCondition.Name}" is now "${MatchedCondition.Description}".`;
-			}
-			else if (commandOptions.includes('i')) {
-				throw Error('Condition Aspect invocation via this command is not supported yet.'); // TODO
-			}
-			else if (commandOptions.includes('r')) {
-				const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${MatchedCondition.Name}?`)).toLowerCase();
-				if (response == 'yes' || response == 'y') {
-					fractal.Conditions.splice(fractal.Conditions.indexOf(MatchedCondition), 1);
-					return `${MatchedCondition.Name} was deleted.`;
-				}
-				else
-					return 'Cancelled Condition deletion.';
-			}
-			else throw Error(`Found "${MatchedCondition.Name}"${MatchedCondition.Description ? `, "${MatchedCondition.Description}"` : ''}.\nUse options to interact.`)
-
+		catch (err) {
+			skipFinally = true;
+			throw err;
 		}
-		else {
-			let errstring = 'Too many Conditions matched. Matches:';
-			matched.forEach(a => errstring += `\n   ${a.Name}`);
-			throw Error(errstring);
+		finally {
+			if (!skipFinally){
+				fractal.updateActiveSheets();
+				save.dirty();
+			}
 		}
-
 	}
-
 }

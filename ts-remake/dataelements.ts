@@ -1,7 +1,7 @@
 type Constructor<T = {}> = new (...args: any[]) => T;
-import { FateFractal } from './fatefractal';
+import { deepCopy } from './fatefractal';
 import { FateOptions } from './options';
-import { basename } from 'path';
+import { plainToClass } from 'class-transformer';
 
 export class Atom {
 	Name: string;
@@ -37,6 +37,7 @@ function Conditionable<TBase extends Constructor>(Base: TBase) {
 			super(...args);
 		}
 		Severity: ConditionSeverity = ConditionSeverity.Fleeting;
+
 	}
 }
 export enum ConditionSeverity {
@@ -146,13 +147,20 @@ function Markable<TBase extends Constructor>(Base: TBase) {
 			this._BoxMarks.forEach(bool => { if (bool) { total++ } });
 			return total;
 		}
+
+		StripProperties() : void {
+			delete this._BoxMarks;
+			delete this._BoxValues;
+		}
 	}
 }
 
 export function Invokable<TBase extends Constructor>(Base: TBase) {
 	return class extends Base {
 		BonusShifts: number = 2;
-		InvokeCost: number = 1;
+		private _invokeCost: number = 1;
+		get InvokeCost(){ return this._invokeCost };
+		set InvokeCost(value : number) { if (value < -1) value = -1; this._invokeCost = value; }
 		private FreeInvokes: string[] = [];
 		public TryFreeInvoke(UserId: string): boolean {
 			if (this.InvokeCost === 0)
@@ -206,6 +214,7 @@ export class Track extends Markable(Atom)
 }
 export class Stunt extends Invokable(Atom)
 {
+	Refresh: number = 0;
 	constructor(Name: string, Description : string) { super(Name, Description); this.InvokeCost = 0; this.BonusShifts = 2; }
 }
 export class Aspect extends Invokable(Atom)
@@ -228,8 +237,22 @@ export class Boost extends Aspect
 export class Condition extends Conditionable(Invokable(Atom))
 {
 	constructor(Name: string, Severity: ConditionSeverity, Description?: string) { super(Name, Description); this.Severity = Severity; }
+	
+	toAspect() : Aspect {
+		const cp = deepCopy<Condition>(this);
+		delete cp.Severity;
+		return (cp as Aspect);
+	}
 }
 export class BoxCondition extends Markable(Condition)
 {
 	constructor(Name: string, Severity: ConditionSeverity, Boxes: number, Description?: string) { super(Name, Severity, Description); this.SetMaxBoxes(Boxes); }
+
+	toAspect() : Aspect {
+		let cp = deepCopy<BoxCondition>(this);
+		cp = plainToClass(BoxCondition, cp);
+		cp.StripProperties();
+		delete cp.Severity;
+		return (cp as Aspect)
+	}
 }

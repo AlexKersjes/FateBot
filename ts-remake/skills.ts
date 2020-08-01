@@ -13,7 +13,7 @@ export class SkillList {
 			}
 			this.SkillPoints -= Amount;
 		}
-		const skill = this.FindSkill(Name);
+		const skill = this._FindSkill(Name);
 		if(skill == undefined)
 			throw Error(`No ${Options?.FateVersion == FateVersion.Accelerated? 'Approach' : 'Skill'} found by that name.`)
 		if (Options?.SkillMax) {
@@ -55,14 +55,25 @@ export class SkillList {
 		this.SortSkills();
 	}
 	
-	FindSkill(Name: string): Skill | undefined {
-		return this.Skills.find(s => s.Name.toLowerCase() === Name.toLowerCase());
+	FindSkill(Name :string ) : ReadOnlySkill | undefined {
+		return this._FindSkill(Name)
+	}
+
+	private _FindSkill(Name: string): Skill | undefined {
+		const matched = this.Skills.filter(s => s.match(Name));
+		if(matched.length == 1)
+			return matched[0];
+		if(matched.length == 0)
+			return undefined;
+		let errstring = 'Too many Skills matched. Matches:';
+		matched.forEach(a => errstring += `\n   ${a.Name}`);
+		throw Error(errstring);
 	}
 
 	SwapSkills(Name1:string, Name2:string)
 	{
-		const Skill1 = this.FindSkill(Name1);
-		const Skill2 = this.FindSkill(Name2);
+		const Skill1 = this._FindSkill(Name1);
+		const Skill2 = this._FindSkill(Name2);
 		if(Skill1 == undefined || Skill2 == undefined)
 			throw Error('One of the skills could not be found.')
 		const Rating1 = Skill1.Value;
@@ -100,7 +111,7 @@ export class SkillList {
 			return 'No Skills.';
 		this.SortSkills();
 		let currentValue = this.Skills[0].Value;
-		let str = `${currentValue > 0 ? '+'+ currentValue: '' } : `;
+		let str = `${currentValue > 0 ? '+'+ currentValue + ' : ': '' }`;
 		this.Skills.forEach(s => {
 			if(s.Value == 0)
 				return;
@@ -113,35 +124,14 @@ export class SkillList {
 		});
 		str.slice(0, -2);
 		if (str.length == 0)
-			return 'All Skills have value 0';
+			return 'Skills are set at 0';
 		return str;
 	}
 
 	constructor(Options: FateOptions = new FateOptions(FateVersion.Core), prefill: boolean = false){
 		this.ListName = (Options.FateVersion == FateVersion.Accelerated) ? 'Approaches' : 'Skills';
 		if (prefill) {
-			if(Options.DefaultSkills)
-			{
-				Options.DefaultSkills.forEach(s => {
-					this.Skills.unshift(new Skill(s, 0));
-				});
-			}
-			else
-			{
-				switch (Options.FateVersion)
-				{
-					case FateVersion.Accelerated:
-						this.Skills = [new Skill('Careful', 0), new Skill('Clever', 0), new Skill('Flashy', 0), new Skill('Forceful', 0),new Skill('Quick', 0), new Skill('Sneaky', 0)];
-						break;
-					case FateVersion.Condensed:
-						this.Skills.push(new Skill('Academics', 0));
-					case FateVersion.Core:
-						const list = ['Academics', 'Athletics', 'Burglary', 'Contacts', 'Crafts', 'Deceive', 'Drive', 'Empathy', 'Fight', 'Investigate', 'Lore', 'Notice', 'Physique', 'Provoke', 'Rapport', 'Resources', 'Shoot', 'Stealth', 'Will'];
-						list.forEach(i => this.Skills.push(new Skill(i, 0)));
-						break;
-					
-				}
-			}
+			Options.DefaultSkills.forEach(s => this.Skills.push(new Skill(s, 0)));
 		}
 	}
 }
@@ -150,8 +140,24 @@ class Skill {
 	readonly Name : string;
 	Value: number;
 	constructor(Name: string, Value: number) {
-		Name = Name.toLowerCase();
 		this.Name = Name[0].toUpperCase() + Name.slice(1);
 		this.Value = Value;
 	}
+
+	match(input: string): boolean {
+		let regStr = '.*';
+		for (let i = 0; i < input.length; i++) {
+			regStr += `${input[i]}.*`;
+		}
+		const expression = new RegExp(regStr, 'ig');
+		if (this.Name.match(expression) == null) {
+			return false;
+		}
+		return true;
+	}
+}
+
+export interface ReadOnlySkill {
+	readonly Name : string;
+	readonly Value : number;
 }

@@ -1,9 +1,11 @@
-import { SkillList } from './skills';
-import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost, Invokable } from './dataelements'
-import { Type } from 'class-transformer';
-import "reflect-metadata";
+import { SkillList, ReadOnlySkill } from './skills';
+import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
+import { Type, plainToClass, Exclude } from 'class-transformer';
 import { FateOptions } from './options';
+import { GuildMember, Message } from 'discord.js';
+import { sheetembed } from './embeds';
 export class FateFractal {
+
 	FractalName: string;
 	FatePoints: number;
 	Refresh: number;
@@ -52,11 +54,35 @@ export class FateFractal {
 	imgUrl: string | undefined;
 	NPC: boolean;
 
+	@Exclude()
+	private Member: GuildMember | undefined;
+	@Exclude()
+	private ActiveSheets : Message[] = [];
+	
+	subscribeSheet(message:Message, GuildMember: GuildMember) {
+		this.Member = GuildMember
+		if(this.ActiveSheets.includes(message))
+			return;
+		this.ActiveSheets.push(message);
+	}
+	unsubscribeSheet(message:Message) {
+		const index = this.ActiveSheets.indexOf(message);
+		if (index == -1)
+			return;
+		this.ActiveSheets.splice(index, 1);
+	}
+	updateActiveSheets() {
+		if(this.Member == undefined)
+			return;
+		const embed = sheetembed(this, this.Member)	
+		this.ActiveSheets.forEach(m => m.edit(embed));
+	}
+
 	constructor(Name: string, Options?: FateOptions, NPC: boolean = false, Prototype?: FateFractal) {
 		this.FractalName = Name;
 		this.NPC = NPC;
-		if (Options)
-			this.Skills.push(new SkillList(Options))
+		if (Options && !NPC)
+			this.Skills.push(new SkillList(Options, Options.PrefillSkills))
 		if (NPC) {
 			this.FatePoints = 0;
 			this.Refresh = 0;
@@ -67,12 +93,27 @@ export class FateFractal {
 		}
 
 		if (Prototype) {
-			const cp = deepCopy(Prototype)
+			const cp = plainToClass(FateFractal, deepCopy(Prototype))
 			cp.FractalName = Name;
 			this
 			return cp;
 		}
 
+	}
+
+	FindSkill (input: string) : ReadOnlySkill | undefined {
+		if(input == '')
+			return undefined;
+		let returnvalue = undefined;
+		this.Skills.find(skillList => {
+			const s = skillList.FindSkill(input);
+			if(s != undefined){
+				returnvalue = s;
+				return true;
+			}
+			return false;
+		});
+		return returnvalue;
 	}
 
 	FindInvokable(input: string): InvokableObject | undefined {
@@ -149,7 +190,16 @@ export class FateFractal {
 		throw Error(errstring);
 	}
 
-
+	convertConditionsToAspects() {
+		this.Conditions.forEach(c => {
+			if(c instanceof FateFractal)
+				this.Aspects.push(c);
+			else{
+				this.Aspects.push(c.toAspect());
+			}
+		});
+		this.Conditions = [];
+	}
 
 	match(input: string): boolean {
 		let regStr = '.*';

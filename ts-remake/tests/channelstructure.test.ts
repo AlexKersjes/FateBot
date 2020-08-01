@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { ChannelDictionary } from '../channelstructure';
 import * as Discord from 'discord.js';
 const Channels = new ChannelDictionary();

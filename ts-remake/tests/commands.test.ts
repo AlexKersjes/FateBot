@@ -1,15 +1,15 @@
-jest.mock('../tools')
+jest.mock('../tools');
 
+import 'reflect-metadata';
 import * as tools from '../tools';
-import * as g from '../savegame';
+import { SaveGame, Player } from '../savegame';
 import { FateVersion } from '../options';
 import { FateFractal } from '../fatefractal';
 import { Aspect } from '../dataelements';
 import { charselectCommand } from '../Commands/charselect'
 import * as Discord from 'discord.js';
 
-
-const game = new g.SaveGame('testy', '1234', FateVersion.Accelerated);
+const game = new SaveGame('testy', '1234', FateVersion.Accelerated);
 const fractal1 = new FateFractal('testy1', game.Options);
 const fractal2 = new FateFractal('testy2', game.Options);
 const fractal3 = new FateFractal('testy3', game.Options);
@@ -17,8 +17,8 @@ const fractal4 = new FateFractal('testy4', game.Options);
 const fractal5 = new FateFractal('testy5', game.Options);
 const fractal6 = new FateFractal('testy6', game.Options);
 
-const p  = new g.Player('7893');
-const p2 = new g.Player('6523');
+const p  = new Player('7893');
+const p2 = new Player('6523');
 p2.CurrentCharacter = fractal6;
 const c = p.CurrentCharacter = new FateFractal('Main Fractal');
 c.Aspects = [fractal1, new Aspect('Your mama\'s testin.'), fractal2];

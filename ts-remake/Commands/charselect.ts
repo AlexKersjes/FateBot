@@ -4,6 +4,8 @@ import { SaveGame, Player, Folder } from '../savegame';
 import { getGenericResponse } from "../tools";
 import { FateFractal, deepCopy } from "../fatefractal";
 import { HelpText } from "./_CommandHelp";
+import { Aspect } from "../dataelements";
+import { plainToClass } from "class-transformer";
 
 @ICommands.register
 export class charselectCommand implements ICommand {
@@ -101,7 +103,11 @@ export class charselectCommand implements ICommand {
 				}
 				else {
 					commandOptions = commandOptions.replace('cp', '');
-					charToLoad = deepCopy(charToLoad);
+					charToLoad = plainToClass(FateFractal, deepCopy(charToLoad));
+				}
+
+				if(!save.Options.UseConditions) {
+					charToLoad.convertConditionsToAspects();
 				}
 
 				if (commandOptions.includes('a') || commandOptions.includes('s') || commandOptions.includes('c')) {
@@ -116,6 +122,8 @@ export class charselectCommand implements ICommand {
 						return `"${charToLoad.FractalName}" was attached as an Stunt to "${loadedCharacter.FractalName}".`
 					}
 					else if (commandOptions.includes('c')) {
+						if(!save.Options.UseConditions)
+							throw Error('Conditions are disabled.')
 						loadedCharacter.Conditions.unshift(charToLoad);
 						return `"${charToLoad.FractalName}" was attached as an Condition to "${loadedCharacter.FractalName}".`
 					}

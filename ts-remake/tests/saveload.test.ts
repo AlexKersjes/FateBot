@@ -1,12 +1,10 @@
 import "reflect-metadata";
-import { classToPlain, classToClass, plainToClass, serialize, deserialize, ClassTransformOptions } from 'class-transformer';
+import { classToClass, serialize, deserialize } from 'class-transformer';
 import { SaveGame } from '../savegame';
 import 'fs';
-
-import * as Discord from 'discord.js';
 import { FateFractal } from "../fatefractal";
 import { Aspect, Track, Stunt, Condition, ConditionSeverity, BoxCondition } from "../dataelements";
-import { writeFileSync, readFileSync, fstat, unlinkSync, readdirSync } from "fs";
+import { writeFileSync, readFileSync, unlinkSync } from "fs";
 import { FateVersion } from "../options";
 
 process.env.SAVEPATH = './';

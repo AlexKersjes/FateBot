@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { FateFractal}  from '../fatefractal';
 import { Aspect, Condition, Track } from '../dataelements';
 import { FateOptions } from '../options';
