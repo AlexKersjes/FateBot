@@ -12,5 +12,8 @@ export * from './fate';
 export * from './aspect';
 export * from './stunt';
 export * from './condition';
+export * from './skill';
+export * from './detail';
 export * from './roll';
+export * from './target';
 export * from './invoke';

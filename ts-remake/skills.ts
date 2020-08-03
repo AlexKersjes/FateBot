@@ -29,7 +29,7 @@ export class SkillLibrary {
 		}
 	}
 
-	FindSkill(input: string, excludeList? : SkillList) : [ReadOnlySkill, SkillList] | undefined {
+	FindSkill(input: string, excludeList? : SkillList) : [Skill, SkillList] | undefined {
 		if(input == '')
 			return undefined;
 		let returnSkill = undefined;
@@ -84,10 +84,13 @@ export class SkillLibrary {
 	}
 
 	getActive(): SkillList | undefined {
-		if(!this.Lists[0])
-			return undefined;
 		return this.Lists[0];
 	}
+
+	setActive(list: SkillList) {
+		this.Lists.unshift(this.Lists.splice(this.Lists.indexOf(list), 1)[0]);
+	}
+	
 
 	rotate() {
 		const l = this.Lists.shift();
@@ -100,12 +103,12 @@ export class SkillLibrary {
 export class SkillList {
 	ListName : string;
 	private _skillPoints: number = -1;
-	@Type(() => Skill)
-	private _skills: Skill[] = [];
+	@Type(() => _Skill)
+	private _skills: _Skill[] = [];
 
 	get SkillPoints () {return this._skillPoints}
 	set SkillPoints (value : number) { if(value < -1) value = -1; this._skillPoints = value; }
-	get Skills() : ReadOnlySkill[] { return this._skills }
+	get Skills() : Skill[] { return this._skills }
 
 	match(input: string): boolean {
 		let regStr = '.*';
@@ -119,8 +122,8 @@ export class SkillList {
 		return true;
 	}
 
-	AdjustSkillValue(Skill: ReadOnlySkill, Amount: number, Options: FateOptions, UserId: string) {
-		const trueSkill = (Skill as Skill)
+	AdjustSkillValue(Skill: Skill, Amount: number, Options: FateOptions, UserId: string) {
+		const trueSkill = (Skill as _Skill)
 		if (this.SkillPoints != -1) {
 			if (Amount > this.SkillPoints) {
 				throw Error('Not enough skill points.')
@@ -148,12 +151,12 @@ export class SkillList {
 		this.SortSkills();
 	}
 	
-	AddSkill(Name: string, Value: number, Options?: FateOptions) : ReadOnlySkill
+	AddSkill(Name: string, Value: number, Options?: FateOptions) : Skill
 	{
 		if (this.SkillPoints != -1) {
 			try{this.AddSkillPoints(-Value)}catch{ throw Error('Not enough skill points.') };
 		}
-		const skill = new Skill(Name, Value);
+		const skill = new _Skill(Name, Value);
 		this._skills.unshift(skill);
 		if (Options?.SkillColumns) {
 			if (!this.CheckColumns()) {
@@ -167,16 +170,16 @@ export class SkillList {
 		return skill;
 	}
 
-	DeleteSkill(Skill: ReadOnlySkill) {
+	DeleteSkill(Skill: Skill) {
 		Skill.DisposeConnections();
-		this._skills.splice(this._skills.indexOf((Skill as Skill)), 1);
+		this._skills.splice(this._skills.indexOf((Skill as _Skill)), 1);
 	}
 	
-	FindSkill(Name :string) : ReadOnlySkill | undefined {
-		return (this._FindSkill(Name) as ReadOnlySkill)
+	FindSkill(Name :string) : Skill | undefined {
+		return (this._FindSkill(Name) as Skill)
 	}
 
-	private _FindSkill(Name: string): Skill | undefined {
+	private _FindSkill(Name: string): _Skill | undefined {
 		const matched = this._skills.filter(s => s.match(Name));
 		if(matched.length == 1)
 			return matched[0];
@@ -197,6 +200,7 @@ export class SkillList {
 		Skill1.Value = Skill2.Value;
 		Skill2.Value = Rating1;
 		this.SortSkills();
+		return [Skill1, Skill2];
 	}
 
 	AddSkillPoints(Value:number)
@@ -229,19 +233,23 @@ export class SkillList {
 		return true;
 	}
 
-	toString() : string {
+	
+	toString(neat: boolean = false) : string {
 		if(this._skills.length ==0)
 			return 'No Skills.';
 		this.SortSkills();
-		let currentValue = this._skills[0].Value;
+		let currentValue = this.Skills[0].Value;
 		let str = `${currentValue > 0 ? '+'+ currentValue + ' : ': '' }`;
+		if(currentValue == 0 && !neat)
+			str = `0 : `
 		this._skills.forEach(s => {
-			if(s.Value == 0)
+			if(s.Value == 0 && neat)
 				return;
 			if(s.Value < currentValue){
 				str = str.slice(0, -2);
 				currentValue = s.Value;
-				str += `\n${currentValue > 0 ? '+'+ currentValue: '' } : `; 
+				if(currentValue != 0 || !neat)
+					str += `\n${currentValue > 0 ? '+' : '' + currentValue } : `; 
 			}
 			str += `${s.Name}, `
 		});
@@ -253,22 +261,22 @@ export class SkillList {
 
 	constructor(Name = '', Options: FateOptions = new FateOptions(FateVersion.Core), prefill: boolean = false){
 		this.ListName = Name;
-		if(Name = '')
+		if(Name == '')
 			this.ListName = (Options.FateVersion == FateVersion.Accelerated) ? 'Approaches' : 'Skills';
 		if (prefill) {
-			this.SkillPoints = Options.StartingSkillpoints;
-			Options.DefaultSkills.forEach(s => this._skills.push(new Skill(s, 0)));
+			this.SkillPoints = Options.StartingSkillPoints;
+			Options.DefaultSkills.forEach(s => this._skills.push(new _Skill(s, 0)));
 		}
 	}
 }
 
-class Skill implements ReadOnlySkill {
+class _Skill implements Skill {
 	readonly Name : string;
 	Value: number;
 	@Exclude()
-	AttachedSkill : Skill | undefined;
+	AttachedSkill : _Skill | undefined;
 	@Exclude()
-	private _dependents : Skill[] = [];
+	private _dependents : _Skill[] = [];
 	private _attachedSkillName : string | undefined;
 	get attachedSkillName () : string | undefined  { return this._attachedSkillName};
 
@@ -276,6 +284,8 @@ class Skill implements ReadOnlySkill {
 		this.Name = Name[0].toUpperCase() + Name.slice(1);
 		this.Value = Value;
 	}
+
+	@Exclude()
 	get AdjustedValue(): number {
 		if(!this.AttachCheck())
 			throw Error(`${this.Name} skill was not properly attached to ${this._attachedSkillName} skill.`)
@@ -310,7 +320,9 @@ class Skill implements ReadOnlySkill {
 		this.AttachedSkill = undefined;
 		this._attachedSkillName = undefined;
 	}
-	Attach(attachedTo: Skill) {
+	Attach(attachedTo: _Skill) {
+		if(this.attachedSkillName)
+			this.Detach();
 		if(attachedTo.RecursionDetection(this.Name))
 			throw Error('Recursion is not allowed.')
 		attachedTo.AddDependent(this);
@@ -334,14 +346,14 @@ class Skill implements ReadOnlySkill {
 	}
 }
 
-export interface ReadOnlySkill {
+export interface Skill {
 	readonly Name : string;
 	readonly Value : number;
-	readonly AttachedSkill : ReadOnlySkill | undefined;
+	readonly AttachedSkill : Skill | undefined;
 	readonly attachedSkillName: string | undefined;
 	readonly AdjustedValue : number;
 	Detach() : void;
-	Attach(skill: ReadOnlySkill) : void;
+	Attach(skill: Skill) : void;
 	AttachCheck () : boolean;
 	DisposeConnections() : void;
 	match(string: string) : boolean;

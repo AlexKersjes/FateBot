@@ -6,7 +6,7 @@ import { Games, ClientResources } from "./singletons";
 
 export class RollContest {
 	InvokedAspects: InvokableObject[] = [];
-	AllowedRolls: string[] = [];
+	Targets : [string, number][] = [];
 	CurrentRoll: number = 0;
 	CurrentOpposed: number = 0;
 	private channelID : string;
@@ -14,6 +14,7 @@ export class RollContest {
 	private _channel : Channel | undefined;
 	@Exclude()
 	private _discordChannel : Discord.Channel | undefined;
+	DefaultTarget: number | undefined;
 
 	
 	constructor(id : string){

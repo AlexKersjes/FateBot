@@ -70,9 +70,13 @@ export class ClientResources {
 		return ClientResources.instance._executing;
 	}
 
-	static setSave(serverID : string, interval: NodeJS.Timeout) {
+	static setSave(serverID : string, save: SaveGame, number: number) {
 		if (!ClientResources.instance)
 			ClientResources.instance = new ClientResources();
+		this.stopSave(serverID);
+		const interval = setInterval(() => {
+			save.save();
+		}, number * 1000 * 60)
 		this.instance._timers.set(serverID, interval);
 	}
 
@@ -82,5 +86,6 @@ export class ClientResources {
 		const interval = this.instance._timers.get(serverID);
 		if(interval)
 			clearInterval(interval);
+		this.instance._timers.delete(serverID);
 	}
 }

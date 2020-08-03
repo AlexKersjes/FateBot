@@ -16,7 +16,7 @@ export function sheetembed(character : FateFractal, member : Discord.GuildMember
 			.addBlankField();
 	}
 	if(character.Stunts.length != 0 || !character.NPC) {embed.addField('Stunts', namesFromArray(character.Stunts), true);}
-	if(character.Conditions.length != 0) { embed.addField('Conditions', namesFromArray(character.Conditions), true); }
+	if(character.Conditions.length != 0 || !character.NPC) { embed.addField('Conditions', namesFromArray(character.Conditions), true); }
 	if(character.Tracks.length != 0) {embed.addBlankField();}
 	character.Tracks.forEach(boxaspect =>
 	{
@@ -26,9 +26,15 @@ export function sheetembed(character : FateFractal, member : Discord.GuildMember
 	if(character.Skills != undefined)
 	{
 		const skills = character.Skills.getActive();
-		if(skills != undefined)
+
+		if(skills != undefined){
 			embed.addBlankField()
 				.addField(skills.ListName, skills.toString());
+		}
+		else if (!character.NPC) {
+			embed.addBlankField()
+				.addField('No listname', 'This character has no skill lists.');
+		}
 	}
 	embed.setThumbnail(character.imgUrl ? character.imgUrl : member.user.avatarURL() || '');
 	return embed;

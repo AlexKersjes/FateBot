@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { SkillLibrary, ReadOnlySkill } from "../skills";
+import { SkillLibrary } from "../skills";
 import { serialize, deserialize } from 'class-transformer';
 
 const lib = new SkillLibrary();

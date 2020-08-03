@@ -1,5 +1,5 @@
 type Constructor<T = {}> = new (...args: any[]) => T;
-import { deepCopy } from './fatefractal';
+import { deepCopy } from './tools';
 import { FateOptions } from './options';
 import { plainToClass } from 'class-transformer';
 
@@ -249,7 +249,7 @@ export class BoxCondition extends Markable(Condition)
 	constructor(Name: string, Severity: ConditionSeverity, Boxes: number, Description?: string) { super(Name, Severity, Description); this.SetMaxBoxes(Boxes); }
 
 	toAspect() : Aspect {
-		let cp = deepCopy<BoxCondition>(this);
+		let cp = deepCopy<BoxCondition>(this); //TODO use ClassToClass ??
 		cp = plainToClass(BoxCondition, cp);
 		cp.StripProperties();
 		delete cp.Severity;

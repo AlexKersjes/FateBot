@@ -1,11 +1,10 @@
-import { ReadOnlySkill, SkillLibrary } from './skills';
+import { Skill, SkillLibrary } from './skills';
 import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
-import { Type, plainToClass, Exclude } from 'class-transformer';
+import { Type, plainToClass, Exclude, classToClass } from 'class-transformer';
 import { FateOptions } from './options';
 import { GuildMember, Message } from 'discord.js';
 import { sheetembed } from './embeds';
 export class FateFractal {
-
 	FractalName: string;
 	FatePoints: number;
 	Refresh: number;
@@ -93,7 +92,7 @@ export class FateFractal {
 		}
 
 		if (Prototype) {
-			const cp = plainToClass(FateFractal, deepCopy(Prototype))
+			const cp = plainToClass(FateFractal, classToClass(Prototype))
 			cp.FractalName = Name;
 			this
 			return cp;
@@ -101,7 +100,7 @@ export class FateFractal {
 
 	}
 
-	FindSkill (input: string) : ReadOnlySkill | undefined {
+	FindSkill (input: string) : Skill | undefined {
 		const found = this.Skills.FindSkill(input);
 		if(found == undefined)
 			return undefined;
@@ -206,6 +205,12 @@ export class FateFractal {
 			}
 		});
 		this.Conditions = [];
+		this.updateActiveSheets();
+	}
+
+	RepairConnections() {
+		this.Skills.RepairConnections();
+		this.FindAllFractals().forEach(f => f.Skills.RepairConnections())
 	}
 
 	match(input: string): boolean {
@@ -241,25 +246,3 @@ function FilterElement<T extends Atom>(elements: Array<T>, input: string): T | u
 export function IsFractal(element: FateFractal | any): element is FateFractal {
 	return (element as FateFractal).FractalName !== undefined;
 }
-
-export const deepCopy = <T>(target: T): T => {
-	if (target === null) {
-		return target;
-	}
-	if (target instanceof Date) {
-		return new Date(target.getTime()) as any;
-	}
-	if (target instanceof Array) {
-		const cp = [] as any[];
-		(target as any[]).forEach((v) => { cp.push(v); });
-		return cp.map((n: any) => deepCopy<any>(n)) as any;
-	}
-	if (typeof target === 'object' && target !== {}) {
-		const cp = { ...(target as { [key: string]: any }) } as { [key: string]: any };
-		Object.keys(cp).forEach(k => {
-			cp[k] = deepCopy<any>(cp[k]);
-		});
-		return cp as T;
-	}
-	return target;
-};

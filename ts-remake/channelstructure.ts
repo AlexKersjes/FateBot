@@ -100,7 +100,9 @@ export class Channel {
 	private _situation : FateFractal | undefined;
 	private connections : [string, number, boolean][] = [];
 	@Type(() => RollContest)
-	contest : RollContest | undefined;
+	private contest : RollContest | undefined;
+
+	get Contest () : RollContest { return this.contest ?? new RollContest(this.id) }
 
 	constructor(channel : Discord.TextChannel = ({id: '0', name: 'broken'} as Discord.TextChannel))
 	{

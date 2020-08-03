@@ -10,7 +10,7 @@ import { SkillList } from "../skills";
 export class renameCommand implements ICommand{
 	name: string = 'rename';
 	description: string = 'Rename anything. An aspect, a character.';
-	helptext: string | undefined = 'Use `-s` to rename situations or situation elements. To skip new name dialogue prompt, include ` | ` in the initial command, and provide the new name after it.';
+	helptext: string | undefined = 'To rename your current character, use the command without further input or start immediately with `|`. Use `-s` to rename situations or situation elements. To skip new name dialogue prompt, include ` | ` in the initial command, and provide the new name after it.';
 	admin: boolean = false;
 	GM: boolean = false;
 	args: boolean = false;
@@ -86,6 +86,8 @@ export class renameCommand implements ICommand{
 		else{
 			match.Name = newname;
 		}
+
+		character.updateActiveSheets();
 
 		return `"${oldname}" was renamed to "${newname}".`;
 	}

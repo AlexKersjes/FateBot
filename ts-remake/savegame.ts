@@ -1,7 +1,6 @@
 import Discord = require('discord.js');
 import * as fs from 'fs';
-import { deepCopy } from './fatefractal';
-import { Type, Exclude } from 'class-transformer';
+import { Type, Exclude, classToClass } from 'class-transformer';
 import { FateOptions, FateVersion } from './options';
 import { ChannelDictionary } from './channelstructure';
 import { serialize , deserialize } from 'class-transformer';
@@ -34,7 +33,7 @@ export class SaveGame {
 		if(!this._dirty)
 			return;
 		this._dirty = false;
-		let copySave : SaveGame = deepCopy(this);
+		let copySave : SaveGame = classToClass(this);
 		let copyString = serialize(copySave);
 		fs.writeFileSync(`${process.env.SAVEPATH}${this.GameName}game.json`, copyString, 'utf-8');
 	}
@@ -47,7 +46,15 @@ export class SaveGame {
 	}
 
 	onLoad() {
-		this.getAllFractals().forEach(f => f.Skills.RepairConnections());
+		this.getAllToplevelFractals().forEach(f => f.RepairConnections());
+	}
+
+	getAllToplevelFractals() : FateFractal[] {
+		let fractals: FateFractal[] = [];
+		this.Folders.forEach(f => fractals.concat(f.Contents));
+		this.Players.forEach(p => {if(p.CurrentCharacter) fractals.push(p.CurrentCharacter)});
+		this.ChannelDictionary.Channels.forEach(c => fractals.push(c.situation));
+		return fractals;
 	}
 
 	getAllFractals() : FateFractal[] {
@@ -112,7 +119,7 @@ export class SaveGame {
 
 	getContestAuto(message: Discord.Message)
 	{
-		this.getChannelAuto(message).contest
+		return this.getChannelAuto(message).Contest
 	}
 
 	getOrCreatePlayerById(UserId: string | undefined) {
@@ -195,7 +202,7 @@ export class defaultServerObject {
 	}
 	async save() : Promise<void>
 	{
-		const ServersCopy = deepCopy(this);
+		const ServersCopy = classToClass(this);
 		ServersCopy.lastLogged = ServersCopy.lastLogged.filter(i => i[0] != 'invalid');
 		try{
 			fs.writeFileSync(`${process.env.SAVEPATH}defaultservers.json`, serialize(ServersCopy), 'utf-8');

@@ -2,10 +2,9 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame, Player, Folder } from '../savegame';
 import { getGenericResponse } from "../tools";
-import { FateFractal, deepCopy } from "../fatefractal";
+import { FateFractal } from "../fatefractal";
 import { HelpText } from "./_CommandHelp";
-import { Aspect } from "../dataelements";
-import { plainToClass } from "class-transformer";
+import { plainToClass, classToClass } from "class-transformer";
 
 @ICommands.register
 export class charselectCommand implements ICommand {
@@ -101,7 +100,8 @@ export class charselectCommand implements ICommand {
 				}
 				else {
 					commandOptions = commandOptions.replace('cp', '');
-					charToLoad = plainToClass(FateFractal, deepCopy(charToLoad));
+					charToLoad = classToClass(charToLoad);
+					charToLoad.RepairConnections();
 				}
 
 				if(!save.Options.UseConditions) {
