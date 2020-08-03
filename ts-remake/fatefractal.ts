@@ -1,4 +1,4 @@
-import { SkillList, ReadOnlySkill } from './skills';
+import { ReadOnlySkill, SkillLibrary } from './skills';
 import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
 import { Type, plainToClass, Exclude } from 'class-transformer';
 import { FateOptions } from './options';
@@ -48,8 +48,8 @@ export class FateFractal {
 		}
 	})
 	Conditions: (BoxCondition | Condition | FateFractal)[] = [];
-	@Type(() => SkillList)
-	Skills: SkillList[] = [];
+	@Type(() => SkillLibrary)
+	Skills: SkillLibrary = new SkillLibrary();
 	CurrentLocation: string | undefined;
 	imgUrl: string | undefined;
 	NPC: boolean;
@@ -82,7 +82,7 @@ export class FateFractal {
 		this.FractalName = Name;
 		this.NPC = NPC;
 		if (Options && !NPC)
-			this.Skills.push(new SkillList(Options, Options.PrefillSkills))
+			this.Skills.CreateList(undefined, Options.PrefillSkills, Options);
 		if (NPC) {
 			this.FatePoints = 0;
 			this.Refresh = 0;
@@ -102,18 +102,10 @@ export class FateFractal {
 	}
 
 	FindSkill (input: string) : ReadOnlySkill | undefined {
-		if(input == '')
+		const found = this.Skills.FindSkill(input);
+		if(found == undefined)
 			return undefined;
-		let returnvalue = undefined;
-		this.Skills.find(skillList => {
-			const s = skillList.FindSkill(input);
-			if(s != undefined){
-				returnvalue = s;
-				return true;
-			}
-			return false;
-		});
-		return returnvalue;
+		return found[0];
 	}
 
 	FindInvokable(input: string): InvokableObject | undefined {
@@ -189,6 +181,21 @@ export class FateFractal {
 		Fractals.forEach(a => errstring += `\n   ${a[0].FractalName}`);
 		throw Error(errstring);
 	}
+
+	FindAllFractals() : FateFractal[] {
+		let result = new Array<FateFractal>(0);
+		this.Aspects.forEach(a => {
+			if (IsFractal(a)) { result.push(a); result.concat(a.FindAllFractals()); }
+		});
+		this.Conditions.forEach(a => {
+			if (IsFractal(a)) { result.push(a); result.concat(a.FindAllFractals()); }
+		});
+		this.Stunts.forEach(a => {
+			if (IsFractal(a)) { result.push(a); result.concat(a.FindAllFractals()); }
+		})
+		return result;
+	}
+
 
 	convertConditionsToAspects() {
 		this.Conditions.forEach(c => {

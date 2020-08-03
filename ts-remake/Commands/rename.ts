@@ -4,6 +4,7 @@ import { SaveGame } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import { getGenericResponse } from "../tools";
 import { Atom } from "../dataelements";
+import { SkillList } from "../skills";
 
 @ICommands.register
 export class renameCommand implements ICommand{
@@ -57,51 +58,60 @@ export class renameCommand implements ICommand{
 		fields.push(character.Conditions);
 		fields.push(character.Stunts);
 		fields.push(character.Tracks);
+		fields.push(character.Skills.Lists)
 
 		fields = fields.flat();
 
 		const inputstring = args.join(' ');
 
-		const matched = this.getMatches(fields, inputstring);
+		const match = this.getMatches(fields, inputstring);
+		if(match == undefined)
+			throw Error(`Could not find a match for "${inputstring}".`);
+		fields = fields.splice(fields.indexOf(match));
 
-		const oldname = matched[0] instanceof FateFractal ? matched[0].FractalName : matched[0].Name;
+		const oldname = match instanceof FateFractal ? match.FractalName : match.Name;
 		if(newname == '')
-			newname = await getGenericResponse(message, `Rename "${oldname}":`)
+			newname = await getGenericResponse(message, `Rename "${oldname}" to:`)
 		
-		if(matched[0] instanceof FateFractal){
-			matched[0].FractalName = newname;
+		const newmatch = this.getMatches(fields, newname);	
+		if(newmatch != undefined)
+			throw Error(`"${newname}" already matches ${newmatch.FractalName? newmatch.FractalName : newmatch.ListName? newmatch.ListName : newmatch.Name ?? 'another object'}.`);
+
+		if(match instanceof FateFractal){
+			match.FractalName = newname;
+		}
+		if(match instanceof SkillList){
+			match.ListName = newname;
 		}
 		else{
-			matched[0].Name = newname;
+			match.Name = newname;
 		}
 
 		return `"${oldname}" was renamed to "${newname}".`;
 	}
 	
 
-	private getMatches<T extends Atom>(fields: (T|FateFractal)[], inputstring: string) {
-		const matched : (FateFractal | T)[] = [];
+	private getMatches<T extends Atom>(fields: (T|FateFractal|SkillList)[], inputstring: string) : T|FateFractal|SkillList| undefined{
+		const matched : (FateFractal | SkillList | T)[] = [];
 		fields.forEach(e => {
-			if (e instanceof FateFractal) {
-				if (e.match(inputstring))
-					matched.push(e);
-			}
-			else if (e.match(inputstring))
+			if (e.match(inputstring))
 				matched.push(e);
 		});
 
 		if (matched.length == 0)
-			throw Error('No matches found.');
+			return undefined;
 		if (matched.length > 1) {
-			let errstring = 'Too many Aspects matched. Matches:';
+			let errstring = `Too many renameable objects matches for "${inputstring}". Matches:`;
 			matched.forEach(a => {
 				if(a instanceof FateFractal)
 					errstring += `\n   ${a.FractalName}`
+				else if(a instanceof SkillList)
+					errstring += `\n   ${a.ListName}`;
 				else
-					errstring += `\n   ${a?.Name}`;
+					errstring += `\n   ${a.Name}`;
 			});
 			throw Error(errstring);
 		}
-		return matched;
+		return matched[0];
 	}
 }

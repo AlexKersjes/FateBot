@@ -112,7 +112,6 @@ export class Channel {
 		if(this._situation == undefined){
 			this._situation = new FateFractal(`Situation ${this.name}`);
 			this._situation.NPC = true;
-			this._situation.Skills = [];
 		}
 		return this._situation;
 	}

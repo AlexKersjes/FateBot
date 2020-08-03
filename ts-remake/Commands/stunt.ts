@@ -4,7 +4,7 @@ import { SaveGame } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Stunt, Atom } from "../dataelements";
-import { getGenericResponse } from "../tools";
+import { getGenericResponse, getIntResponse, confirmationDialogue } from "../tools";
 import { HelpText } from "./_CommandHelp";
 
 @ICommands.register
@@ -58,8 +58,7 @@ export class stuntCommand implements ICommand {
 				const toBeDeleted = fractal.Stunts[number - 1];
 				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
 					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
-				const response = await (await getGenericResponse(message, prompt)).toLowerCase();
-				if (response == 'yes' || response == 'y') {
+				if(await confirmationDialogue(message, prompt)) {
 					fractal.Stunts.splice(fractal.Stunts.indexOf(toBeDeleted), 1);
 					save.dirty();
 					fractal.updateActiveSheets();
@@ -92,37 +91,28 @@ export class stuntCommand implements ICommand {
 			args = argsCopy;
 		}
 
-
-		if (Numbers.length != expectedNumbers) {
-			Numbers = [];
-			if (commandOptions.includes('c') && !commandOptions.includes('r')) {
-				const number = parseInt(await getGenericResponse(message, 'Provide a cost amount:'));
-				if (isNaN(number))
-					throw Error('Expected a number.');
-				Numbers.push(number);
-			}
-			if (commandOptions.includes('b') && !commandOptions.includes('r')) {
-				const number = parseInt(await getGenericResponse(message, 'Provide a bonus amount:'));
-				if (isNaN(number))
-					throw Error('Expected a number.');
-				Numbers.push(number);
-			}
-			if (commandOptions.includes('u') && !commandOptions.includes('r')) {
-				const number = parseInt(await getGenericResponse(message, 'Provide the number of free uses after refresh:'))
-				if (isNaN(number))
-					throw Error('Expected a number.')
-				Numbers.push(number);
-			}
-		}
-
-
 		// Put the string back together without prefixes.
 		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide a Stunt name:')).split(' ');
 		const StuntName = args.join(' ');
-		if (StuntName.toLowerCase() == 'cancel' || StuntName.toLowerCase() == 'stop')
-			throw Error('Cancelled Stunt creation.');
 
+
+
+		if (Numbers.length != expectedNumbers) {
+			Numbers = [];
+			if (commandOptions.includes('c') && !commandOptions.includes('r')) {
+				const number = await getIntResponse(message, 'Provide a cost amount:');
+				Numbers.push(number);
+			}
+			if (commandOptions.includes('b') && !commandOptions.includes('r')) {
+				const number = await getIntResponse(message, 'Provide a bonus amount:');
+				Numbers.push(number);
+			}
+			if (commandOptions.includes('u') && !commandOptions.includes('r')) {
+				const number = await getIntResponse(message, 'Provide the number of free uses after refresh:');
+				Numbers.push(number);
+			}
+		}
 
 		// See if there are existing stunts that match
 		const matched: Stunt[] = [];
@@ -191,8 +181,7 @@ export class stuntCommand implements ICommand {
 					throw Error('Stunt use via this command is not supported yet.'); // TODO
 				}
 				else if (commandOptions.includes('r')) {
-					const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${MatchedStunt.Name}?`)).toLowerCase();
-					if (response == 'yes' || response == 'y') {
+					if (await confirmationDialogue(message, `Are you sure you wish to delete ${MatchedStunt.Name}?`)) {
 						fractal.Stunts.splice(fractal.Stunts.indexOf(MatchedStunt), 1);
 						return `${MatchedStunt.Name} was deleted.`;
 					}

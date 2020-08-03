@@ -87,10 +87,8 @@ export class charselectCommand implements ICommand {
 
 				if (!(commandOptions.includes('a')||commandOptions.includes('c')||commandOptions.includes('s'))) {
 					if (loadedCharacter != undefined) {
-						const response = (await getGenericResponse(message, `Do you wish to icebox ${loadedCharacter.FractalName}?\n'Cancel' will cancel the procedure.\n'Yes' or 'y' will store in the default folder.\n'No' will have your current character overwritten and lost.\nOther responses will try to match an existing folder to store the character:`)).toLowerCase();
-						if (response == 'cancel')
-							throw Error('Aborted loading procedure.');
-						else if (response == 'yes' || response == 'y')
+						const response = (await getGenericResponse(message, `Do you wish to icebox ${loadedCharacter.FractalName}?\n'Cancel' will cancel the procedure.\n'Yes' or 'y' will store in the default folder.\n'No' will have your current character overwritten and lost.\nOther responses will try to match an existing folder to store the character:`).catch(() => {throw Error('Aborted loading procedure.')})).toLowerCase();
+						if (response == 'yes' || response == 'y')
 							message.channel.send(IceBoxProcedure(save, player, undefined));
 						else if (response != 'no')
 							message.channel.send(IceBoxProcedure(save, player, response.split(' ')[0]));

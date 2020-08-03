@@ -1,7 +1,6 @@
 import { ICommands, ICommand } from "../command";
-import { getGenericResponse } from "../tools";
-import { Aspect } from "../dataelements";
-import { FateFractal } from "../fatefractal";
+import { getGenericResponse, confirmationDialogue } from "../tools";
+import { SaveGame } from "../savegame";
 
 @ICommands.register
 class setoptionCommand implements ICommand{
@@ -14,7 +13,7 @@ class setoptionCommand implements ICommand{
 	args: boolean =  true;
 	aliases: string[] | undefined = ['option', 'options', 'o'];
 	cooldown: number | undefined;
-	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save: import("../savegame").SaveGame): Promise<void | string> {
+	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client, save: SaveGame): Promise<void | string> {
 		save.dirty();
 		switch (args[0].toLowerCase())
 		{
@@ -39,8 +38,7 @@ class setoptionCommand implements ICommand{
 			case 'conditions' :
 			case 'useconditions' :
 				if(save.Options.UseConditions){
-					const response = await getGenericResponse(message, 'Are you sure you wish to disable Conditions? All Conditions currently applied to characters will be transformed in to regular Aspects:')
-					if(response.toLowerCase() == 'yes' || response.toLowerCase() == 'y'){
+					if (await confirmationDialogue(message, 'Are you sure you wish to disable Conditions? All Conditions currently applied to characters will be transformed in to regular Aspects:')) {
 						save.Players.forEach(p => {
 							p.CurrentCharacter?.convertConditionsToAspects();
 						});

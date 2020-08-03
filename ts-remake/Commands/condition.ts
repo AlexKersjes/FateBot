@@ -4,7 +4,7 @@ import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Condition, ConditionSeverity, BoxCondition, Atom } from "../dataelements";
-import { getGenericResponse } from "../tools";
+import { getGenericResponse, getIntResponse, getPlayerFromMentionIfUndefined, confirmationDialogue } from "../tools";
 import { HelpText } from "./_CommandHelp";
 import { ClientResources } from "../singletons";
 
@@ -33,7 +33,7 @@ export class conditionCommand implements ICommand {
 			return true;
 		});
 
-		let player;
+		let player : Player | undefined;
 		let invokeMention: Player | undefined
 		try {
 			player = save.getPlayerAuto(message);
@@ -81,8 +81,7 @@ export class conditionCommand implements ICommand {
 				const toBeDeleted = fractal.Conditions[number - 1];
 				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
 					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
-				const response = await (await getGenericResponse(message, prompt)).toLowerCase();
-				if (response == 'yes' || response == 'y') {
+				if (await confirmationDialogue(message, prompt)) {
 					fractal.Conditions.splice(fractal.Conditions.indexOf(toBeDeleted), 1);
 					fractal.updateActiveSheets();
 					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
@@ -113,30 +112,22 @@ export class conditionCommand implements ICommand {
 			args = argsCopy;
 		}
 
-
-		if (Numbers.length != expectedNumbers) {
-			Numbers = [];
-			if (commandOptions.includes('c') && !commandOptions.includes('r')) {
-				const number = parseInt(await getGenericResponse(message, 'Provide a cost amount:'));
-				if (isNaN(number))
-					throw Error('Expected a number.');
-				Numbers.push(number);
-			}
-			if (commandOptions.includes('b') && !commandOptions.includes('r')) {
-				const number = parseInt(await getGenericResponse(message, 'Provide a bonus amount:'));
-				if (isNaN(number))
-					throw Error('Expected a number.');
-				Numbers.push(number);
-			}
-		}
-
-
 		// Put the string back together without prefixes.
 		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide a Condition name:')).split(' ');
 		const ConditionName = args.join(' ');
-		if (ConditionName.toLowerCase() == 'cancel' || ConditionName.toLowerCase() == 'stop')
-			throw Error('Cancelled Aspect creation.')
+
+		if (Numbers.length != expectedNumbers) {
+			Numbers = [];
+			if (commandOptions.includes('c') && !commandOptions.includes('r')) {
+				const number = await getIntResponse(message, 'Provide a cost amount:');
+				Numbers.push(number);
+			}
+			if (commandOptions.includes('b') && !commandOptions.includes('r')) {
+				const number = await getIntResponse(message, 'Provide a bonus amount:');
+				Numbers.push(number);
+			}
+		}
 
 
 		// See if there are existing conditions that match
@@ -168,33 +159,11 @@ export class conditionCommand implements ICommand {
 
 		let boxes: number = 0;
 		if (commandOptions.includes('b')) {
-			boxes = parseInt(await getGenericResponse(message, 'Provide number of boxes:'));
-			if (isNaN(boxes))
-				throw Error('Could not match a number of boxes.')
+			boxes = await getIntResponse(message, 'Provide number of boxes:');
 		}
 
 		if (commandOptions.includes('fo')) {
-			player = await new Promise<Player>((resolve, reject) => {
-				if (invokeMention)
-					return resolve(invokeMention);
-				const filter = (m: Discord.Message) => m.author.id == message.author.id;
-				message.channel.send('Mention the player you wish to grant the free invoke:').then(m => ClientResources.Executing.get(message.author.id)?.push(m));
-				// collector for confirmation
-				let collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
-				collector.on('collect', m => {
-					ClientResources.Executing.get(message.author.id)?.push(m);
-					let p = save.getPlayerAuto(m);
-					if (p == undefined)
-						reject('Could not find player mention, or that player has no sheet.');
-					resolve(p);
-				});
-				// timeout message
-				collector.on('end', (s, r) => {
-					if (r == 'time')
-						reject(Error('Timed out.'));
-				});
-			}).catch(err => { throw err });
-
+			player = await getPlayerFromMentionIfUndefined(invokeMention, message, save);
 		}
 
 		// If there are no matches, create a new Condition.
@@ -272,8 +241,7 @@ export class conditionCommand implements ICommand {
 					throw Error('Condition Aspect invocation via this command is not supported yet.'); // TODO
 				}
 				else if (commandOptions.includes('r')) {
-					const response = await (await getGenericResponse(message, `Are you sure you wish to delete ${MatchedCondition.Name}?`)).toLowerCase();
-					if (response == 'yes' || response == 'y') {
+					if (await confirmationDialogue(message, `Are you sure you wish to delete ${MatchedCondition.Name}?`)) {
 						fractal.Conditions.splice(fractal.Conditions.indexOf(MatchedCondition), 1);
 						save.dirty();
 						return `${MatchedCondition.Name} was deleted.`;
@@ -295,7 +263,7 @@ export class conditionCommand implements ICommand {
 			throw err;
 		}
 		finally {
-			if (!skipFinally){
+			if (!skipFinally) {
 				fractal.updateActiveSheets();
 				save.dirty();
 			}

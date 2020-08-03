@@ -1,7 +1,7 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { RollContest } from "../rollcontest";
-import { SkillList } from "../skills";
+import { SaveGame } from "../savegame";
 
 @ICommands.register
 export class rollCommand implements ICommand {
@@ -14,7 +14,7 @@ export class rollCommand implements ICommand {
 	args: boolean = false;
 	aliases: string[] | undefined = ['r'];
 	cooldown: number | undefined;
-	async execute(message: Message, args: string[], client: Client, save: import("../savegame").SaveGame): Promise<string | void> {
+	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<string | void> {
 		let commandOptions: string = '';
 		args = args.filter(a => {
 			if (a.startsWith('-') && a.length > 1) {
@@ -52,7 +52,7 @@ export class rollCommand implements ICommand {
 				advantagestr = 'disadvantage';
 			}
 		}
-		
+
 		const Skill = Player.CurrentCharacter?.FindSkill(args.join(' '))
 
 		let approachstr = ''

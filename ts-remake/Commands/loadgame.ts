@@ -3,6 +3,7 @@ import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
 import { Games, ClientResources } from "../singletons";
+import { confirmationDialogue } from "../tools";
 @ICommands.register
 export class loadgameCommand implements ICommand {
 	requireSave: boolean = false;
@@ -37,7 +38,9 @@ export class loadgameCommand implements ICommand {
 		const buffer = await SaveGame.load(args[0]);
 
 		// Prevent unintentionally leaving a game open
-		await noPasswordGuard(currentlyLoaded, message, guildId, buffer).catch(err => { throw Error(err) });
+		if(currentlyLoaded)
+			if (!await confirmationDialogue(message, `"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`))
+				throw Error(`Cancelled unloading ${currentlyLoaded.GameName}`)
 		// Password procedure for to be loaded game
 		await buffer.passConfirm(message).then(res => { if (!res) throw Error('Invalid Password.') }).catch(err => { throw err });
 		currentlyLoaded?.save();
@@ -48,31 +51,4 @@ export class loadgameCommand implements ICommand {
 		message.channel.send(`Game "${buffer.GameName}" was loaded.`);
 
 	}
-}
-
-function noPasswordGuard(currentlyLoaded: SaveGame | undefined, message: Discord.Message, guildId: string, buffer: SaveGame) {
-	// Prevent going further if the game has no password set unless explicit confirmation is given.
-
-	return new Promise<string>((resolve, reject) => {
-		if (currentlyLoaded?.Password != "")
-			return resolve();
-		let collector: Discord.MessageCollector;
-		const filter = (m: Discord.Message) => m.author.id == message.author.id;
-		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded and has no password. **Are you sure you wish to load another game?**\nGames which are not protected may be loaded by anyone.`).then(m => ClientResources.Executing.get(message.author.id)?.push(m));
-		collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
-		collector.on('collect', m => {
-			ClientResources.Executing.get(message.author.id)?.push(m);
-			if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
-				reject('Loading cancelled.');
-			else {
-				resolve();
-			}
-		});
-		collector.on('end', (s, r) => {
-			if (r == 'time')
-				reject('Confirmation timed out.');
-		});
-
-
-	});
 }

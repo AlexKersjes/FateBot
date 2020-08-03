@@ -1,6 +1,5 @@
 import * as Discord from 'discord.js';
 import { FateFractal } from './fatefractal';
-import { SkillList } from './skills';
 import { Atom, Boost, IsCondition, ConditionSeverity, IsInvokable, Stunt, IsMarkable } from './dataelements';
 
 // default character sheet layout
@@ -24,12 +23,12 @@ export function sheetembed(character : FateFractal, member : Discord.GuildMember
 		embed.addField(boxaspect.Name, boxaspect.BoxesString(), true);
 	},
 	);
-	if(character.Skills[0] != undefined)
+	if(character.Skills != undefined)
 	{
-		const skills : SkillList = character.Skills[0];
-
-		embed.addBlankField()
-			.addField(skills.ListName, skills.toString());
+		const skills = character.Skills.getActive();
+		if(skills != undefined)
+			embed.addBlankField()
+				.addField(skills.ListName, skills.toString());
 	}
 	embed.setThumbnail(character.imgUrl ? character.imgUrl : member.user.avatarURL() || '');
 	return embed;

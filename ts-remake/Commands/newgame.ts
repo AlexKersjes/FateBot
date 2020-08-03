@@ -3,7 +3,7 @@ import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
 import { FateVersion } from "../options";
-import { getGenericResponse } from "../tools";
+import { getGenericResponse, confirmationDialogue } from "../tools";
 import { ClientResources, Games } from "../singletons";
 
 @ICommands.register
@@ -52,70 +52,24 @@ export class newgameCommand implements ICommand {
 		}
 		// If there is a save loaded, confirm the user wants to unload the current save. 
 		// then, if there is no argument for the Fate version given, ask for a version string.
-		await ConfirmUnloadCurrentGame(currentlyLoaded, message)
-
-			.then( () => {
-				if(GameMode == undefined)
-					return getModeInput(message).catch(err => { throw err; });
-				return GameMode;
-			}, reason => {throw Error(reason as string)})
-		
-			.then(string => startGame(args[0], guildId, message, string))
-		
-			.catch(err =>{ throw err; });
+		if(currentlyLoaded){
+			if(await confirmationDialogue(message, `"${currentlyLoaded.GameName}" is currently loaded. **Are you sure you wish to start a new game?**\n${currentlyLoaded.Password ? '' : `Game "${currentlyLoaded.GameName}" is not password protected:`}`))
+				currentlyLoaded.save();	
+			else {
+				throw Error('Cancelled starting a new game.');
+			}
+		}
+		if(GameMode == undefined)
+			GameMode = await getGenericResponse(message, 'Please select a version of Fate as a base ruleset. You can further customize once the game is created.\ne.g. Core, Accelerated, Condensed:');
+		startGame(args[0], guildId, message, GameMode)
 	}
 }
 
-
-function ConfirmUnloadCurrentGame(currentlyLoaded: SaveGame | undefined, message: Discord.Message) {
-	return new Promise<void>((resolve, reject) => {
-		if (currentlyLoaded == undefined)
-			return resolve();
-		let collector: Discord.MessageCollector;
-		const filter = (m: Discord.Message) => m.author.id == message.author.id;
-		message.channel.send(`"${currentlyLoaded.GameName}" is currently loaded. **Are you sure you wish to start a new game?**\n${currentlyLoaded.Password ? '' : `Game "${currentlyLoaded.GameName}" is not password protected:`}`).then(m => ClientResources.Executing.get(message.author.id)?.push(m));
-		// collector for confirmation
-		collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
-		collector.on('collect', m => {
-			ClientResources.Executing.get(message.author.id)?.push(m);
-			if ((m as Discord.Message).content.toLowerCase() != 'y' && (m as Discord.Message).content.toLowerCase() != 'yes')
-				reject('Cancelled starting a new game.');
-			else {
-				currentlyLoaded.save();
-				resolve();
-			}
-		});
-		// timeout message
-		collector.on('end', (s, r) => {
-			if (r == 'time')
-				reject('Confirmation timed out.');
-		});
-	});
-}
-
-async function getModeInput(message : Discord.Message) : Promise<string>{
-	return new Promise(async (resolve, reject) => {
-		let collector: Discord.MessageCollector;
-		const filter = (m: Discord.Message) => m.author.id == message.author.id;
-		await message.channel.send('Please select a version of Fate as a base ruleset. You can further customize once the game is created.\ne.g. Core, Accelerated, Condensed:').then(m => ClientResources.Executing.get(message.author.id)?.push(m));
-			// collector for confirmation
-			collector = new Discord.MessageCollector(message.channel, filter, { max: 1, time: 20000 });
-			collector.on('collect', m => {
-				ClientResources.Executing.get(message.author.id)?.push(m);
-				return resolve( (m as Discord.Message).content);
-			})
-			// timeout message
-			collector.on('end', (s, r) => { if (r == 'time') reject(Error('Version selection timed out.')) });
-	})
-	
-}
 
 function startGame(gameName: string, guildId: string, message: Discord.Message, mode : string) {
 	if(mode.startsWith(process.env.PREFIX || '.'))
 		throw Error('Responses do not need to be prefixed.');
 
-	if(['stop','escape','cancel'].some(i => i == mode.toLowerCase()))
-		throw Error('Cancelled game creation.');
 	let version : FateVersion | undefined = undefined;
 	let regStr = '.*';
 	for (let i = 0; i < mode.length; i++) {
@@ -141,6 +95,7 @@ function startGame(gameName: string, guildId: string, message: Discord.Message, 
 		throw Error('Could not match version.');
 
 	const newGame = new SaveGame(gameName, guildId, version);
+	newGame.dirty();
 	newGame.Options.GMToggle(message.author.id);
 	Games.set(guildId, newGame);
 	newGame.save();

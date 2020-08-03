@@ -42,7 +42,21 @@ export class SaveGame {
 	static async load(gameName:string) : Promise<SaveGame> {
 		let rawdata = fs.readFileSync( `${process.env.SAVEPATH}${gameName}game.json`, 'utf-8');
 		let s2 = deserialize(SaveGame, rawdata);
+		s2.onLoad();
 		return s2;
+	}
+
+	onLoad() {
+		this.getAllFractals().forEach(f => f.Skills.RepairConnections());
+	}
+
+	getAllFractals() : FateFractal[] {
+		let fractals: FateFractal[] = [];
+		this.Folders.forEach(f => fractals.concat(f.Contents));
+		this.Players.forEach(p => {if(p.CurrentCharacter) fractals.push(p.CurrentCharacter)});
+		this.ChannelDictionary.Channels.forEach(c => fractals.push(c.situation));
+		fractals.forEach(f => fractals.concat(f.FindAllFractals()))
+		return fractals;
 	}
 
 	async passConfirm(message : Discord.Message) : Promise<boolean>

@@ -11,15 +11,18 @@ export class FateOptions {
 	CustomPrefix: string | undefined = undefined;
 	private _defaultSkills: string[] = [];
 	PlayerPermittedFolders: string[] = ['PCs']
+	StartingSkillpoints: number;
 
 	constructor(version: FateVersion) {
 		this.FateVersion = version;
+		this.StartingSkillpoints = 20
 		if (version == FateVersion.Core) {
 			this.SkillColumns = true;
 			this.SkillMax = -1;
 		}
 		else if (version == FateVersion.Accelerated) {
 			this.UseConditions = true;
+			this.StartingSkillpoints = 12;
 		}
 		else if (version == FateVersion.Condensed) {
 			this.DresdenStress = true;

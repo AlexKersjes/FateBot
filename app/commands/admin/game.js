@@ -111,9 +111,10 @@ module.exports = {
 function save(message, savedata)
 {
 	const temp = savedata.autosave;
-	delete savedata.autosave;
+	savedata.autosave = undefined;
 	const rawdata = JSON.stringify(savedata);
 	fs.writeFileSync(`app/data/${savedata.GameName}game.json`, rawdata);
+	// message.channel.send('Game saved.')
 	savedata.autosave = temp;
 }
 function load(message, client, gamename, gamedata)
