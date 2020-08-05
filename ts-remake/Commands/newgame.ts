@@ -3,7 +3,7 @@ import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
 import { FateVersion } from "../options";
-import { getGenericResponse, confirmationDialogue } from "../tools";
+import { getGenericResponse, confirmationDialogue } from "../responsetools";
 import { ClientResources, Games } from "../singletons";
 
 @ICommands.register

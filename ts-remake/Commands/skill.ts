@@ -2,10 +2,10 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
 import { FateFractal } from "../fatefractal";
-import * as Discord from 'discord.js';
-import { getGenericResponse, confirmationDialogue, getIntResponse } from "../tools";
+import { getGenericResponse, confirmationDialogue, getIntResponse } from "../responsetools";
 import { HelpText } from "./_CommandHelp";
 import { FateVersion } from "../options";
+import { CharacterOrOptionalSituationFractal } from "../commandtools";
 
 @ICommands.register
 export class skillCommand implements ICommand {
@@ -23,29 +23,20 @@ export class skillCommand implements ICommand {
 		const skillTerm = save.Options.FateVersion == FateVersion.Accelerated ? 'Approach' : 'Skill';
 
 		const player = save.getPlayerAuto(message);
-		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
 			}
+			if(a.startsWith('<@'))
+				return false;
 			return true;
 		});
 
 		let fractal: FateFractal;
-
-		// Get situation instead
-		if (commandOptions.includes('s')) {
-			if (!save.Options.GMCheck(message.author.id) && save.Options.RequireGMforSituationAccess)
-				throw Error('GM permission is needed to directly change situation stunts. (Can be disabled in settings.)');
-			fractal = save.ChannelDictionary.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
-		}
-		else {
-			if (!player.CurrentCharacter)
-				throw Error(`${player} has no character selected.`);
-			fractal = player.CurrentCharacter;
-		}
+		let situationCommand : boolean = false;
+		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal('Skill', commandOptions, save, message, player));
 
 		if (commandOptions.includes('o')) {
 			const currentList = fractal.Skills.rotate();

@@ -14,7 +14,6 @@ export class fateCommand implements ICommand {
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: import("../savegame").SaveGame): Promise<void | string> {
 		const player = save.getPlayerAuto(message);
-		args = args.filter(a => !a.startsWith('<@'));
 		const character = player.CurrentCharacter;
 		let AdjustRefresh = false;
 		// filtering out optional arguments;
@@ -24,8 +23,9 @@ export class fateCommand implements ICommand {
 					AdjustRefresh = true;
 				return false;
 			}
-			else
-				return true;
+			if(a.startsWith('<@'))
+				return false;
+			return true;
 		});
 		if(!character)
 			throw Error('No character found.')

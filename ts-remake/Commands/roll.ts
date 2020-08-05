@@ -1,7 +1,8 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { RollContest } from "../rollcontest";
-import { SaveGame } from "../savegame";
+import { SaveGame, Player } from "../savegame";
+import { Skill } from "../skills";
 
 @ICommands.register
 export class rollCommand implements ICommand {
@@ -16,16 +17,26 @@ export class rollCommand implements ICommand {
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<string | void> {
 		let commandOptions: string = '';
+		const Player = save.getOrCreatePlayerById(message.author.id);
+		const Targets : Player[] = [];
+		message.mentions.users.forEach(u => { if (!u.bot) Targets.push(save.getOrCreatePlayerById(u.id))})
+
 		args = args.filter(a => {
 			if (a.startsWith('-') && a.length > 1) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
 			}
+			if (a.startsWith('<@'))
+				return false;
 			return true;
 		});
 
-		const Player = save.getPlayerAuto(message);
-		args = args.filter(a => !a.startsWith('<@'));
+		
+		let Skill = Player.CurrentCharacter?.FindSkill(args.join(' '));
+		if (Skill == undefined)
+			Skill = save.getChannelAuto(message).situation.FindSkill(args.join(' '));
+		if (Skill == undefined)
+			Skill = save.GlobalSituation?.FindSkill(args.join(' '));
 
 		let roll = RollContest.fourDFudge();
 
@@ -36,12 +47,12 @@ export class rollCommand implements ICommand {
 		if (commandOptions.includes('adv') || commandOptions.includes('dis')) {
 			let bonusindex = -1;
 			bonusindex = commandOptions.indexOf('adv');
-			if(bonusindex == -1)
+			if (bonusindex == -1)
 				bonusindex = commandOptions.indexOf('dis');
 
 			let extradice = parseInt(commandOptions.slice(bonusindex + 3));
-			if(isNaN(extradice) || extradice < - 4 || extradice > 20)
-				extradice = 1
+			if (isNaN(extradice) || extradice < -4 || extradice > 20)
+				extradice = 1;
 
 			if (commandOptions.includes('adv')) {
 				roll = RollContest.NDFudgeToFour(4 + extradice, true);
@@ -53,9 +64,7 @@ export class rollCommand implements ICommand {
 			}
 		}
 
-		const Skill = Player.CurrentCharacter?.FindSkill(args.join(' '))
-
-		let approachstr = ''
+		let approachstr = '';
 		if (Skill) {
 			approachstr = ` using **${Skill.Name}**,`;
 			roll[0] += Skill.Value;
@@ -72,10 +81,10 @@ export class rollCommand implements ICommand {
 				modifierstr += modifier;
 			if (advantagestr != '')
 				modifierstr += ` and ${advantagestr}`;
-			modifierstr += ','
+			modifierstr += ',';
 		}
 		if (modifierstr = '' && advantagestr != '')
-			modifierstr = `with ${advantagestr},`
+			modifierstr = `with ${advantagestr},`;
 
 		return `${roll[1]}:${approachstr}${modifierstr}\n${Player} rolled **[ ${roll[0]} ]** .`;
 	}

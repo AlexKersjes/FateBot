@@ -4,8 +4,9 @@ import { SaveGame } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Stunt, Atom } from "../dataelements";
-import { getGenericResponse, getIntResponse, confirmationDialogue } from "../tools";
+import { getGenericResponse, getIntResponse, confirmationDialogue } from "../responsetools";
 import { HelpText } from "./_CommandHelp";
+import { CharacterOrOptionalSituationFractal, OptionalDeleteByIndex } from "../commandtools";
 
 @ICommands.register
 export class stuntCommand implements ICommand {
@@ -18,55 +19,32 @@ export class stuntCommand implements ICommand {
 	requireSave: boolean = true;
 	aliases: string[] | undefined = ['s', 'x'];
 	cooldown: number | undefined;
+	typename: string = 'Stunt';
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		let skipFinally = false;
 		const player = save.getPlayerAuto(message);
-		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
 			}
+			if(a.startsWith('<@'))
+				return false;
 			return true;
 		});
 
 		let situationCommand = false;
 		let fractal: FateFractal;
+		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal(this.typename, commandOptions, save, message, player));
 
-		// Get situation instead
-		if (commandOptions.includes('s')) {
-			if (!save.Options.GMCheck(message.author.id) && save.Options.RequireGMforSituationAccess)
-				throw Error('GM permission is needed to directly change situation stunts. (Can be disabled in settings.)');
-			fractal = save.ChannelDictionary.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
+		try{
+			await OptionalDeleteByIndex(this.typename, fractal.Stunts, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
 		}
-		else {
-			if (!player.CurrentCharacter)
-				throw Error(`${player} has no character selected.`);
-			fractal = player.CurrentCharacter;
-			commandOptions.replace('s', '');
-			situationCommand = true;
-		}
-
-		if (commandOptions.includes('r')) {
-			let number;
-			if (!args[0])
-				args = await (await getGenericResponse(message, 'Which stunt do you wish to delete? Specify a number or name:')).split(' ');
-
-			number = parseInt(args[0]);
-			if (!isNaN(number) && args.length == 1) {
-				const toBeDeleted = fractal.Stunts[number - 1];
-				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
-					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
-				if(await confirmationDialogue(message, prompt)) {
-					fractal.Stunts.splice(fractal.Stunts.indexOf(toBeDeleted), 1);
-					save.dirty();
-					fractal.updateActiveSheets();
-					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
-				}
-				else
-					throw Error('Aspect deletion cancelled');
-			}
+		catch (reject) {
+			if(reject instanceof Error)
+				throw reject
+			return (reject as string);
 		}
 
 		let expectedNumbers = 0;

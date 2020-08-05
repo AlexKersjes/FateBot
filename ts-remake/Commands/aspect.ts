@@ -4,9 +4,11 @@ import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Aspect, Boost, Atom } from "../dataelements";
-import { getGenericResponse, getPlayerFromMentionIfUndefined, confirmationDialogue } from "../tools";
+import { getGenericResponse, getPlayerFromMentionIfUndefined, confirmationDialogue } from "../responsetools";
 import { HelpText } from "./_CommandHelp";
 import { ClientResources } from "../singletons";
+import { CharacterOrOptionalSituationFractal, OptionalDeleteByIndex } from "../commandtools";
+import { rejects } from "assert";
 
 @ICommands.register
 export class aspectCommand implements ICommand {
@@ -19,6 +21,7 @@ export class aspectCommand implements ICommand {
 	requireSave: boolean = true;
 	aliases: string[] | undefined = ['a'];
 	cooldown: number | undefined;
+	typename: string = 'Aspect';
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		let skipFinally = false;
 		let commandOptions: string = '';
@@ -50,44 +53,19 @@ export class aspectCommand implements ICommand {
 
 		if (invokeMention == player)
 			invokeMention = undefined;
+	
 		args = args.filter(a => !a.startsWith('<@'));
+		let fractal : FateFractal;
+		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal(this.typename, commandOptions, save, message, player));
 
-		let fractal: FateFractal;
-
-		// Get situation instead
-		if (commandOptions.includes('s')) {
-			if (!save.Options.GMCheck(message.author.id) && save.Options.RequireGMforSituationAccess)
-				throw Error('GM permission is needed to directly change situation Aspects. (Can be disabled in settings.)');
-			fractal = save.ChannelDictionary.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
-			commandOptions.replace('s', '');
-			situationCommand = true;
+		try{
+			await OptionalDeleteByIndex(this.typename, fractal.Aspects, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
 		}
-		else {
-			if (!player.CurrentCharacter)
-				throw Error(`${player} has no character selected.`);
-			fractal = player.CurrentCharacter;
+		catch (reject) {
+			if(reject instanceof Error)
+				throw reject
+			return (reject as string);
 		}
-
-		if (commandOptions.includes('r')) {
-			let number;
-			if (!args[0])
-				args = await (await getGenericResponse(message, 'Which Aspect do you wish to delete? Specify a number or name:')).split(' ');
-
-			number = parseInt(args[0]);
-			if (!isNaN(number) && args.length == 1) {
-				const toBeDeleted = fractal.Aspects[number - 1];
-				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
-					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
-				if(await confirmationDialogue(message, prompt)){
-					fractal.Aspects.splice(fractal.Aspects.indexOf(toBeDeleted), 1);
-					fractal.updateActiveSheets();
-					save.dirty();
-					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
-				} else
-					throw Error('Aspect deletion cancelled');
-			}
-		}
-
 
 		// Put the string back together without prefixes.
 		if (args.length == 0)

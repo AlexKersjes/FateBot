@@ -4,9 +4,9 @@ import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Condition, ConditionSeverity, BoxCondition, Atom } from "../dataelements";
-import { getGenericResponse, getIntResponse, getPlayerFromMentionIfUndefined, confirmationDialogue } from "../tools";
+import { getGenericResponse, getIntResponse, getPlayerFromMentionIfUndefined, confirmationDialogue } from "../responsetools";
 import { HelpText } from "./_CommandHelp";
-import { ClientResources } from "../singletons";
+import { CharacterOrOptionalSituationFractal, OptionalDeleteByIndex } from "../commandtools";
 
 @ICommands.register
 export class conditionCommand implements ICommand {
@@ -19,11 +19,11 @@ export class conditionCommand implements ICommand {
 	requireSave: boolean = true;
 	aliases: string[] | undefined = ['c', 'con'];
 	cooldown: number | undefined;
+	typename: string = 'Condition';
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		let skipFinally = false;
 		if (!save.Options.UseConditions)
 			throw Error('Conditions are disabled. To use conditions, enable them.');
-		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
 			if (a.startsWith('-')) {
@@ -54,43 +54,22 @@ export class conditionCommand implements ICommand {
 			invokeMention = undefined;
 
 
+
+		args =  args.filter(a => ! a.startsWith('<@'));
+	
+		// Get situation instead
+		
 		let situationCommand = false;
 		let fractal: FateFractal;
-
-		// Get situation instead
-		if (commandOptions.includes('s') && !commandOptions.includes('se')) {
-			if (!save.Options.GMCheck(message.author.id) && save.Options.RequireGMforSituationAccess)
-				throw Error('GM permission is needed to directly change situation Conditions. (Can be disabled in settings.)');
-			fractal = save.ChannelDictionary.FindDiscordChannel((message.channel as Discord.TextChannel)).situation;
-			commandOptions.replace('s', '');
-			situationCommand = true;
+		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal(this.typename, commandOptions, save, message, player));
+		try{
+			await OptionalDeleteByIndex(this.typename, fractal.Conditions, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
 		}
-		else {
-			if (!player.CurrentCharacter)
-				throw Error(`${player} has no character selected.`);
-			fractal = player.CurrentCharacter;
+		catch (reject) {
+			if(reject instanceof Error)
+				throw reject
+			return (reject as string);
 		}
-
-		if (commandOptions.includes('r')) {
-			let number;
-			if (!args[0])
-				args = await (await getGenericResponse(message, 'Which Condition do you wish to delete? Specify a number or name:')).split(' ');
-
-			number = parseInt(args[0]);
-			if (!isNaN(number) && args.length == 1) {
-				const toBeDeleted = fractal.Conditions[number - 1];
-				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
-					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
-				if (await confirmationDialogue(message, prompt)) {
-					fractal.Conditions.splice(fractal.Conditions.indexOf(toBeDeleted), 1);
-					fractal.updateActiveSheets();
-					return `${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`;
-				}
-				else
-					throw Error('Condition deletion cancelled');
-			}
-		}
-
 
 		let expectedNumbers = 0;
 		if (commandOptions.includes('c'))

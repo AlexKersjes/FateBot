@@ -16,6 +16,18 @@ export class refreshCommand implements ICommand{
 	cooldown: number | undefined;
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		save.dirty()
+		const player = save.getPlayerAuto(message);
+		let commandOptions = '';
+		args = args.filter(a => {
+			if( a.startsWith('<@') ){
+				return false;
+			}
+			if (a.startsWith('-')) {
+				commandOptions = a.substr(1).toLowerCase();
+				return false;
+			}
+			return true;
+		});
 		throw new Error("Method not implemented.");
 	}
 	

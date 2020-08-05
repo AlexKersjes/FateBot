@@ -1,7 +1,7 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
-import { confirmationDialogue, getGenericResponse } from "../tools";
+import { confirmationDialogue, getGenericResponse } from "../responsetools";
 import { Atom } from "../dataelements";
 
 @ICommands.register

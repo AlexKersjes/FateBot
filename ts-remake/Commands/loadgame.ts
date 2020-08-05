@@ -3,7 +3,7 @@ import * as Discord from 'discord.js';
 import * as fs from 'fs';
 import { SaveGame } from "../savegame";
 import { Games, ClientResources } from "../singletons";
-import { confirmationDialogue } from "../tools";
+import { confirmationDialogue } from "../responsetools";
 @ICommands.register
 export class loadgameCommand implements ICommand {
 	requireSave: boolean = false;

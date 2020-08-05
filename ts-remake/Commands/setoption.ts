@@ -1,5 +1,5 @@
 import { ICommands, ICommand } from "../command";
-import { getGenericResponse, confirmationDialogue } from "../tools";
+import { getGenericResponse, confirmationDialogue } from "../responsetools";
 import { SaveGame } from "../savegame";
 
 @ICommands.register

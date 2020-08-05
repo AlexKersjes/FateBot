@@ -1,7 +1,7 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
-import { getIntResponse } from "../tools";
+import { getIntResponse } from "../responsetools";
 
 @ICommands.register
 export class targetCommand implements ICommand{

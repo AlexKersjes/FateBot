@@ -21,6 +21,8 @@ export class SaveGame {
 	Options: FateOptions;
 	@Type(() => ChannelDictionary)
 	ChannelDictionary: ChannelDictionary = new ChannelDictionary();
+	@Type(() => FateFractal)
+	GlobalSituation: FateFractal = new FateFractal('Global situation', this.Options, true);
 
 	constructor(GameName: string, CurrentGuild : string, version : FateVersion) {
 		this.GameName = GameName;

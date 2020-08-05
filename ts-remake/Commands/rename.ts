@@ -2,7 +2,7 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
 import { FateFractal } from "../fatefractal";
-import { getGenericResponse } from "../tools";
+import { getGenericResponse } from "../responsetools";
 import { Atom } from "../dataelements";
 import { SkillList } from "../skills";
 

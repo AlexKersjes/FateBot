@@ -1,7 +1,7 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame, Player, Folder } from '../savegame';
-import { getGenericResponse } from "../tools";
+import { getGenericResponse } from "../responsetools";
 import { FateFractal } from "../fatefractal";
 import { HelpText } from "./_CommandHelp";
 import { plainToClass, classToClass } from "class-transformer";
@@ -27,13 +27,14 @@ export class charselectCommand implements ICommand {
 		let player = save.getPlayerAuto(message);
 		const loadedCharacter = player.CurrentCharacter;
 
-		args = args.filter(a => !a.startsWith('<@'));
 		let commandOptions: string = '';
 		args = args.filter(a => {
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
 			}
+			if(a.startsWith('<@'))
+				return false;
 			return true;
 		});
 

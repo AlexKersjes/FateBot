@@ -1,5 +1,5 @@
 type Constructor<T = {}> = new (...args: any[]) => T;
-import { deepCopy } from './tools';
+import { deepCopy } from './responsetools';
 import { FateOptions } from './options';
 import { plainToClass } from 'class-transformer';
 

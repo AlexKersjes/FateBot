@@ -1,7 +1,7 @@
-jest.mock('../tools');
+jest.mock('../responsetools');
 
 import 'reflect-metadata';
-import * as tools from '../tools';
+import * as tools from '../responsetools';
 import { SaveGame, Player } from '../savegame';
 import { FateVersion } from '../options';
 import { FateFractal } from '../fatefractal';
