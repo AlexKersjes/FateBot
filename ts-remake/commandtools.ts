@@ -3,6 +3,7 @@ import { FateFractal } from "./fatefractal";
 import * as Discord from 'discord.js';
 import { getGenericResponse, confirmationDialogue } from "./responsetools";
 import { Atom } from "./dataelements";
+import { SkillList } from "./skills";
 
 export function CharacterOrOptionalSituationFractal(categoryString: string, commandOptions: string, save: SaveGame, message: Discord.Message, player: Player): { fractal: FateFractal, commandOptions: string, situationCommand: boolean } {
 	let fractal: FateFractal;
@@ -49,7 +50,7 @@ export async function OptionalDeleteByIndex<T extends Atom>(typename: string, ar
 					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
 				if (await confirmationDialogue(message, prompt)) {
 					array.splice(array.indexOf(toBeDeleted), 1);
-					fractal.updateActiveSheets();
+					fractal.updateActiveSheets(save.Options);
 					save.dirty();
 					return reject(`${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName} was deleted.`);
 				} else
@@ -58,4 +59,30 @@ export async function OptionalDeleteByIndex<T extends Atom>(typename: string, ar
 		}
 		return resolve(args)
 	});
+}
+
+
+
+export function getMatchFromArray<T extends Atom>(fields: (T|FateFractal|SkillList)[], inputstring: string) : T|FateFractal|SkillList|undefined{
+	const matched : (FateFractal | SkillList | T)[] = [];
+	fields.forEach(e => {
+		if (e.match(inputstring))
+			matched.push(e);
+	});
+
+	if (matched.length == 0)
+		return undefined;
+	if (matched.length > 1) {
+		let errstring = `Too many renameable objects matches for "${inputstring}". Matches:`;
+		matched.forEach(a => {
+			if(a instanceof FateFractal)
+				errstring += `\n   ${a.FractalName}`
+			else if(a instanceof SkillList)
+				errstring += `\n   ${a.ListName}`;
+			else
+				errstring += `\n   ${a.Name}`;
+		});
+		throw Error(errstring);
+	}
+	return matched[0];
 }

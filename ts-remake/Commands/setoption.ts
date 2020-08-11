@@ -40,10 +40,10 @@ class setoptionCommand implements ICommand{
 				if(save.Options.UseConditions){
 					if (await confirmationDialogue(message, 'Are you sure you wish to disable Conditions? All Conditions currently applied to characters will be transformed in to regular Aspects:')) {
 						save.Players.forEach(p => {
-							p.CurrentCharacter?.convertConditionsToAspects();
+							p.CurrentCharacter?.convertConditionsToAspects(save.Options);
 						});
 						save.ChannelDictionary.Channels.forEach(p => {
-							p.situation.convertConditionsToAspects();
+							p.situation.convertConditionsToAspects(save.Options);
 						});
 					}
 

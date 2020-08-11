@@ -34,6 +34,6 @@ test("Mark a stress box", () => {
 	Options.DresdenStress = false;
 	const markedvalue = TestSheet.FindMarkable("Stress")?.Mark(3, Options);
 	expect(StressTrack.BoxMarks).toStrictEqual([false, false, true]);
-	expect(markedvalue).toBe(3);
+	expect(markedvalue).toStrictEqual([3, true]);
 })
 

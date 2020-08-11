@@ -214,7 +214,7 @@ export class skillCommand implements ICommand {
 		}
 		finally {
 			if (!skipFinally) {
-				fractal.updateActiveSheets();
+				fractal.updateActiveSheets(save.Options);
 				save.dirty();
 			}
 		}

@@ -1,12 +1,13 @@
 import * as Discord from 'discord.js';
 import { FateFractal } from './fatefractal';
 import { Atom, Boost, IsCondition, ConditionSeverity, IsInvokable, Stunt, IsMarkable } from './dataelements';
+import { FateOptions } from './options';
 
 // default character sheet layout
-export function sheetembed(character : FateFractal, member : Discord.GuildMember)
+export function sheetembed(character : FateFractal, Options: FateOptions, member? : Discord.GuildMember)
 {
 	const embed = new Discord.MessageEmbed()
-		.setColor(member.displayColor)
+		.setColor(member?.displayColor ?? '#36393E')
 		.setTitle(`**${character.FractalName}**`);
 	if(character.HighConcept) { embed.setDescription(`the ***${character.HighConcept.Name}***`); }
 	if(character.Trouble) { embed.addField('Trouble', `${character.Trouble.Name}`); }
@@ -16,7 +17,7 @@ export function sheetembed(character : FateFractal, member : Discord.GuildMember
 			.addBlankField();
 	}
 	if(character.Stunts.length != 0 || !character.NPC) {embed.addField('Stunts', namesFromArray(character.Stunts), true);}
-	if(character.Conditions.length != 0 || !character.NPC) { embed.addField('Conditions', namesFromArray(character.Conditions), true); }
+	if(Options.UseConditions &&(character.Conditions.length != 0 || !character.NPC)) { embed.addField('Conditions', namesFromArray(character.Conditions), true); }
 	if(character.Tracks.length != 0) {embed.addBlankField();}
 	character.Tracks.forEach(boxaspect =>
 	{
@@ -36,10 +37,13 @@ export function sheetembed(character : FateFractal, member : Discord.GuildMember
 				.addField('No listname', 'This character has no skill lists.');
 		}
 	}
-	embed.setThumbnail(character.imgUrl ? character.imgUrl : member.user.avatarURL() || '');
+	if(character.imgUrl || member?.user.avatarURL())
+		embed.setThumbnail(character.imgUrl ? character.imgUrl : member?.user.avatarURL() || '');
 	return embed;
 }
 
+
+// Maybe refactor this to be Member-independent? unsure.
 export function detailembed<T extends Atom>(character : FateFractal, member : Discord.GuildMember, pageName : string, contents : Array<T | Array<T | FateFractal>>)
 {
 	const embed = new Discord.MessageEmbed()

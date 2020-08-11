@@ -3,8 +3,8 @@ import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import { getGenericResponse } from "../responsetools";
-import { Atom } from "../dataelements";
 import { SkillList } from "../skills";
+import { getMatchFromArray } from "../commandtools";
 
 @ICommands.register
 export class renameCommand implements ICommand{
@@ -64,7 +64,7 @@ export class renameCommand implements ICommand{
 
 		const inputstring = args.join(' ');
 
-		const match = this.getMatches(fields, inputstring);
+		const match = getMatchFromArray(fields, inputstring);
 		if(match == undefined)
 			throw Error(`Could not find a match for "${inputstring}".`);
 		fields = fields.splice(fields.indexOf(match));
@@ -73,7 +73,7 @@ export class renameCommand implements ICommand{
 		if(newname == '')
 			newname = await getGenericResponse(message, `Rename "${oldname}" to:`)
 		
-		const newmatch = this.getMatches(fields, newname);	
+		const newmatch = getMatchFromArray(fields, newname);	
 		if(newmatch != undefined)
 			throw Error(`"${newname}" already matches ${newmatch.FractalName? newmatch.FractalName : newmatch.ListName? newmatch.ListName : newmatch.Name ?? 'another object'}.`);
 
@@ -87,33 +87,9 @@ export class renameCommand implements ICommand{
 			match.Name = newname;
 		}
 
-		character.updateActiveSheets();
+		character.updateActiveSheets(save.Options);
 
 		return `"${oldname}" was renamed to "${newname}".`;
 	}
 	
-
-	private getMatches<T extends Atom>(fields: (T|FateFractal|SkillList)[], inputstring: string) : T|FateFractal|SkillList| undefined{
-		const matched : (FateFractal | SkillList | T)[] = [];
-		fields.forEach(e => {
-			if (e.match(inputstring))
-				matched.push(e);
-		});
-
-		if (matched.length == 0)
-			return undefined;
-		if (matched.length > 1) {
-			let errstring = `Too many renameable objects matches for "${inputstring}". Matches:`;
-			matched.forEach(a => {
-				if(a instanceof FateFractal)
-					errstring += `\n   ${a.FractalName}`
-				else if(a instanceof SkillList)
-					errstring += `\n   ${a.ListName}`;
-				else
-					errstring += `\n   ${a.Name}`;
-			});
-			throw Error(errstring);
-		}
-		return matched[0];
-	}
 }

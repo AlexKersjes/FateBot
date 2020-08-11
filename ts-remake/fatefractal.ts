@@ -1,7 +1,7 @@
 import { Skill, SkillLibrary } from './skills';
-import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost } from './dataelements'
+import { Atom, Aspect, Condition, Track, Stunt, BoxCondition, InvokableObject, MarkableObject, IsInvokable, Boost, ConditionSeverity } from './dataelements'
 import { Type, plainToClass, Exclude, classToClass } from 'class-transformer';
-import { FateOptions } from './options';
+import { FateOptions, FateVersion } from './options';
 import { GuildMember, Message } from 'discord.js';
 import { sheetembed } from './embeds';
 export class FateFractal {
@@ -71,18 +71,26 @@ export class FateFractal {
 			return;
 		this.ActiveSheets.splice(index, 1);
 	}
-	updateActiveSheets() {
+	updateActiveSheets(Options: FateOptions) {
 		if(this.Member == undefined)
 			return;
-		const embed = sheetembed(this, this.Member)	
+		const embed = sheetembed(this, Options, this.Member)	
 		this.ActiveSheets.forEach(m => m.edit(embed));
 	}
 
 	constructor(Name: string, Options?: FateOptions, NPC: boolean = false, Prototype?: FateFractal) {
 		this.FractalName = Name;
 		this.NPC = NPC;
-		if (Options && !NPC)
+		if (Options && !NPC){
 			this.Skills.CreateList(undefined, Options.PrefillSkills, Options);
+			
+			if(Options.FateVersion != FateVersion.Core) 
+				this.Tracks.push(new Track('Stress', Options.FateVersion == FateVersion.Accelerated ? [1, 2, 3] : [1, 1, 1]));
+			else
+				this.Tracks.push(new Track('Physical Stress', [1, 2, 3]), new Track('Mental Stress', [1, 2, 3]));
+
+			this.Tracks.push(new Track('Mild', [2], ConditionSeverity.Fleeting), new Track('Moderate', [4], ConditionSeverity.Sticky), new Track('Severe', [6], ConditionSeverity.Lasting));
+		}
 		if (NPC) {
 			this.FatePoints = 0;
 			this.Refresh = 0;
@@ -197,7 +205,7 @@ export class FateFractal {
 	}
 
 
-	convertConditionsToAspects() {
+	convertConditionsToAspects(Options: FateOptions) {
 		this.Conditions.forEach(c => {
 			if(c instanceof FateFractal)
 				this.Aspects.push(c);
@@ -206,7 +214,7 @@ export class FateFractal {
 			}
 		});
 		this.Conditions = [];
-		this.updateActiveSheets();
+		this.updateActiveSheets(Options);
 	}
 
 	RepairConnections() {

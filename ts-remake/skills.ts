@@ -105,6 +105,7 @@ export class SkillList {
 	private _skillPoints: number = -1;
 	@Type(() => _Skill)
 	private _skills: _Skill[] = [];
+	Hidden : boolean = false;
 
 	get SkillPoints () {return this._skillPoints}
 	set SkillPoints (value : number) { if(value < -1) value = -1; this._skillPoints = value; }
@@ -235,6 +236,8 @@ export class SkillList {
 
 	
 	toString(neat: boolean = false) : string {
+		if(this.Hidden)
+			return '[HIDDEN]';
 		if(this._skills.length ==0)
 			return 'No Skills.';
 		this.SortSkills();

@@ -106,7 +106,7 @@ export class charselectCommand implements ICommand {
 				}
 
 				if(!save.Options.UseConditions) {
-					charToLoad.convertConditionsToAspects();
+					charToLoad.convertConditionsToAspects(save.Options);
 				}
 
 				if (commandOptions.includes('a') || commandOptions.includes('s') || commandOptions.includes('c')) {

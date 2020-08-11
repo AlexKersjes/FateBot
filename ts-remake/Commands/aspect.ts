@@ -2,13 +2,10 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
-import * as Discord from 'discord.js'
 import { Aspect, Boost, Atom } from "../dataelements";
 import { getGenericResponse, getPlayerFromMentionIfUndefined, confirmationDialogue, getIntResponse } from "../responsetools";
 import { HelpText } from "./_CommandHelp";
-import { ClientResources } from "../singletons";
 import { CharacterOrOptionalSituationFractal, OptionalDeleteByIndex } from "../commandtools";
-import { rejects } from "assert";
 
 @ICommands.register
 export class aspectCommand implements ICommand {
@@ -246,7 +243,7 @@ export class aspectCommand implements ICommand {
 		finally
 		{
 			if(!skipFinally){
-				fractal.updateActiveSheets();
+				fractal.updateActiveSheets(save.Options);
 				save.dirty();
 			}
 		}

@@ -6,6 +6,7 @@ import * as Discord from 'discord.js';
 import { Aspect } from "../dataelements";
 import { getGenericResponse } from "../responsetools";
 import { sheetembed, detailembed } from "../embeds";
+import { FateOptions } from "../options";
 
 @ICommands.register
 export class sheetCommand implements ICommand {
@@ -47,15 +48,15 @@ export class sheetCommand implements ICommand {
 		let member: Discord.GuildMember | undefined | null = message.guild?.member(player.id);
 		if (!member)
 			throw Error('Could not find GuildMember');
-		const mss = await message.channel.send(sheetembed(character, member))
+		const mss = await message.channel.send(sheetembed(character, save.Options, member))
 		character.subscribeSheet(mss, member);
-		createlistener(mss, client, character, member, permanent);
+		createlistener(mss, client, character, member, save.Options, permanent);
 	}
 }
 
 
 
-async function createlistener(message: Discord.Message, client: Discord.Client, character: FateFractal, member: Discord.GuildMember, permanent: boolean) {
+async function createlistener(message: Discord.Message, client: Discord.Client, character: FateFractal, member: Discord.GuildMember, Options:FateOptions,permanent: boolean) {
 	const filter = (reaction: Discord.MessageReaction, user: Discord.User) => {
 		return (reaction.emoji.name == '🏠' || reaction.emoji.name == '🇩' || reaction.emoji.name == '🇦' || reaction.emoji.name == '🇸' || reaction.emoji.name == '🇨' || reaction.emoji.name == '⏹️') && user.id != client.user?.id;
 	};
@@ -65,7 +66,7 @@ async function createlistener(message: Discord.Message, client: Discord.Client, 
 	collector.on('collect', (reaction, user) => {
 		switch (reaction.emoji.name) {
 			case '🏠':
-				message.edit(sheetembed(character, member));
+				message.edit(sheetembed(character, Options,  member));
 				break;
 			case '🇦':
 				const contents: Array<Aspect | Array<Aspect | FateFractal>> = [character.Aspects];

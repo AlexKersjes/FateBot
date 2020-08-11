@@ -161,7 +161,8 @@ export class trackCommand implements ICommand {
 						value = [err[1], err[2]]
 						message.channel.send(`${value[0]} shifts were marked. ${(err[0] as Error).message}`); // TODO hook up to rollcontest
 					}
-
+					marking = value[1];
+					
 					if (marking && MatchedTrack.CreatesCondition != ConditionSeverity.None && save.Options.AutoHandleConditions) {
 						if (save.Options.UseConditions) {
 							const ConditionName = await getGenericResponse(message, `Name a new <${ConditionSeverity[MatchedTrack.CreatesCondition]}> Condition:`)
@@ -208,7 +209,7 @@ export class trackCommand implements ICommand {
 		}
 		finally {
 			if (!skipFinally) {
-				fractal.updateActiveSheets();
+				fractal.updateActiveSheets(save.Options);
 				save.dirty();
 			}
 		}

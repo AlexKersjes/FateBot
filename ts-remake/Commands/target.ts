@@ -2,12 +2,13 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
 import { getIntResponse } from "../responsetools";
+import { HelpText } from "./_CommandHelp";
 
 @ICommands.register
 export class targetCommand implements ICommand{
 	name: string = 'target';
 	description: string = 'Set a target difficulty for a roll.';
-	helptext: string | undefined = 'Include an integer to set as the target. Include skill names to restrict which skills can be used for the roll.\nIf multiple integers are provided, then provide that many skill names to set different targets per skill. Use the modifier `-r` to resolve the current roll.\nAutoresolve may be toggled in the options. If a target is not cleared, that target remains set.';
+	helptext: string | undefined = HelpText.target;
 	admin: boolean = false;
 	GM: boolean = true;
 	args: boolean = true;

@@ -191,7 +191,7 @@ export class Track extends Markable(Atom)
 {
 
 	CreatesCondition: ConditionSeverity;
-	constructor(Name: string, Boxes: number | number[], CreatesCondition?: ConditionSeverity, Description?: string) {
+	constructor(Name: string, Boxes: number | number[] = 1, CreatesCondition?: ConditionSeverity, Description?: string) {
 		super(Name, Description);
 		if (typeof Boxes === 'number')
 			this.SetMaxBoxes(Boxes);
