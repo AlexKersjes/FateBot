@@ -4,13 +4,13 @@ import { TextChannel } from "discord.js";
 @ICommands.register
 export class announceCommand implements ICommand {
 	requireSave: boolean = false;
-	helptext: string | undefined = '*syntax:* .announce <channel mention> <markup e.g. \\*\\* [optional] > /<your message> ';
+	helptext: string | undefined = '*syntax:* .announce <channel mention> <markup>(e.g. \\*\\* or \\_\\_, [optional]) /<your message> ';
 	name: string = 'announce';
 	description: string = 'The Raven speaks.';
 	admin: boolean = false;
 	GM = true;
 	args: boolean = true;
-	aliases: string[] | undefined;
+	aliases: string[] | undefined = ['ann', 'speak'];
 	cooldown: number | undefined;
 	async execute(message: import("discord.js").Message, args: string[], client: import("discord.js").Client): Promise<void> {
 		let markup = args[1];

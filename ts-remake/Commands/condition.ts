@@ -2,8 +2,7 @@ import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
-import * as Discord from 'discord.js'
-import { Condition, ConditionSeverity, BoxCondition, Atom } from "../dataelements";
+import { Condition, ConditionSeverity, BoxCondition } from "../dataelements";
 import { getGenericResponse, getIntResponse, getPlayerFromMentionIfUndefined, confirmationDialogue } from "../responsetools";
 import { HelpText } from "./_CommandHelp";
 import { CharacterOrOptionalSituationFractal, OptionalDeleteByIndex } from "../commandtools";
@@ -117,7 +116,7 @@ export class conditionCommand implements ICommand {
 		});
 
 		let Severity: ConditionSeverity = ConditionSeverity.Fleeting;
-		if (commandOptions.includes('m') || commandOptions.includes('se')) {
+		if (commandOptions.includes('v')) {
 			const response = await getGenericResponse(message, 'Provide the Condition Severity (None, Fleeting, Sticky, Lasting):');
 			let regStr = '.*';
 			for (let i = 0; i < response.length; i++) {

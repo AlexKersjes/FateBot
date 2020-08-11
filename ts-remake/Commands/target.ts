@@ -7,7 +7,7 @@ import { getIntResponse } from "../responsetools";
 export class targetCommand implements ICommand{
 	name: string = 'target';
 	description: string = 'Set a target difficulty for a roll.';
-	helptext: string | undefined = 'Include an integer to set as the target. Include skill names to restrict which skills can be used for the roll.\nIf multiple integers are provided, then provide that many skill names to set different targets per skill. Use the modifier `-r` to resolve the current roll. ';
+	helptext: string | undefined = 'Include an integer to set as the target. Include skill names to restrict which skills can be used for the roll.\nIf multiple integers are provided, then provide that many skill names to set different targets per skill. Use the modifier `-r` to resolve the current roll.\nAutoresolve may be toggled in the options. If a target is not cleared, that target remains set.';
 	admin: boolean = false;
 	GM: boolean = true;
 	args: boolean = true;

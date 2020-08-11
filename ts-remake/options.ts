@@ -12,6 +12,7 @@ export class FateOptions {
 	private _defaultSkills: string[] = [];
 	PlayerPermittedFolders: string[] = ['PCs']
 	private _startingSkillpoints: number = -1;
+	AutoHandleConditions: boolean = true;
 	set StartingSkillPoints (value: number) { if(value < -1) value = -1; this._startingSkillpoints = value };
 	get StartingSkillPoints () { return this._startingSkillpoints };
 	

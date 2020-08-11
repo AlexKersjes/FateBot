@@ -5,7 +5,6 @@ import { Exclude } from "class-transformer";
 import { Games, ClientResources } from "./singletons";
 
 export class RollContest {
-	InvokedAspects: InvokableObject[] = [];
 	Targets : [string, number][] = [];
 	CurrentRoll: number = 0;
 	CurrentOpposed: number = 0;
@@ -84,6 +83,10 @@ export class RollContest {
 		return sumDiceArray(array);
 	}
 
+}
+
+class Roll {
+	
 }
 
 function sumDiceArray(array: [number, string][]): [number, string] {

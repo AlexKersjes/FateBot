@@ -4,7 +4,7 @@ import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import * as Discord from 'discord.js'
 import { Aspect, Boost, Atom } from "../dataelements";
-import { getGenericResponse, getPlayerFromMentionIfUndefined, confirmationDialogue } from "../responsetools";
+import { getGenericResponse, getPlayerFromMentionIfUndefined, confirmationDialogue, getIntResponse } from "../responsetools";
 import { HelpText } from "./_CommandHelp";
 import { ClientResources } from "../singletons";
 import { CharacterOrOptionalSituationFractal, OptionalDeleteByIndex } from "../commandtools";
@@ -139,6 +139,15 @@ export class aspectCommand implements ICommand {
 			}
 			else if (matched.length == 1) {
 				const MatchedAspect = matched[0];
+
+				if (commandOptions.includes('co')) {
+					MatchedAspect.InvokeCost = await getIntResponse(message, 'Provide cost to invoke Aspect:');
+					return `Invoke cost set to ${MatchedAspect.InvokeCost}`;
+				}
+				if(commandOptions.includes('bo')) {
+					MatchedAspect.BonusShifts = await getIntResponse(message, 'Provide invocation bonus:');
+					return `Invoke bonus set to ${MatchedAspect.BonusShifts}`;
+				}
 
 				const extraInvokes: number = commandOptions.match(/f/ig)?.length ?? 0;
 				if (extraInvokes > 0) {

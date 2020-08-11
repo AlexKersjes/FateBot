@@ -51,6 +51,10 @@ export function detailembed<T extends Atom>(character : FateFractal, member : Di
 	const flatcontents =  contents.flat();
 	flatcontents.forEach(element =>
 		{
+			if(element.Hidden){
+				embed.addField('[HIDDEN]', '[REDACTED]');
+				return;
+			}
 			if (element instanceof FateFractal)
 			{
 				embed.addField(element.FractalName, 'Fractal');
@@ -92,17 +96,12 @@ function namesFromArray<T extends Atom>(array: Array<T | FateFractal>)
 	let string = '';
 	array.forEach(i =>
 	{
-		if (i instanceof FateFractal)
-		{
+		if(i.Hidden)
+			string += '[HIDDEN]'
+		else if (i instanceof FateFractal)
 			string += i.FractalName;
-		}
 		else
-		{
-			if(i.Hidden)
-				string += '[HIDDEN]'
-			else
-				string += i.Name;
-		}
+			string += i.Name;
 		string += '\n';
 	});
 	return string;

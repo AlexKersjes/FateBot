@@ -16,7 +16,7 @@ importCommands();
 
 
 const cooldowns = new Discord.Collection<string, Discord.Collection<string, [number, number]>>();
-const executing = ClientResources.Executing; 
+const executing = ClientResources.Executing;
 
 client.once('ready', () => {
 	console.log('Ready');
@@ -56,21 +56,27 @@ client.on('message', message => {
 		if (!command) { return; }
 
 		// Several permission checks defined by command properties
-		if(executing.has(id))
+		if (executing.has(id))
 			return;
 		executing.set(id, []);
 		checkPermissions(command, message, savegame, id, args)
-		.then(msg => command.execute(msg, args, client, savegame), err => { throw Error(err as string); })
-		// Command Execution
-		.then(result => {
-			if(typeof result === 'string')
-				message.channel?.send(result);
-			executing.get(id)?.push((message as Discord.Message));
-			message.channel?.bulkDelete(executing.get(id) ?? []);
-		}).catch(err => {
-			console.log(err);
-			message.channel?.send((err as Error).message);
-		}).finally(() => executing.delete(id));
+			.then(msg => command.execute(msg, args, client, savegame), err => { throw Error(err as string); })
+			// Command Execution
+			.then(result => {
+				if (typeof result === 'string')
+					message.channel?.send(result);
+				executing.get(id)?.push((message as Discord.Message));
+				message.channel?.bulkDelete(executing.get(id) ?? []);
+			}).catch(err => {
+				if (err instanceof Error) {
+					console.log(err);
+					message.channel?.send(err.message);
+				}
+				else if (err instanceof Array) {
+					console.log(err[0]);
+					message.channel?.send((err[0] as Error).message);
+				}
+			}).finally(() => executing.delete(id));
 
 
 	}
@@ -99,7 +105,7 @@ client.on('messageReactionAdd', (reaction, user) => {
 	}
 });
 
-function checkPermissions(command: ICommand, message: Discord.Message, savegame: SaveGame | undefined, id: string, args: string[]) : Promise<Discord.Message> {
+function checkPermissions(command: ICommand, message: Discord.Message, savegame: SaveGame | undefined, id: string, args: string[]): Promise<Discord.Message> {
 	return new Promise((resolve, reject) => {
 		// Check Admin permission
 		if (command.admin && !message.member?.hasPermission('ADMINISTRATOR')) {
@@ -159,7 +165,7 @@ function checkPermissions(command: ICommand, message: Discord.Message, savegame:
                         case 12: emoji = '🕛'; break;
                     }
                     message.react(emoji);*/
-					return reject(`Cooldown: ${(timeLeft/1000).toFixed(1)} seconds.`);
+					return reject(`Cooldown: ${(timeLeft / 1000).toFixed(1)} seconds.`);
 					// return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
 				}
 			}

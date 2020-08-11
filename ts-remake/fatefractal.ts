@@ -52,6 +52,7 @@ export class FateFractal {
 	CurrentLocation: string | undefined;
 	imgUrl: string | undefined;
 	NPC: boolean;
+	Hidden: boolean | undefined;
 
 	@Exclude()
 	private Member: GuildMember | undefined;

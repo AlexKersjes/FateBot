@@ -111,7 +111,8 @@ export class charselectCommand implements ICommand {
 
 				if (commandOptions.includes('a') || commandOptions.includes('s') || commandOptions.includes('c')) {
 					if (loadedCharacter == undefined)
-						throw Error('No character to attach fractal to.')
+						throw Error('No character to attach fractal to.');
+					charToLoad.Hidden = false;
 					if (commandOptions.includes('a')) {
 						loadedCharacter.Aspects.unshift(charToLoad);
 						return `"${charToLoad.FractalName}" was attached as an Aspect to "${loadedCharacter.FractalName}".`
@@ -151,7 +152,7 @@ export class charselectCommand implements ICommand {
 				return str;
 			case 'mv':
 			case 'move':
-				throw Error('Move is not implemented yet.');
+				throw Error('Move is not implemented yet.'); //TODO
 		}
 
 	}

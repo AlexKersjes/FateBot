@@ -142,13 +142,24 @@ export class stuntCommand implements ICommand {
 						return;
 				}
 
-				if (commandOptions.includes('c') && !commandOptions.includes('r'))
+				if (commandOptions.includes('c') && !commandOptions.includes('r')){
 					MatchedStunt.InvokeCost = Numbers.shift() ?? 0;
-				if (commandOptions.includes('b') && !commandOptions.includes('r'))
+					commandOptions.replace('c', '')
+					if (commandOptions.length == 0)
+						return 'Stunt updated';
+				}
+				if (commandOptions.includes('b') && !commandOptions.includes('r')){
 					MatchedStunt.BonusShifts = Numbers.shift() ?? 2;
+					commandOptions.replace('b', '');
+					if (commandOptions.length == 0)
+						return 'Stunt updated';
+				}
 				if (commandOptions.includes('u') && !commandOptions.includes('r')) {
 					const num = Numbers.shift() ?? 0;
 					MatchedStunt.Refresh = num < 0 ? 0 : num;
+					commandOptions.replace('u', '');
+					if (commandOptions.length == 0)
+						return 'Stunt updated.';
 				}
 
 				if (commandOptions.includes('d')) {
