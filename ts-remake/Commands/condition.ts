@@ -24,7 +24,19 @@ export class conditionCommand implements ICommand {
 		if (!save.Options.UseConditions)
 			throw Error('Conditions are disabled. To use conditions, enable them.');
 		let commandOptions: string = '';
+
+		let expectedNumbers = 0;
+		if (commandOptions.includes('c'))
+			expectedNumbers++;
+		if (commandOptions.includes('b'))
+			expectedNumbers++;
+		let Numbers: number[] = []
+
 		args = args.filter(a => {
+			if(!isNaN(parseInt(a)) && expectedNumbers > 0) {
+				Numbers.push(parseInt(a));
+				return false;
+			}
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
@@ -62,32 +74,12 @@ export class conditionCommand implements ICommand {
 		let fractal: FateFractal;
 		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal(this.typename, commandOptions, save, message, player));
 		try{
-			await OptionalDeleteByIndex(this.typename, fractal.Conditions, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
+			await OptionalDeleteByIndex(this.typename, fractal.Conditions, Numbers, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
 		}
 		catch (reject) {
 			if(reject instanceof Error)
 				throw reject
 			return (reject as string);
-		}
-
-		let expectedNumbers = 0;
-		if (commandOptions.includes('c'))
-			expectedNumbers++;
-		if (commandOptions.includes('b'))
-			expectedNumbers++;
-		let Numbers: number[] = []
-
-		// Filter out numbers unless none are expected
-		if (expectedNumbers > 0) {
-			const argsCopy: string[] = [];
-			args.forEach(a => {
-				const parsed = parseInt(a);
-				if (!isNaN(parsed))
-					Numbers.push(parsed);
-				else
-					argsCopy.push(a);
-			});
-			args = argsCopy;
 		}
 
 		// Put the string back together without prefixes.

@@ -36,16 +36,16 @@ export function CharacterOrOptionalSituationFractal(categoryString: string, comm
 }
 
 
-export async function OptionalDeleteByIndex<T extends Atom>(typename: string, array: Array<T | FateFractal>, commandOptions: string, save: SaveGame, args: string[], message: Discord.Message, fractal: FateFractal): Promise<string[]> {
+export async function OptionalDeleteByIndex<T extends Atom>(typename: string, array: Array<T | FateFractal>, numbers : number[], commandOptions: string, save: SaveGame, args: string[], message: Discord.Message, fractal: FateFractal): Promise<string[]> {
 	return new Promise<string[]>(async (resolve, reject) => {
 		if (commandOptions.includes('r')) {
-			let number;
 			if (!args[0])
 				args = await (await getGenericResponse(message, `Which ${typename} do you wish to delete? Specify a number or name:`)).split(' ');
 
-			number = parseInt(args[0]);
-			if (!isNaN(number) && args.length == 1) {
-				const toBeDeleted = array[number - 1];
+			if (numbers[0] && args.length == 0) {
+				const toBeDeleted = array[numbers[0] - 1];
+				if(!toBeDeleted)
+					throw Error('Bad index.');
 				const prompt = `Are you sure you wish to delete "${(toBeDeleted as Atom).Name ?? (toBeDeleted as FateFractal).FractalName}"?${
 					toBeDeleted instanceof FateFractal ? `\n"${toBeDeleted.FractalName}" is a fractal.` : ''}`;
 				if (await confirmationDialogue(message, prompt)) {

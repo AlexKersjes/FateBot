@@ -26,7 +26,7 @@ export class detailCommand implements ICommand{
 			if(!character.Details)
 				throw Error('No details to delete.')
 			let detail : Atom | undefined;
-			if(isNaN(parseInt(args[0])))
+			if(!isNaN(parseInt(args[0])))
 				detail = character.Details[parseInt(args[0]) - 1];
 			else
 				detail = character.Details.find(d => d.match(args.join(' ')));

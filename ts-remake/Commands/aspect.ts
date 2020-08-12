@@ -22,7 +22,13 @@ export class aspectCommand implements ICommand {
 	async execute(message: Message, args: string[], client: Client, save: SaveGame): Promise<void | string> {
 		let skipFinally = false;
 		let commandOptions: string = '';
+		const Numbers : number [] = []
+		const checkForNumbers = (commandOptions.includes('bo') || commandOptions.includes('co') || commandOptions.includes('r'));
 		args = args.filter(a => {
+			if(!isNaN(parseInt(a)) && checkForNumbers) {
+				Numbers.push(parseInt(a));
+				return false;
+			}
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
@@ -56,7 +62,7 @@ export class aspectCommand implements ICommand {
 		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal(this.typename, commandOptions, save, message, player));
 
 		try{
-			await OptionalDeleteByIndex(this.typename, fractal.Aspects, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
+			await OptionalDeleteByIndex(this.typename, fractal.Aspects, Numbers, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
 		}
 		catch (reject) {
 			if(reject instanceof Error)
@@ -138,11 +144,11 @@ export class aspectCommand implements ICommand {
 				const MatchedAspect = matched[0];
 
 				if (commandOptions.includes('co')) {
-					MatchedAspect.InvokeCost = await getIntResponse(message, 'Provide cost to invoke Aspect:');
+					MatchedAspect.InvokeCost = Numbers.shift() ?? await getIntResponse(message, 'Provide cost to invoke Aspect:');
 					return `Invoke cost set to ${MatchedAspect.InvokeCost}`;
 				}
 				if(commandOptions.includes('bo')) {
-					MatchedAspect.BonusShifts = await getIntResponse(message, 'Provide invocation bonus:');
+					MatchedAspect.BonusShifts = Numbers.shift() ?? await getIntResponse(message, 'Provide invocation bonus:');
 					return `Invoke bonus set to ${MatchedAspect.BonusShifts}`;
 				}
 

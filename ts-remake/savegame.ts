@@ -5,6 +5,7 @@ import { FateOptions, FateVersion } from './options';
 import { ChannelDictionary } from './channelstructure';
 import { serialize , deserialize } from 'class-transformer';
 import { FateFractal } from './fatefractal';
+import { ClientResources } from './singletons';
 export class SaveGame {
 	@Exclude()
 	private _dirty : boolean = false;
@@ -23,6 +24,10 @@ export class SaveGame {
 	ChannelDictionary: ChannelDictionary = new ChannelDictionary();
 	@Type(() => FateFractal)
 	GlobalSituation: FateFractal = new FateFractal('Global situation', this.Options, true);
+	
+	@Exclude()
+	CurrentFolder: undefined | string;
+	SaveTimer: number | undefined;
 
 	constructor(GameName: string, CurrentGuild : string, version : FateVersion) {
 		this.GameName = GameName;
@@ -48,6 +53,8 @@ export class SaveGame {
 	}
 
 	onLoad() {
+		if(this.SaveTimer && this.CurrentGuild)
+			ClientResources.setSave(this.CurrentGuild, this, this.SaveTimer);
 		this.getAllToplevelFractals().forEach(f => f.RepairConnections());
 	}
 

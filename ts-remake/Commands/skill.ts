@@ -24,19 +24,39 @@ export class skillCommand implements ICommand {
 
 		const player = save.getPlayerAuto(message);
 		let commandOptions: string = '';
+		let Numbers: number[] = []
 		args = args.filter(a => {
+			if (!isNaN(parseInt(a))) {
+				Numbers.push(parseInt(a));
+				return false
+			}
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
 			}
-			if(a.startsWith('<@'))
+			if (a.startsWith('<@'))
 				return false;
 			return true;
 		});
 
 		let fractal: FateFractal;
-		let situationCommand : boolean = false;
+		let situationCommand: boolean = false;
 		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal('Skill', commandOptions, save, message, player));
+
+
+		if (save.Options.GMCheck(message.author.id) && commandOptions.includes('point')) {
+			const value = Numbers.shift() ?? 1;
+			let pointlist = fractal.Skills.getActive();
+			if (pointlist == undefined)
+				throw Error('This character has no skill lists. Add a list before adding points.');
+			if (commandOptions.includes('l')) {
+				const temp = fractal.Skills.FindList(args.join(' '));
+				if (temp != undefined)
+					pointlist = temp;
+			}
+			pointlist.AddSkillPoints(value)
+			return `${value} skill point${value > 1 ? 's were' : ' was'} added to ${pointlist.ListName}.`;
+		}
 
 		if (commandOptions.includes('o')) {
 			const currentList = fractal.Skills.rotate();
@@ -46,18 +66,6 @@ export class skillCommand implements ICommand {
 		}
 
 
-
-		// Filter out numbers		
-		let Numbers: number[] = []
-		const argsCopy: string[] = [];
-		args.forEach(a => {
-			const parsed = parseInt(a);
-			if (!isNaN(parsed))
-				Numbers.push(parsed);
-			else
-				argsCopy.push(a);
-		});
-		args = argsCopy;
 
 
 		let SkillName = args.join(' ');
@@ -93,7 +101,6 @@ export class skillCommand implements ICommand {
 				SkillName = SecondSkillName;
 			}
 			else {
-				console.log('here');
 				const input = await getGenericResponse(message, 'Provide a name for the skill list you wish to make or select:');
 				currentList = fractal.Skills.FindList(input);
 				if (currentList == undefined) {
@@ -106,29 +113,24 @@ export class skillCommand implements ICommand {
 			}
 
 			if (commandOptions.includes('lp')) {
+				console.log('here');
 				fractal.Skills.setActive(currentList);
 				message.channel.send(`${currentList.ListName} is now your primary skill list.`);
-				if(SkillName == '')
+				if (SkillName == '')
 					return currentList.toString(false);
 			}
 		}
 
 
-		if(save.Options.GMCheck(message.author.id) && commandOptions.includes('point'))	{
-			const value = Numbers.shift() ?? 1;
-			currentList.AddSkillPoints(value)
-			return `${value} skill point${value > 1 ? 's' : ''} were added to ${currentList.ListName}.`;
-		}
-
 		// Put the string back together without prefixes.
 		if (SkillName == '' && !(commandOptions.includes('l') && commandOptions.includes('r')))
-			SkillName = await getGenericResponse(message, `Please provide a${save.Options.FateVersion == FateVersion.Accelerated ? 'n ' : ' ' + skillTerm} name:`);
+			SkillName = await getGenericResponse(message, `Please provide a${(save.Options.FateVersion == FateVersion.Accelerated ? 'n ' : ' ') + skillTerm} name:`);
 
 
 		let matched = currentList.FindSkill(SkillName);
-		if(matched == undefined) {
+		if (matched == undefined) {
 			matched = currentList.FindSkill(args[0]);
-			if(matched != undefined)
+			if (matched != undefined)
 				SecondSkillName = args[1] ?? '';
 		}
 
@@ -165,8 +167,8 @@ export class skillCommand implements ICommand {
 					else
 						throw Error(`No matches found for "${SkillName}".`);
 
-				if(!save.Options.GMCheck(message.author.id) && save.Options.PrefillSkills) {
-					throw Error(skillTerm +'s other than the default set are restricted by GM permission while the automatic list prefill is enabled.')
+				if (!save.Options.GMCheck(message.author.id) && save.Options.PrefillSkills) {
+					throw Error(skillTerm + 's other than the default set are restricted by GM permission while the automatic list prefill is enabled.')
 				}
 				// Create new Skill case
 				let rating = Numbers.shift() ?? await getIntResponse(message, `No match found. Supply a rating to create a new ${skillTerm}:`)
@@ -174,7 +176,7 @@ export class skillCommand implements ICommand {
 				let returnstring = `Created ${skillTerm} "${newskill.Name}"${fractal.Skills.Lists.length > 1 ? ' , on list ' + currentList.ListName : ''}.`;
 
 				if (commandOptions.includes('a')) {
-					if(SecondSkillName == '')
+					if (SecondSkillName == '')
 						SecondSkillName = await getGenericResponse(message, `Attach "${newskill.Name}" to:`);
 					try {
 						returnstring += '\n' + fractal.Skills.Attach(newskill.Name, SecondSkillName);
@@ -190,10 +192,10 @@ export class skillCommand implements ICommand {
 				if (commandOptions.includes('r')) {
 					if (await confirmationDialogue(message, `Are you sure you wish to delete "${matched.Name}"?`)) {
 						currentList.DeleteSkill(matched);
-						return(matched.Name + ' was deleted.')
+						return (matched.Name + ' was deleted.')
 					}
 					else
-						throw Error( `Cancelled ${skillTerm} deletion.`);
+						throw Error(`Cancelled ${skillTerm} deletion.`);
 				}
 
 				if (commandOptions.includes('d')) {
@@ -205,7 +207,7 @@ export class skillCommand implements ICommand {
 					return fractal.Skills.Attach(matched.Name, SecondSkillName != '' ? SecondSkillName : await getGenericResponse(message, `Attach "${matched.Name}" to:`));
 				}
 
-				let rating = Numbers.shift() ??  await getIntResponse(message, `Supply a value to adjust the rating of "${matched.Name}" by:`);
+				let rating = Numbers.shift() ?? await getIntResponse(message, `Supply a value to adjust the rating of "${matched.Name}" by:`);
 				currentList.AdjustSkillValue(matched, rating, save.Options, message.author.id);
 				return `Adjusted ${skillTerm} "${matched.Name}" by ${rating} to ${matched.Value}${fractal.Skills.Lists.length > 1 ? ' , on list ' + currentList.ListName : ''}.`
 			}

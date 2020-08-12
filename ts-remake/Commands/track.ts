@@ -22,7 +22,12 @@ export class trackCommand implements ICommand {
 		let skipFinally = false;
 		let commandOptions: string = '';
 		let player: Player = save.getPlayerAuto(message);
+		const Numbers: number[] = [];
 		args = args.filter(a => {
+			if(!isNaN(parseInt(a))) {
+				Numbers.push(parseInt(a))
+				return false;
+			}
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
@@ -38,24 +43,13 @@ export class trackCommand implements ICommand {
 		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal(this.typename, commandOptions, save, message, player));
 
 		try {
-			await OptionalDeleteByIndex(this.typename, fractal.Aspects, commandOptions, save, args, message, fractal).catch(reject => { throw reject })
+			await OptionalDeleteByIndex(this.typename, fractal.Aspects, Numbers, commandOptions, save, args, message, fractal).catch(reject => { throw reject })
 		}
 		catch (reject) {
 			if (reject instanceof Error)
 				throw reject
 			return (reject as string);
 		}
-
-		const Numbers: number[] = [];
-		const argsCopy: string[] = [];
-		args.forEach(a => {
-			const parsed = parseInt(a);
-			if (!isNaN(parsed))
-				Numbers.push(parsed);
-			else
-				argsCopy.push(a);
-		});
-		args = argsCopy;
 
 		// Put the string back together without prefixes.
 		if (args.length == 0)

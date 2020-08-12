@@ -24,7 +24,20 @@ export class stuntCommand implements ICommand {
 		let skipFinally = false;
 		const player = save.getPlayerAuto(message);
 		let commandOptions: string = '';
+		let expectedNumbers = 0;
+		if (commandOptions.includes('c'))
+			expectedNumbers++;
+		if (commandOptions.includes('b'))
+			expectedNumbers++;
+		if (commandOptions.includes('u'))
+			expectedNumbers++;
+		let Numbers: number[] = []
+
 		args = args.filter(a => {
+			if(!isNaN(parseInt(a))&& expectedNumbers > 0) {
+				Numbers.push(parseInt(a));
+				return false;
+			}
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
@@ -39,7 +52,7 @@ export class stuntCommand implements ICommand {
 		({ fractal, commandOptions, situationCommand } = CharacterOrOptionalSituationFractal(this.typename, commandOptions, save, message, player));
 
 		try{
-			await OptionalDeleteByIndex(this.typename, fractal.Stunts, commandOptions, save, args, message, fractal).catch(reject => {throw reject})
+			await OptionalDeleteByIndex(this.typename, fractal.Stunts, Numbers,commandOptions, save, args, message, fractal).catch(reject => {throw reject})
 		}
 		catch (reject) {
 			if(reject instanceof Error)
@@ -47,28 +60,7 @@ export class stuntCommand implements ICommand {
 			return (reject as string);
 		}
 
-		let expectedNumbers = 0;
-		if (commandOptions.includes('c'))
-			expectedNumbers++;
-		if (commandOptions.includes('b'))
-			expectedNumbers++;
-		if (commandOptions.includes('u'))
-			expectedNumbers++;
-		let Numbers: number[] = []
-
-		// Filter out numbers unless none are expected
-		if (expectedNumbers > 0) {
-			const argsCopy: string[] = [];
-			args.forEach(a => {
-				const parsed = parseInt(a);
-				if (!isNaN(parsed))
-					Numbers.push(parsed);
-				else
-					argsCopy.push(a);
-			});
-			args = argsCopy;
-		}
-
+		
 		// Put the string back together without prefixes.
 		if (args.length == 0)
 			args = await (await getGenericResponse(message, 'Please provide a Stunt name:')).split(' ');

@@ -1,10 +1,10 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame, Player, Folder } from '../savegame';
-import { getGenericResponse } from "../responsetools";
+import { getGenericResponse, confirmationDialogue } from "../responsetools";
 import { FateFractal } from "../fatefractal";
 import { HelpText } from "./_CommandHelp";
-import { plainToClass, classToClass } from "class-transformer";
+import { classToClass } from "class-transformer";
 
 @ICommands.register
 export class charselectCommand implements ICommand {
@@ -33,12 +33,44 @@ export class charselectCommand implements ICommand {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
 			}
-			if(a.startsWith('<@'))
+			if (a.startsWith('<@'))
 				return false;
 			return true;
 		});
 
 		switch (args[0].toLowerCase()) {
+			case 'cd':
+			case 'dir':
+			case 'folder':
+			case 'touch':
+				if (!save.Options.GMCheck(message.author.id))
+					throw Error('GM permission required.')
+				args = args.slice(1);
+				if (!args[0] || args[0] == '..' || args[0] == '../') {
+					save.CurrentFolder = undefined;
+					return 'Current folder reset.';
+				}
+				let folderToCd = save.Folders.find(f => f.FolderName == args[0]);
+				if (!folderToCd) {
+					if (await confirmationDialogue(message, `Could not find folder ${args[0]}. Do you wish to create a new a new folder named "${args[0]}"?`)) {
+						let newFolder = new Folder(args[0])
+						save.Folders.push(newFolder);
+						save.CurrentFolder = newFolder.FolderName;
+						return `Created folder ${args[0]}`;
+					}
+					else
+						return;
+				}
+				if(commandOptions.includes('r')) {
+					if(await confirmationDialogue(message, `Are you sure you wish to delete folder ${folderToCd.FolderName} and ALL ITS CONTENTS?`))
+					{
+						save.Folders.splice(save.Folders.indexOf(folderToCd), 1);
+						return `Deleted folder ${folderToCd.FolderName}.`
+					}
+					return 'Cancelled folder deletion.'
+				}
+				save.CurrentFolder = folderToCd.FolderName;
+				return `Selected folder ${folderToCd.FolderName}.`;
 			case 'i':
 			case 'ice':
 			case 'icebox':
@@ -51,15 +83,21 @@ export class charselectCommand implements ICommand {
 						args = args.slice(1);
 					}
 					else {
-						let foldname = save.Options.GMCheck(player.id) ? charselectCommand.gmdefault : charselectCommand.playerdefault;
+						let foldname = save.Options.GMCheck(player.id) ? save.CurrentFolder ?? charselectCommand.gmdefault : charselectCommand.playerdefault;
 						folder = save.Folders.find(f => f.FolderName == foldname)
 						if (!folder)
-							throw Error(`Could not find folder ${foldname}`);
+							throw Error(`Could not find folder ${foldname}.`);
 					}
 					return iceboxFractalFromSheet(commandOptions, player, args, folder);
 				}
 				return IceBoxProcedure(save, player, args[0]);
-
+			case 'trash':
+				if (player.id != message.author.id)
+					throw Error('Trashing other people\'s characters for them is forbidden!')
+				if (!loadedCharacter)
+					throw Error('You have no character to trash.')
+				player.CurrentCharacter = undefined;
+				return `Trashed ${loadedCharacter?.FractalName}.`;
 			case 'l':
 			case 'load':
 			case 'charload':
@@ -73,7 +111,7 @@ export class charselectCommand implements ICommand {
 					args = args.slice(1);
 				}
 				else {
-					let foldname = save.Options.GMCheck(player.id) ? charselectCommand.gmdefault : charselectCommand.playerdefault;
+					let foldname = save.Options.GMCheck(player.id) ? save.CurrentFolder ?? charselectCommand.gmdefault : charselectCommand.playerdefault;
 					folder = save.Folders.find(f => f.FolderName == foldname)
 					if (!folder)
 						throw Error(`Could not find folder ${foldname}`);
@@ -85,9 +123,9 @@ export class charselectCommand implements ICommand {
 				if (charToLoad == undefined)
 					throw Error(`Could not find match for "${matchString}" in ${folder.FolderName}.`)
 
-				if (!(commandOptions.includes('a')||commandOptions.includes('c')||commandOptions.includes('s'))) {
+				if (!(commandOptions.includes('a') || commandOptions.includes('c') || commandOptions.includes('s'))) {
 					if (loadedCharacter != undefined) {
-						const response = (await getGenericResponse(message, `Do you wish to icebox ${loadedCharacter.FractalName}?\n'Cancel' will cancel the procedure.\n'Yes' or 'y' will store in the default folder.\n'No' will have your current character overwritten and lost.\nOther responses will try to match an existing folder to store the character:`).catch(() => {throw Error('Aborted loading procedure.')})).toLowerCase();
+						const response = (await getGenericResponse(message, `Do you wish to icebox ${loadedCharacter.FractalName}?\n'Cancel' will cancel the procedure.\n'Yes' or 'y' will store in the default folder.\n'No' will have your current character overwritten and lost.\nOther responses will try to match an existing folder to store the character:`).catch(() => { throw Error('Aborted loading procedure.') })).toLowerCase();
 						if (response == 'yes' || response == 'y')
 							message.channel.send(IceBoxProcedure(save, player, undefined));
 						else if (response != 'no')
@@ -105,7 +143,7 @@ export class charselectCommand implements ICommand {
 					charToLoad.RepairConnections();
 				}
 
-				if(!save.Options.UseConditions) {
+				if (!save.Options.UseConditions) {
 					charToLoad.convertConditionsToAspects(save.Options);
 				}
 
@@ -122,7 +160,7 @@ export class charselectCommand implements ICommand {
 						return `"${charToLoad.FractalName}" was attached as an Stunt to "${loadedCharacter.FractalName}".`
 					}
 					else if (commandOptions.includes('c')) {
-						if(!save.Options.UseConditions)
+						if (!save.Options.UseConditions)
 							throw Error('Conditions are disabled.')
 						loadedCharacter.Conditions.unshift(charToLoad);
 						return `"${charToLoad.FractalName}" was attached as an Condition to "${loadedCharacter.FractalName}".`
@@ -152,7 +190,73 @@ export class charselectCommand implements ICommand {
 				return str;
 			case 'mv':
 			case 'move':
-				throw Error('Move is not implemented yet.'); //TODO
+				args = args.slice(1);
+				let sourcefolder = save.Folders.find(f => f.FolderName == args[0]);
+				if (sourcefolder) {
+					if (!save.Options.GMCheck(player.id) && !save.Options.PlayerPermittedFolders.includes(sourcefolder.FolderName))
+						throw Error('You do not have permission to move from that folder.');
+					args = args.slice(1);
+				}
+				else {
+					let foldname = save.Options.GMCheck(player.id) ? save.CurrentFolder ?? charselectCommand.gmdefault : charselectCommand.playerdefault;
+					sourcefolder = save.Folders.find(f => f.FolderName == foldname)
+					if (!sourcefolder)
+						throw Error(`Could not find folder ${foldname}.`);
+				}
+				let tomatch : string | undefined;
+				if (args.includes('|')) {
+					args = args.slice(args.indexOf('|') + 1);
+					tomatch = args.slice(0, args.indexOf('|')).join(' ');
+				}
+				else {
+					tomatch = args.join(' ');
+					args = [];
+				}
+				tomatch = tomatch ?? await getGenericResponse(message, 'Which entry do you wish to move?')
+				const foundSource = sourcefolder.findCharacter(tomatch);
+				if(!foundSource)
+					throw Error(`No entry in folder ${sourcefolder.FolderName} matches "${tomatch}".`)
+
+				if(args.length == 0){
+					args = (await getGenericResponse(message, 'To which folder and/or under what name?')).split(' ');
+				}
+
+
+				let targetfolder = save.Folders.find(f => f.FolderName == args[0]);
+				if (targetfolder) {
+					if (!save.Options.GMCheck(player.id) && !save.Options.PlayerPermittedFolders.includes(targetfolder.FolderName))
+						throw Error('You do not have permission to move from that folder.');
+					args = args.slice(1);
+				}
+				else {
+					let foldname = save.Options.GMCheck(player.id) ? save.CurrentFolder ?? charselectCommand.gmdefault : charselectCommand.playerdefault;
+					targetfolder = save.Folders.find(f => f.FolderName == foldname)
+					if (!targetfolder)
+						throw Error(`Could not find folder ${foldname}.`);
+				}
+
+				save.dirty();
+				let newname = args.join(' ');
+				if(sourcefolder === targetfolder) {
+					if(args.length == 0) {
+						newname = await getGenericResponse(message, `${foundSource.FractalName} is already in folder ${sourcefolder.FolderName}. Enter a new name:\nTo not rename, use 'stop' or 'cancel'.`);
+					}
+					let oldname = foundSource.FractalName;
+					foundSource.FractalName = newname;
+					return `${oldname} was renamed to ${newname}.`;
+				}
+
+		
+				if(args.length != 0) {
+					let oldname = foundSource.FractalName;
+					foundSource.FractalName = newname;
+					message.channel.send( `${oldname} was renamed to ${newname}.`);
+				}
+
+				if(!commandOptions.includes('cp'))
+					sourcefolder.remove(foundSource);
+				targetfolder.add(foundSource);
+				return `${commandOptions.includes('cp') ? 'Copied' : 'Moved'} ${foundSource.FractalName} from ${sourcefolder.FolderName} to ${targetfolder.FolderName}.`
 		}
 
 	}
@@ -234,12 +338,14 @@ function iceboxFractalFromSheet(commandOptions: string, player: Player, args: st
 			return false;
 		});
 		if (!(match instanceof FateFractal))
-			throw Error('Could not find matching Aspect/Fractal to icebox.');
+			throw Error('Could not find matching Stunt/Fractal to icebox.');
 		player.CurrentCharacter.Stunts.splice(player.CurrentCharacter.Stunts.indexOf(match), 1);
 	}
-	if (!commandOptions.includes('r') || !(match instanceof FateFractal)) {
+	if (!commandOptions.includes('r')) {
 		folder.add(match);
 		return (`Iceboxed ${match?.FractalName} in ${folder.FolderName}.`)
 	}
+	if (!match)
+		throw Error('Must specify which category a fractal should be removed from.')
 	return (`Removed fractal ${match.FractalName} from ${player.CurrentCharacter}'s sheet.`)
 }

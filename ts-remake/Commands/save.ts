@@ -1,7 +1,6 @@
 import { ICommands, ICommand } from "../command";
 import { Message, Client } from "discord.js";
 import { SaveGame } from '../savegame';
-import { setInterval } from "timers";
 import { ClientResources } from "../singletons";
 
 @ICommands.register
@@ -23,6 +22,7 @@ export class saveCommand implements ICommand{
 				throw Error('Game is not loaded anywhere.');
 			if (args[0] == 'stop'){
 				ClientResources.stopSave(save.CurrentGuild);
+				save.SaveTimer = undefined;
 				return `Stopped autosaver.`;
 			}
 			const number = parseInt(args[0]);
@@ -31,7 +31,7 @@ export class saveCommand implements ICommand{
 			if (number < 1)
 				throw Error('Autosave timer has to be at least 1 minute.');
 			ClientResources.setSave(save.CurrentGuild, save, number);
-
+			save.SaveTimer = number;
 			return `Set autosave for ${number} minutes and saved.`;
 		}
 		

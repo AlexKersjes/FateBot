@@ -23,16 +23,17 @@ export class markCommand implements ICommand {
 		let commandOptions: string = '';
 		const Numbers: number[] = [];
 		args = args.filter(a => {
+			if (!isNaN(parseInt(a))) {
+				Numbers.push(parseInt(a));
+				return false;
+			}
 			if (a.startsWith('-')) {
 				commandOptions = a.substr(1).toLowerCase();
 				return false;
 			}
 			if (a.startsWith('<@'))
 				return false;
-			if (!isNaN(parseInt(a))) {
-				Numbers.push(parseInt(a));
-				return false;
-			}
+		
 			return true;
 		});
 

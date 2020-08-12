@@ -21,7 +21,8 @@ export function sheetembed(character : FateFractal, Options: FateOptions, member
 	if(character.Tracks.length != 0) {embed.addBlankField();}
 	character.Tracks.forEach(boxaspect =>
 	{
-		embed.addField(boxaspect.Name, boxaspect.BoxesString(), true);
+		if(!boxaspect.Hidden)
+			embed.addField(boxaspect.Name, boxaspect.BoxesString(), true);
 	},
 	);
 	if(character.Skills != undefined)
