@@ -4,7 +4,7 @@ import { SaveGame, Player } from '../savegame';
 import { FateFractal } from "../fatefractal";
 import { CharacterOrOptionalSituationFractal, OptionalDeleteByIndex } from "../commandtools";
 import { getGenericResponse, getIntResponse, confirmationDialogue } from "../responsetools";
-import { Track, ConditionSeverity, Condition } from "../dataelements";
+import { Track, ConditionSeverity, Condition, Aspect } from "../dataelements";
 
 @ICommands.register
 export class trackCommand implements ICommand {
@@ -172,6 +172,17 @@ export class trackCommand implements ICommand {
 							const newCond = new Condition(ConditionName, MatchedTrack.CreatesCondition, CondDesc);
 							fractal.Conditions.push(newCond);
 							return `${fractal.FractalName}'s ${MatchedTrack.Name} was marked and created **${newCond.Name}** <${ConditionSeverity[newCond.Severity]}>${newCond.Description ? ', ' + newCond.Description : ''}.`
+						}
+						else {
+							const ConditionName = await getGenericResponse(message, `Name a new Consequence:`)
+							let CondDesc;
+							if (commandOptions.includes('d'))
+								CondDesc = await getGenericResponse(message, `Provide a description for **${ConditionName}**:`);
+							const newCons = new Aspect(ConditionName, CondDesc);
+							fractal.Aspects.push(newCons);
+							fractal.updateActiveSheets(save.Options);
+							return `${fractal.FractalName}'s ${newCons.Name} was marked and created **${newCons.Name}**${newCons.Description ? ', ' + newCons.Description : ''}.`
+						
 						}
 					}
 

@@ -67,7 +67,7 @@ export class renameCommand implements ICommand{
 		const match = getMatchFromArray(fields, inputstring);
 		if(match == undefined)
 			throw Error(`Could not find a match for "${inputstring}".`);
-		fields = fields.splice(fields.indexOf(match));
+		fields.splice(fields.indexOf(match), 1);
 
 		const oldname = match instanceof FateFractal ? match.FractalName : match.Name;
 		if(newname == '')

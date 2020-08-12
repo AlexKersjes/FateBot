@@ -30,7 +30,7 @@ export function sheetembed(character : FateFractal, Options: FateOptions, member
 
 		if(skills != undefined){
 			embed.addBlankField()
-				.addField(skills.ListName, skills.toString());
+				.addField(skills.ListName, skills.toString(true));
 		}
 		else if (!character.NPC) {
 			embed.addBlankField()

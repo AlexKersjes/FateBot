@@ -20,7 +20,7 @@ export function getGenericResponse(message: Discord.Message, prompt: string): Pr
 				throw Error('Collected something that was not a message.');
 			toBeDeletedMessages?.push(m);
 			if(m.content.toLowerCase() == 'cancel'  || m.content.toLowerCase() == 'stop')
-				return reject('Operation cancelled.')
+				return reject(Error('Operation cancelled.'))
 			return resolve(m.content);
 		});
 		// timeout message
@@ -43,7 +43,7 @@ export function getIntResponse(message: Discord.Message, prompt: string): Promis
 				throw Error('Collected something that was not a message.');
 			toBeDeletedMessages?.push(m);
 			if(m.content.toLowerCase() == 'cancel'  || m.content.toLowerCase() == 'stop')
-				return reject('Operation cancelled.');
+				return reject(Error('Operation cancelled.'));
 			const returnnumber: number =  parseInt(m.content);
 			if(isNaN(returnnumber))
 				return reject('Expected an integer.');
@@ -69,8 +69,8 @@ export function getPlayerFromMentionIfUndefined(invokeMention: Player | undefine
 			ClientResources.Executing.get(message.author.id)?.push(m);
 			let p = save.Players.find(p => p.id == ((m as Discord.Message).mentions.members?.first()?.id));
 			if (p == undefined)
-				reject('Could not find player mention, or that player has no sheet.');
-			resolve(p);
+				return reject(Error('Could not find player mention, or that player has no sheet.'));
+			return resolve(p);
 		});
 		// timeout message
 		collector.on('end', (s, r) => {
@@ -93,13 +93,13 @@ export function confirmationDialogue(message: Discord.Message, prompt: string): 
 				throw Error('Collected something that was not a message.');
 			toBeDeletedMessages?.push(m);
 			if(m.content.toLowerCase() == 'cancel'  || m.content.toLowerCase() == 'stop')
-				return reject('Operation cancelled.')
+				return reject(new Error('Operation cancelled.'))
 			return resolve(m.content.toLowerCase() == 'yes' || m.content.toLowerCase() == 'y' ? true : false);
 		});
 		// timeout message
 		collector.on('end', (s, r) => {
 			if (r == 'time')
-				return reject(Error('Timed out.'));
+				return reject(new Error('Timed out.'));
 		});
 	}).catch(err => { throw err });
 }

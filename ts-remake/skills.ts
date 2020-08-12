@@ -49,7 +49,7 @@ export class SkillLibrary {
 	}
 
 	FindList(input: string) : SkillList | undefined {
-		if(input = '')
+		if(input == '')
 			return undefined;
 		return this.Lists.find(l => l.match(input));
 	}
@@ -252,17 +252,17 @@ export class SkillList {
 				str = str.slice(0, -2);
 				currentValue = s.Value;
 				if(currentValue != 0 || !neat)
-					str += `\n${currentValue > 0 ? '+' : '' + currentValue } : `; 
+					str += `\n${currentValue > 0 ? '+' + currentValue : currentValue } : `; 
 			}
 			str += `${s.Name}, `
 		});
-		str.slice(0, -2);
+		str = str.slice(0, -2);
 		if (str.length == 0)
 			return 'Skills are set at 0';
 		return str;
 	}
 
-	constructor(Name = '', Options: FateOptions = new FateOptions(FateVersion.Core), prefill: boolean = false){
+	constructor(Name = '', Options: FateOptions = new FateOptions(FateVersion.Core), prefill: boolean = true){
 		this.ListName = Name;
 		if(Name == '')
 			this.ListName = (Options.FateVersion == FateVersion.Accelerated) ? 'Approaches' : 'Skills';
@@ -284,6 +284,8 @@ class _Skill implements Skill {
 	get attachedSkillName () : string | undefined  { return this._attachedSkillName};
 
 	constructor(Name: string = 'Unnamed', Value: number = 0) {
+		if(Name.length > 50)
+		{ throw Error('Skills cannot have names longer than 50 characters.') }
 		this.Name = Name[0].toUpperCase() + Name.slice(1);
 		this.Value = Value;
 	}

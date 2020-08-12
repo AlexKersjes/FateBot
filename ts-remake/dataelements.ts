@@ -4,8 +4,12 @@ import { FateOptions } from './options';
 import { plainToClass } from 'class-transformer';
 
 export class Atom {
-	Name: string;
-	Description: string | undefined = undefined;
+	private _name : string = '';
+	private _description: string | undefined;
+	set Name (value : string) { if(value.length > 100) throw Error('Names over 100 characters are not allowed.'); this._name = value }
+	get Name () { return this._name; }
+	set Description (value : string | undefined) { if(value && value.length > 800) throw Error('Descriptions over 800 characters are not allowed.'); this._description = value }
+	get Description (): string | undefined { return this._description };
 	Hidden: boolean | undefined = undefined;
 
 
@@ -214,14 +218,6 @@ export class Aspect extends Invokable(Atom)
 }
 export class Boost extends Aspect {
 	Boost: boolean = true;
-	TryFreeInvoke(UserId: string): boolean {
-		try {
-			return super.TryFreeInvoke(UserId);
-		}
-		finally {
-			throw this;
-		}
-	}
 	constructor(Name: string) { super(Name) }
 }
 export class Condition extends Conditionable(Invokable(Atom))
